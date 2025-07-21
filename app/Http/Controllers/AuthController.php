@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Usuario;
+use App\Models\NivelAcesso;
+
+class AuthController extends Controller
+{
+    /**
+     * Exibe o formulário de login
+     */
+    public function showLogin()
+    {
+        if (Auth::check()) {
+            return redirect()->route('painel');
+        }
+        
+        return view('auth.login');
+    }
+
+    /**
+     * Processa o login
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ], [
+            'email.required' => 'O campo email é obrigatório.',
+            'email.email' => 'Digite um email válido.',
+            'password.required' => 'O campo senha é obrigatório.'
+        ]);
+
+        $credentials = $request->only('email', 'password');
+        
+        // Verifica se o usuário existe e está ativo
+        $usuario = Usuario::where('email', $credentials['email'])
+                         ->where('ativo', true)
+                         ->first();
+
+        if (!$usuario) {
+            return back()->withErrors([
+                'email' => 'Usuário não encontrado ou inativo.'
+            ])->withInput();
+        }
+
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $request->session()->regenerate();
+            
+            // Atualiza último login
+            $usuario->ultimo_login = now();
+            $usuario->save();
+
+            return redirect()->intended(route('painel'));
+        }
+
+        return back()->withErrors([
+            'email' => 'As credenciais fornecidas não conferem com nossos registros.'
+        ])->withInput();
+    }
+
+    /**
+     * Exibe o formulário de cadastro
+     */
+    public function showCadastro()
+    {
+        $niveisAcesso = NivelAcesso::where('ativo', true)->get();
+        return view('auth.cadastro', compact('niveisAcesso'));
+    }
+
+    /**
+     * Processa o cadastro
+     */
+    public function cadastro(Request $request)
+    {
+        $request->validate([
+            'nome' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:usuarios',
+            'password' => 'required|string|min:6|confirmed',
+            'telefone' => 'nullable|string|max:20',
+            'cpf' => 'nullable|string|max:14|unique:usuarios',
+            'nivel_acesso_id' => 'required|exists:niveis_acesso,id'
+        ], [
+            'nome.required' => 'O campo nome é obrigatório.',
+            'email.required' => 'O campo email é obrigatório.',
+            'email.email' => 'Digite um email válido.',
+            'email.unique' => 'Este email já está em uso.',
+            'password.required' => 'O campo senha é obrigatório.',
+            'password.min' => 'A senha deve ter pelo menos 6 caracteres.',
+            'password.confirmed' => 'A confirmação da senha não confere.',
+            'cpf.unique' => 'Este CPF já está em uso.',
+            'nivel_acesso_id.required' => 'Selecione um nível de acesso.',
+            'nivel_acesso_id.exists' => 'Nível de acesso inválido.'
+        ]);
+
+        $usuario = Usuario::create([
+            'nome' => $request->nome,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'telefone' => $request->telefone,
+            'cpf' => $request->cpf,
+            'nivel_acesso_id' => $request->nivel_acesso_id,
+            'ativo' => true
+        ]);
+
+        Auth::login($usuario);
+
+        return redirect()->route('painel')->with('success', 'Cadastro realizado com sucesso!');
+    }
+
+    /**
+     * Processa o logout
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Logout realizado com sucesso!');
+    }
+}
