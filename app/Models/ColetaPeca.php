@@ -56,21 +56,21 @@ class ColetaPeca extends Model
         });
 
         static::saved(function ($coletaPeca) {
-            // Atualiza totais da coleta
-            $coleta = $coletaPeca->coleta;
-            $coleta->peso_total = $coleta->pecas()->sum('peso');
-            $coleta->valor_total = $coleta->pecas()->sum('subtotal');
-            $coleta->save();
+            // Recalcular totais da coleta apenas se a coleta existir
+            if ($coletaPeca->coleta && $coletaPeca->coleta->exists) {
+                $coletaPeca->coleta->calcularTotais();
+            }
         });
 
         static::deleted(function ($coletaPeca) {
-            // Atualiza totais da coleta após exclusão
-            $coleta = $coletaPeca->coleta;
-            $coleta->peso_total = $coleta->pecas()->sum('peso');
-            $coleta->valor_total = $coleta->pecas()->sum('subtotal');
-            $coleta->save();
+            // Recalcular totais da coleta após exclusão
+            if ($coletaPeca->coleta && $coletaPeca->coleta->exists) {
+                $coletaPeca->coleta->calcularTotais();
+            }
         });
     }
+
+
 
     /**
      * Accessor para subtotal formatado

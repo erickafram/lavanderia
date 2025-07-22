@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Sistema de Gestão de Lavanderia')</title>
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <title><?php echo $__env->yieldContent('title', 'Sistema de Gestão de Lavanderia'); ?></title>
 
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -46,7 +46,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-50 font-sans text-sm">
     <div class="flex min-h-screen">
@@ -76,7 +76,7 @@
                 <!-- Menu -->
                 <ul class="space-y-1">
                     <li>
-                        <a href="{{ route('painel') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('painel') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('painel')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('painel') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v3H8V5z"></path>
@@ -85,60 +85,60 @@
                         </a>
                     </li>
 
-                    @if(auth()->user()->temPermissao('estabelecimentos.visualizar'))
+                    <?php if(auth()->user()->temPermissao('estabelecimentos.visualizar')): ?>
                     <li>
-                        <a href="{{ route('estabelecimentos.index') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('estabelecimentos.*') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('estabelecimentos.index')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('estabelecimentos.*') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                             Estabelecimentos
                         </a>
                     </li>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(auth()->user()->temPermissao('coletas.visualizar'))
+                    <?php if(auth()->user()->temPermissao('coletas.visualizar')): ?>
                     <li>
-                        <a href="{{ route('coletas.index') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('coletas.*') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('coletas.index')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('coletas.*') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             Coletas
                         </a>
                     </li>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(auth()->user()->temPermissao('pesagem.visualizar'))
+                    <?php if(auth()->user()->temPermissao('pesagem.visualizar')): ?>
                     <li>
-                        <a href="{{ route('pesagem.index') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('pesagem.*') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('pesagem.index')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('pesagem.*') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"></path>
                             </svg>
                             Pesagem
                         </a>
                     </li>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(auth()->user()->temPermissao('empacotamento.visualizar'))
+                    <?php if(auth()->user()->temPermissao('empacotamento.visualizar')): ?>
                     <li>
-                        <a href="{{ route('empacotamento.index') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('empacotamento.*') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('empacotamento.index')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('empacotamento.*') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
                             Empacotamento
                         </a>
                     </li>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(auth()->user()->temPermissao('relatorios.visualizar'))
+                    <?php if(auth()->user()->temPermissao('relatorios.visualizar')): ?>
                     <li>
-                        <a href="{{ route('relatorios.index') }}" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm {{ request()->routeIs('relatorios.*') ? 'bg-white/20 text-white' : '' }}">
+                        <a href="<?php echo e(route('relatorios.index')); ?>" class="flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm <?php echo e(request()->routeIs('relatorios.*') ? 'bg-white/20 text-white' : ''); ?>">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             Relatórios
                         </a>
                     </li>
-                    @endif
+                    <?php endif; ?>
                 </ul>
 
                 <!-- Separador -->
@@ -152,7 +152,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
-                        <span class="flex-1 truncate">{{ Str::limit(auth()->user()->nome, 15) }}</span>
+                        <span class="flex-1 truncate"><?php echo e(Str::limit(auth()->user()->nome, 15)); ?></span>
                         <svg class="w-3 h-3 transition-transform duration-200" id="userMenuIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
@@ -166,8 +166,8 @@
                             </svg>
                             Perfil
                         </a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
+                        <form method="POST" action="<?php echo e(route('logout')); ?>">
+                            <?php echo csrf_field(); ?>
                             <button type="submit" class="w-full flex items-center px-3 py-2 text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200 text-sm">
                                 <svg class="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -187,29 +187,29 @@
         <main class="flex-1 bg-gray-50 lg:ml-0">
             <div class="p-3 sm:p-4 lg:p-6 pt-16 lg:pt-6">
                 <!-- Alertas -->
-                @if(session('success'))
+                <?php if(session('success')): ?>
                     <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
                         <div class="flex items-center">
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="text-green-800 font-medium">{{ session('success') }}</p>
+                            <p class="text-green-800 font-medium"><?php echo e(session('success')); ?></p>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                @if(session('error'))
+                <?php if(session('error')): ?>
                     <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                         <div class="flex items-center">
                             <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p class="text-red-800 font-medium">{{ session('error') }}</p>
+                            <p class="text-red-800 font-medium"><?php echo e(session('error')); ?></p>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                @yield('content')
+                <?php echo $__env->yieldContent('content'); ?>
             </div>
         </main>
     </div>
@@ -261,6 +261,7 @@
         });
     </script>
 
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
+<?php /**PATH C:\wamp64\www\lavanderia\resources\views/layouts/app.blade.php ENDPATH**/ ?>

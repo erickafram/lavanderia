@@ -23,14 +23,16 @@ class Estabelecimento extends Model
         'estado',
         'cep',
         'telefone',
-        'email',
-        'contato_responsavel',
+        'emails',
+        'contatos_responsaveis',
         'observacoes',
         'ativo'
     ];
 
     protected $casts = [
-        'ativo' => 'boolean'
+        'emails' => 'array',
+        'contatos_responsaveis' => 'array',
+        'ativo' => 'boolean',
     ];
 
     /**

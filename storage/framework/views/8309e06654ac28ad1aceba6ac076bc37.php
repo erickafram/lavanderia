@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <title>Login - Sistema de Gestão de Lavanderia</title>
 
     <!-- TailwindCSS -->
@@ -54,18 +54,18 @@
 
         <!-- Card de Login -->
         <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8">
-            @if(session('success'))
+            <?php if(session('success')): ?>
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <p class="text-green-800 font-medium">{{ session('success') }}</p>
+                        <p class="text-green-800 font-medium"><?php echo e(session('success')); ?></p>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            @if($errors->any())
+            <?php if($errors->any()): ?>
                 <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                     <div class="flex items-center mb-2">
                         <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,15 +74,15 @@
                         <h3 class="text-red-800 font-medium">Erro no login</h3>
                     </div>
                     <ul class="text-red-700 text-sm space-y-1">
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            <form method="POST" action="{{ route('login.post') }}" class="space-y-6">
-                @csrf
+            <form method="POST" action="<?php echo e(route('login.post')); ?>" class="space-y-6">
+                <?php echo csrf_field(); ?>
 
                 <!-- Campo Email -->
                 <div class="space-y-2">
@@ -93,16 +93,30 @@
                         Email
                     </label>
                     <input type="email"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors @error('email') border-red-500 @enderror"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            id="email"
                            name="email"
-                           value="{{ old('email') }}"
+                           value="<?php echo e(old('email')); ?>"
                            placeholder="seu@email.com"
                            required
                            autofocus>
-                    @error('email')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Campo Senha -->
@@ -114,14 +128,28 @@
                         Senha
                     </label>
                     <input type="password"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors @error('password') border-red-500 @enderror"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            id="password"
                            name="password"
                            placeholder="••••••••"
                            required>
-                    @error('password')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Lembrar-me -->
@@ -149,7 +177,7 @@
             <!-- Link para Cadastro -->
             <div class="text-center mt-8">
                 <p class="text-gray-600 mb-4">Não tem uma conta?</p>
-                <a href="{{ route('cadastro') }}" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-200 backdrop-blur-sm">
+                <a href="<?php echo e(route('cadastro')); ?>" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-200 backdrop-blur-sm">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
@@ -190,3 +218,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH C:\wamp64\www\lavanderia\resources\views/auth/login.blade.php ENDPATH**/ ?>

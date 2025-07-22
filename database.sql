@@ -145,3 +145,43 @@ CREATE TABLE migrations (
     migration VARCHAR(255) NOT NULL,
     batch INT NOT NULL
 );
+
+-- Inserção de dados iniciais
+
+-- Níveis de acesso
+INSERT INTO niveis_acesso (nome, descricao, permissoes, ativo, created_at, updated_at) VALUES
+('Administrador', 'Acesso total ao sistema', '{"all": true}', TRUE, NOW(), NOW()),
+('Gerente', 'Gerenciamento de operações e relatórios', '{"coletas": true, "empacotamento": true, "relatorios": true, "estabelecimentos": true}', TRUE, NOW(), NOW()),
+('Operador', 'Operações básicas de coleta e empacotamento', '{"coletas": true, "empacotamento": true}', TRUE, NOW(), NOW()),
+('Motorista', 'Acesso para entrega e coleta', '{"coletas": "read", "empacotamento": "delivery"}', TRUE, NOW(), NOW());
+
+-- Status para coletas
+INSERT INTO status (nome, descricao, tipo, cor, ordem, ativo, created_at, updated_at) VALUES
+('Agendada', 'Coleta agendada', 'coleta', '#17a2b8', 1, TRUE, NOW(), NOW()),
+('Em Andamento', 'Coleta em andamento', 'coleta', '#ffc107', 2, TRUE, NOW(), NOW()),
+('Concluída', 'Coleta concluída', 'coleta', '#28a745', 3, TRUE, NOW(), NOW()),
+('Cancelada', 'Coleta cancelada', 'coleta', '#dc3545', 4, TRUE, NOW(), NOW());
+
+-- Status para empacotamento
+INSERT INTO status (nome, descricao, tipo, cor, ordem, ativo, created_at, updated_at) VALUES
+('Empacotado', 'Peças empacotadas', 'empacotamento', '#17a2b8', 1, TRUE, NOW(), NOW()),
+('Em Trânsito', 'Em trânsito para entrega', 'empacotamento', '#ffc107', 2, TRUE, NOW(), NOW()),
+('Entregue', 'Entregue ao cliente', 'empacotamento', '#28a745', 3, TRUE, NOW(), NOW()),
+('Devolvido', 'Devolvido sem entrega', 'empacotamento', '#dc3545', 4, TRUE, NOW(), NOW());
+
+-- Tipos de peças
+INSERT INTO tipos (nome, descricao, preco_kg, categoria, ativo, created_at, updated_at) VALUES
+('Camisa Social', 'Camisa social masculina/feminina', 15.00, 'Roupas Sociais', TRUE, NOW(), NOW()),
+('Calça Social', 'Calça social masculina/feminina', 18.00, 'Roupas Sociais', TRUE, NOW(), NOW()),
+('Terno Completo', 'Terno completo (paletó + calça)', 35.00, 'Roupas Sociais', TRUE, NOW(), NOW()),
+('Vestido', 'Vestido casual ou social', 20.00, 'Roupas Femininas', TRUE, NOW(), NOW()),
+('Blusa', 'Blusa feminina', 12.00, 'Roupas Casuais', TRUE, NOW(), NOW()),
+('Camiseta', 'Camiseta masculina/feminina', 8.00, 'Roupas Casuais', TRUE, NOW(), NOW()),
+('Jeans', 'Calça jeans', 15.00, 'Roupas Casuais', TRUE, NOW(), NOW()),
+('Casaco', 'Casaco ou jaqueta', 25.00, 'Roupas de Inverno', TRUE, NOW(), NOW()),
+('Cobertor', 'Cobertor ou edredom', 30.00, 'Cama e Banho', TRUE, NOW(), NOW()),
+('Lençol', 'Jogo de lençol', 20.00, 'Cama e Banho', TRUE, NOW(), NOW());
+
+-- Usuário administrador padrão
+INSERT INTO usuarios (nome, email, password, telefone, cpf, nivel_acesso_id, ativo, created_at, updated_at) VALUES
+('Administrador', 'admin@lavanderia.com', '$2y$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '(63) 99999-9999', '000.000.000-00', 1, TRUE, NOW(), NOW());

@@ -44,9 +44,28 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [EstabelecimentoController::class, 'index'])->name('index');
         Route::get('/cadastro', [EstabelecimentoController::class, 'create'])->name('create');
         Route::post('/cadastro', [EstabelecimentoController::class, 'store'])->name('store');
+        Route::get('/{id}', [EstabelecimentoController::class, 'show'])->name('show');
         Route::get('/{id}/editar', [EstabelecimentoController::class, 'edit'])->name('edit');
         Route::put('/{id}', [EstabelecimentoController::class, 'update'])->name('update');
         Route::delete('/{id}', [EstabelecimentoController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle-status', [EstabelecimentoController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/buscar-cnpj', [EstabelecimentoController::class, 'buscarCnpj'])->name('buscar-cnpj');
+    });
+
+    // Coletas
+    Route::prefix('coletas')->name('coletas.')->group(function () {
+        Route::get('/', [ColetaController::class, 'index'])->name('index');
+        Route::get('/nova', [ColetaController::class, 'create'])->name('create');
+        Route::post('/nova', [ColetaController::class, 'store'])->name('store');
+        Route::get('/{id}', [ColetaController::class, 'show'])->name('show');
+        Route::put('/{id}/cancelar', [ColetaController::class, 'cancelar'])->name('cancelar');
+        Route::put('/{id}/concluir', [ColetaController::class, 'concluir'])->name('concluir');
+
+        // APIs
+        Route::get('/estabelecimento/{estabelecimento_id}/coletas', [ColetaController::class, 'getColetasPorEstabelecimento'])->name('por-estabelecimento');
+        Route::get('/{id}/pecas', [ColetaController::class, 'getPecasColeta'])->name('pecas');
+        Route::get('/{id}/detalhes', [ColetaController::class, 'getDetalhesColeta'])->name('detalhes');
+        Route::get('/tipos/lista', [ColetaController::class, 'getTipos'])->name('tipos');
     });
     
     // Coletas

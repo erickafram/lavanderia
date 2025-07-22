@@ -87,6 +87,41 @@ class Coleta extends Model
                 $coleta->numero_coleta = 'COL' . str_pad($proximoNumero, 6, '0', STR_PAD_LEFT);
             }
         });
+
+        // Remover o evento saved para evitar loop infinito
+    }
+
+    /**
+     * Verifica se a coleta pode ser cancelada
+     */
+    public function podeSerCancelada()
+    {
+        return in_array($this->status->nome, ['Agendada', 'Em andamento']);
+    }
+
+    /**
+     * Calcula os totais da coleta baseado nas peças
+     */
+    public function calcularTotais()
+    {
+        $pesoTotal = $this->pecas->sum('peso');
+        $valorTotal = $this->pecas->sum('subtotal');
+
+        // Usar updateQuietly para evitar disparar eventos e loop infinito
+        $this->updateQuietly([
+            'peso_total' => $pesoTotal,
+            'valor_total' => $valorTotal,
+        ]);
+    }
+
+    /**
+     * Scope para coletas ativas (não canceladas)
+     */
+    public function scopeAtivas($query)
+    {
+        return $query->whereHas('status', function($q) {
+            $q->where('nome', '!=', 'Cancelada');
+        });
     }
 
     /**
@@ -111,14 +146,6 @@ class Coleta extends Model
     public function scopePorStatus($query, $statusId)
     {
         return $query->where('status_id', $statusId);
-    }
-
-    /**
-     * Verifica se a coleta pode ser cancelada
-     */
-    public function podeSerCancelada()
-    {
-        return $this->status->nome !== 'Concluída' && $this->status->nome !== 'Cancelada';
     }
 
     /**
