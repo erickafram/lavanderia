@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\EstabelecimentoController;
 use App\Http\Controllers\ColetaController;
+use App\Http\Controllers\AnotacaoController;
 use App\Http\Controllers\PesagemController;
 use App\Http\Controllers\EmpacotamentoController;
 use App\Http\Controllers\RelatorioController;
@@ -116,4 +117,16 @@ Route::prefix('api')->middleware(['auth'])->group(function () {
     Route::get('/coletas/{estabelecimento_id}', [ColetaController::class, 'getColetasPorEstabelecimento']);
     Route::get('/coleta/{id}/pecas', [ColetaController::class, 'getPecasColeta']);
     Route::get('/coleta/{id}/detalhes', [ColetaController::class, 'getDetalhesColeta']);
+
+    // Anotações
+    Route::prefix('anotacoes')->name('api.anotacoes.')->group(function () {
+        Route::get('/', [AnotacaoController::class, 'index'])->name('index');
+        Route::post('/', [AnotacaoController::class, 'store'])->name('store');
+        Route::put('/{id}', [AnotacaoController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AnotacaoController::class, 'destroy'])->name('destroy');
+        Route::put('/{id}/resolvida', [AnotacaoController::class, 'marcarResolvida'])->name('marcar-resolvida');
+        Route::put('/{id}/nao-resolvida', [AnotacaoController::class, 'marcarNaoResolvida'])->name('marcar-nao-resolvida');
+        Route::get('/estatisticas', [AnotacaoController::class, 'estatisticas'])->name('estatisticas');
+        Route::get('/relatorio', [AnotacaoController::class, 'relatorio'])->name('relatorio');
+    });
 });
