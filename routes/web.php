@@ -30,8 +30,6 @@ Route::get('/', function () {
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/cadastro', [AuthController::class, 'showCadastro'])->name('cadastro');
-Route::post('/cadastro', [AuthController::class, 'cadastro'])->name('cadastro.post');
 
 // Rotas protegidas por autenticação
 Route::middleware(['auth'])->group(function () {

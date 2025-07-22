@@ -146,16 +146,7 @@
                 </button>
             </form>
 
-            <!-- Link para Cadastro -->
-            <div class="text-center mt-8">
-                <p class="text-gray-600 mb-4">Não tem uma conta?</p>
-                <a href="{{ route('cadastro') }}" class="inline-flex items-center justify-center px-6 py-3 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-200 backdrop-blur-sm">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                    Cadastrar-se
-                </a>
-            </div>
+
         </div>
     </div>
 
