@@ -132,4 +132,28 @@ class Empacotamento extends Model
     {
         return route('qrcodes.rastrear', $this->codigo_qr);
     }
+
+    /**
+     * Formata a data de empacotamento
+     */
+    public function getDataEmpacotamentoFormatadaAttribute()
+    {
+        return $this->data_empacotamento ? $this->data_empacotamento->format('d/m/Y H:i') : null;
+    }
+
+    /**
+     * Formata a data de entrega
+     */
+    public function getDataEntregaFormatadaAttribute()
+    {
+        return $this->data_entrega ? $this->data_entrega->format('d/m/Y H:i') : null;
+    }
+
+    /**
+     * Verifica se pode ser editado
+     */
+    public function podeSerEditado()
+    {
+        return !in_array($this->status->nome, ['Entregue', 'Cancelado']);
+    }
 }
