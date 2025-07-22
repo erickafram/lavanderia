@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Nova Coleta - Sistema de Gestão de Lavanderia')
 
-@section('content')
+<?php $__env->startSection('title', 'Nova Coleta - Sistema de Gestão de Lavanderia'); ?>
+
+<?php $__env->startSection('content'); ?>
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
     <div>
@@ -15,7 +15,7 @@
         <p class="text-sm text-gray-600">Agende uma nova coleta de roupas</p>
     </div>
     <div class="flex gap-2 mt-3 sm:mt-0">
-        <a href="{{ route('coletas.index') }}" 
+        <a href="<?php echo e(route('coletas.index')); ?>" 
            class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-xl transition-colors duration-200">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -26,8 +26,8 @@
 </div>
 
 <!-- Formulário -->
-<form method="POST" action="{{ route('coletas.store') }}" class="space-y-6">
-    @csrf
+<form method="POST" action="<?php echo e(route('coletas.store')); ?>" class="space-y-6">
+    <?php echo csrf_field(); ?>
     
     <!-- Informações Básicas -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -46,21 +46,36 @@
                 </label>
                 <select id="estabelecimento_id" 
                         name="estabelecimento_id" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('estabelecimento_id') border-red-500 @enderror"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['estabelecimento_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                         required>
                     <option value="">Selecione um estabelecimento</option>
-                    @foreach($estabelecimentos as $estabelecimento)
-                        <option value="{{ $estabelecimento->id }}" {{ old('estabelecimento_id') == $estabelecimento->id ? 'selected' : '' }}>
-                            {{ $estabelecimento->razao_social }}
-                            @if($estabelecimento->nome_fantasia)
-                                ({{ $estabelecimento->nome_fantasia }})
-                            @endif
+                    <?php $__currentLoopData = $estabelecimentos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $estabelecimento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <option value="<?php echo e($estabelecimento->id); ?>" <?php echo e(old('estabelecimento_id') == $estabelecimento->id ? 'selected' : ''); ?>>
+                            <?php echo e($estabelecimento->razao_social); ?>
+
+                            <?php if($estabelecimento->nome_fantasia): ?>
+                                (<?php echo e($estabelecimento->nome_fantasia); ?>)
+                            <?php endif; ?>
                         </option>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </select>
-                @error('estabelecimento_id')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <?php $__errorArgs = ['estabelecimento_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
 
             <!-- Data de Agendamento -->
@@ -71,13 +86,27 @@
                 <input type="datetime-local" 
                        id="data_agendamento" 
                        name="data_agendamento" 
-                       value="{{ old('data_agendamento') }}"
-                       min="{{ now()->format('Y-m-d\TH:i') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('data_agendamento') border-red-500 @enderror"
+                       value="<?php echo e(old('data_agendamento')); ?>"
+                       min="<?php echo e(now()->format('Y-m-d\TH:i')); ?>"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['data_agendamento'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                        required>
-                @error('data_agendamento')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <?php $__errorArgs = ['data_agendamento'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
         </div>
 
@@ -90,10 +119,24 @@
                       name="observacoes" 
                       rows="3"
                       placeholder="Observações sobre a coleta..."
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('observacoes') border-red-500 @enderror">{{ old('observacoes') }}</textarea>
-            @error('observacoes')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['observacoes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"><?php echo e(old('observacoes')); ?></textarea>
+            <?php $__errorArgs = ['observacoes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 
@@ -117,7 +160,7 @@
 
     <!-- Botões -->
     <div class="flex flex-col sm:flex-row gap-3 sm:justify-end">
-        <a href="{{ route('coletas.index') }}" 
+        <a href="<?php echo e(route('coletas.index')); ?>" 
            class="inline-flex items-center justify-center px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-xl transition-colors duration-200">
             Cancelar
         </a>
@@ -130,6 +173,8 @@
         </button>
     </div>
 </form>
-@endsection
+<?php $__env->stopSection(); ?>
 
 
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\lavanderianovo\resources\views/coletas/create.blade.php ENDPATH**/ ?>

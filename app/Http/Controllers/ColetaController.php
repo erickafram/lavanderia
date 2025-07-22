@@ -81,29 +81,14 @@ class ColetaController extends Controller
             'estabelecimento_id' => 'required|exists:estabelecimentos,id',
             'data_agendamento' => 'required|date|after_or_equal:today',
             'observacoes' => 'nullable|string',
-            'pecas' => 'required|array|min:1',
-            'pecas.*.tipo_id' => 'required|exists:tipos,id',
-            'pecas.*.quantidade' => 'required|integer|min:1',
-            'pecas.*.peso' => 'required|numeric|min:0.01',
         ], [
             'estabelecimento_id.required' => 'Selecione um estabelecimento.',
             'estabelecimento_id.exists' => 'Estabelecimento inválido.',
             'data_agendamento.required' => 'A data de agendamento é obrigatória.',
             'data_agendamento.date' => 'Data de agendamento inválida.',
             'data_agendamento.after_or_equal' => 'A data deve ser hoje ou futura.',
-            'pecas.required' => 'Adicione pelo menos uma peça.',
-            'pecas.min' => 'Adicione pelo menos uma peça.',
-            'pecas.*.tipo_id.required' => 'Selecione o tipo da peça.',
-            'pecas.*.tipo_id.exists' => 'Tipo de peça inválido.',
-            'pecas.*.quantidade.required' => 'Informe a quantidade.',
-            'pecas.*.quantidade.integer' => 'A quantidade deve ser um número inteiro.',
-            'pecas.*.quantidade.min' => 'A quantidade deve ser pelo menos 1.',
-            'pecas.*.peso.required' => 'Informe o peso.',
-            'pecas.*.peso.numeric' => 'O peso deve ser um número.',
-            'pecas.*.peso.min' => 'O peso deve ser maior que 0.',
         ]);
 
-        DB::beginTransaction();
         try {
             // Buscar status inicial
             $statusInicial = Status::where('tipo', 'coleta')
@@ -118,6 +103,57 @@ class ColetaController extends Controller
                 'data_agendamento' => $request->data_agendamento,
                 'observacoes' => $request->observacoes,
             ]);
+
+            return redirect()->route('coletas.add-pecas', $coleta->id)
+                           ->with('success', 'Coleta criada com sucesso! Agora adicione as peças coletadas.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Erro ao criar coleta: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show form to add pieces to collection
+     */
+    public function addPecas($id)
+    {
+        $coleta = Coleta::with(['estabelecimento', 'status'])->findOrFail($id);
+        $tipos = Tipo::ativos()->orderBy('nome')->get();
+        
+        return view('coletas.add-pecas', compact('coleta', 'tipos'));
+    }
+
+    /**
+     * Store pieces for collection
+     */
+    public function storePecas(Request $request, $id)
+    {
+        $coleta = Coleta::findOrFail($id);
+
+        $request->validate([
+            'pecas' => 'required|array|min:1',
+            'pecas.*.tipo_id' => 'required|exists:tipos,id',
+            'pecas.*.quantidade' => 'required|integer|min:1',
+            'pecas.*.peso' => 'required|numeric|min:0.01',
+        ], [
+            'pecas.required' => 'Adicione pelo menos uma peça.',
+            'pecas.min' => 'Adicione pelo menos uma peça.',
+            'pecas.*.tipo_id.required' => 'Selecione o tipo da peça.',
+            'pecas.*.tipo_id.exists' => 'Tipo de peça inválido.',
+            'pecas.*.quantidade.required' => 'Informe a quantidade.',
+            'pecas.*.quantidade.integer' => 'A quantidade deve ser um número inteiro.',
+            'pecas.*.quantidade.min' => 'A quantidade deve ser pelo menos 1.',
+            'pecas.*.peso.required' => 'Informe o peso.',
+            'pecas.*.peso.numeric' => 'O peso deve ser um número.',
+            'pecas.*.peso.min' => 'O peso deve ser maior que 0.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Remover peças existentes se houver
+            $coleta->pecas()->delete();
 
             // Criar peças da coleta
             foreach ($request->pecas as $pecaData) {
@@ -138,14 +174,14 @@ class ColetaController extends Controller
 
             DB::commit();
 
-            return redirect()->route('coletas.index')
-                           ->with('success', 'Coleta agendada com sucesso! Número: ' . $coleta->numero_coleta);
+            return redirect()->route('coletas.show', $coleta->id)
+                           ->with('success', 'Peças adicionadas com sucesso! Coleta finalizada.');
 
         } catch (\Exception $e) {
             DB::rollback();
             return redirect()->back()
                            ->withInput()
-                           ->with('error', 'Erro ao agendar coleta: ' . $e->getMessage());
+                           ->with('error', 'Erro ao adicionar peças: ' . $e->getMessage());
         }
     }
 

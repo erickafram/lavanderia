@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Novo Estabelecimento - Sistema de Gestão de Lavanderia')
 
-@section('content')
+<?php $__env->startSection('title', 'Novo Estabelecimento - Sistema de Gestão de Lavanderia'); ?>
+
+<?php $__env->startSection('content'); ?>
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
     <div>
@@ -14,7 +14,7 @@
         </h1>
         <p class="text-sm text-gray-600">Cadastre um novo hotel ou estabelecimento cliente</p>
     </div>
-    <a href="{{ route('estabelecimentos.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-xl transition-colors duration-200 mt-3 sm:mt-0">
+    <a href="<?php echo e(route('estabelecimentos.index')); ?>" class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-xl transition-colors duration-200 mt-3 sm:mt-0">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
         </svg>
@@ -24,8 +24,8 @@
 
 <!-- Formulário -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <form method="POST" action="{{ route('estabelecimentos.store') }}" class="space-y-6">
-        @csrf
+    <form method="POST" action="<?php echo e(route('estabelecimentos.store')); ?>" class="space-y-6">
+        <?php echo csrf_field(); ?>
         
         <!-- Seção: Dados da Empresa -->
         <div>
@@ -41,9 +41,16 @@
                         <input type="text" 
                                id="cnpj" 
                                name="cnpj" 
-                               value="{{ old('cnpj') }}"
+                               value="<?php echo e(old('cnpj')); ?>"
                                placeholder="00.000.000/0000-00"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('cnpj') border-red-500 @enderror"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['cnpj'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                                required>
                         <button type="button" 
                                 id="buscar-cnpj"
@@ -51,9 +58,16 @@
                             Buscar
                         </button>
                     </div>
-                    @error('cnpj')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['cnpj'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Loading indicator -->
@@ -72,12 +86,26 @@
                     <input type="text" 
                            id="razao_social" 
                            name="razao_social" 
-                           value="{{ old('razao_social') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('razao_social') border-red-500 @enderror"
+                           value="<?php echo e(old('razao_social')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['razao_social'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('razao_social')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['razao_social'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Nome Fantasia -->
@@ -88,11 +116,25 @@
                     <input type="text" 
                            id="nome_fantasia" 
                            name="nome_fantasia" 
-                           value="{{ old('nome_fantasia') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('nome_fantasia') border-red-500 @enderror">
-                    @error('nome_fantasia')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                           value="<?php echo e(old('nome_fantasia')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['nome_fantasia'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                    <?php $__errorArgs = ['nome_fantasia'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
         </div>
@@ -110,13 +152,27 @@
                     <input type="text" 
                            id="cep" 
                            name="cep" 
-                           value="{{ old('cep') }}"
+                           value="<?php echo e(old('cep')); ?>"
                            placeholder="00000-000"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('cep') border-red-500 @enderror"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['cep'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('cep')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['cep'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Endereço -->
@@ -127,12 +183,26 @@
                     <input type="text" 
                            id="endereco" 
                            name="endereco" 
-                           value="{{ old('endereco') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('endereco') border-red-500 @enderror"
+                           value="<?php echo e(old('endereco')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['endereco'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('endereco')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['endereco'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
 
@@ -145,12 +215,26 @@
                     <input type="text" 
                            id="numero" 
                            name="numero" 
-                           value="{{ old('numero') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('numero') border-red-500 @enderror"
+                           value="<?php echo e(old('numero')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['numero'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('numero')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['numero'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Complemento -->
@@ -161,11 +245,25 @@
                     <input type="text" 
                            id="complemento" 
                            name="complemento" 
-                           value="{{ old('complemento') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('complemento') border-red-500 @enderror">
-                    @error('complemento')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                           value="<?php echo e(old('complemento')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['complemento'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
+                    <?php $__errorArgs = ['complemento'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Bairro -->
@@ -176,12 +274,26 @@
                     <input type="text" 
                            id="bairro" 
                            name="bairro" 
-                           value="{{ old('bairro') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('bairro') border-red-500 @enderror"
+                           value="<?php echo e(old('bairro')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['bairro'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('bairro')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['bairro'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
 
@@ -194,12 +306,26 @@
                     <input type="text" 
                            id="cidade" 
                            name="cidade" 
-                           value="{{ old('cidade') }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('cidade') border-red-500 @enderror"
+                           value="<?php echo e(old('cidade')); ?>"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['cidade'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                            required>
-                    @error('cidade')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['cidade'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Estado -->
@@ -209,40 +335,54 @@
                     </label>
                     <select id="estado" 
                             name="estado" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('estado') border-red-500 @enderror"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['estado'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                             required>
                         <option value="">Selecione</option>
-                        <option value="AC" {{ old('estado') == 'AC' ? 'selected' : '' }}>AC</option>
-                        <option value="AL" {{ old('estado') == 'AL' ? 'selected' : '' }}>AL</option>
-                        <option value="AP" {{ old('estado') == 'AP' ? 'selected' : '' }}>AP</option>
-                        <option value="AM" {{ old('estado') == 'AM' ? 'selected' : '' }}>AM</option>
-                        <option value="BA" {{ old('estado') == 'BA' ? 'selected' : '' }}>BA</option>
-                        <option value="CE" {{ old('estado') == 'CE' ? 'selected' : '' }}>CE</option>
-                        <option value="DF" {{ old('estado') == 'DF' ? 'selected' : '' }}>DF</option>
-                        <option value="ES" {{ old('estado') == 'ES' ? 'selected' : '' }}>ES</option>
-                        <option value="GO" {{ old('estado') == 'GO' ? 'selected' : '' }}>GO</option>
-                        <option value="MA" {{ old('estado') == 'MA' ? 'selected' : '' }}>MA</option>
-                        <option value="MT" {{ old('estado') == 'MT' ? 'selected' : '' }}>MT</option>
-                        <option value="MS" {{ old('estado') == 'MS' ? 'selected' : '' }}>MS</option>
-                        <option value="MG" {{ old('estado') == 'MG' ? 'selected' : '' }}>MG</option>
-                        <option value="PA" {{ old('estado') == 'PA' ? 'selected' : '' }}>PA</option>
-                        <option value="PB" {{ old('estado') == 'PB' ? 'selected' : '' }}>PB</option>
-                        <option value="PR" {{ old('estado') == 'PR' ? 'selected' : '' }}>PR</option>
-                        <option value="PE" {{ old('estado') == 'PE' ? 'selected' : '' }}>PE</option>
-                        <option value="PI" {{ old('estado') == 'PI' ? 'selected' : '' }}>PI</option>
-                        <option value="RJ" {{ old('estado') == 'RJ' ? 'selected' : '' }}>RJ</option>
-                        <option value="RN" {{ old('estado') == 'RN' ? 'selected' : '' }}>RN</option>
-                        <option value="RS" {{ old('estado') == 'RS' ? 'selected' : '' }}>RS</option>
-                        <option value="RO" {{ old('estado') == 'RO' ? 'selected' : '' }}>RO</option>
-                        <option value="RR" {{ old('estado') == 'RR' ? 'selected' : '' }}>RR</option>
-                        <option value="SC" {{ old('estado') == 'SC' ? 'selected' : '' }}>SC</option>
-                        <option value="SP" {{ old('estado') == 'SP' ? 'selected' : '' }}>SP</option>
-                        <option value="SE" {{ old('estado') == 'SE' ? 'selected' : '' }}>SE</option>
-                        <option value="TO" {{ old('estado') == 'TO' ? 'selected' : '' }}>TO</option>
+                        <option value="AC" <?php echo e(old('estado') == 'AC' ? 'selected' : ''); ?>>AC</option>
+                        <option value="AL" <?php echo e(old('estado') == 'AL' ? 'selected' : ''); ?>>AL</option>
+                        <option value="AP" <?php echo e(old('estado') == 'AP' ? 'selected' : ''); ?>>AP</option>
+                        <option value="AM" <?php echo e(old('estado') == 'AM' ? 'selected' : ''); ?>>AM</option>
+                        <option value="BA" <?php echo e(old('estado') == 'BA' ? 'selected' : ''); ?>>BA</option>
+                        <option value="CE" <?php echo e(old('estado') == 'CE' ? 'selected' : ''); ?>>CE</option>
+                        <option value="DF" <?php echo e(old('estado') == 'DF' ? 'selected' : ''); ?>>DF</option>
+                        <option value="ES" <?php echo e(old('estado') == 'ES' ? 'selected' : ''); ?>>ES</option>
+                        <option value="GO" <?php echo e(old('estado') == 'GO' ? 'selected' : ''); ?>>GO</option>
+                        <option value="MA" <?php echo e(old('estado') == 'MA' ? 'selected' : ''); ?>>MA</option>
+                        <option value="MT" <?php echo e(old('estado') == 'MT' ? 'selected' : ''); ?>>MT</option>
+                        <option value="MS" <?php echo e(old('estado') == 'MS' ? 'selected' : ''); ?>>MS</option>
+                        <option value="MG" <?php echo e(old('estado') == 'MG' ? 'selected' : ''); ?>>MG</option>
+                        <option value="PA" <?php echo e(old('estado') == 'PA' ? 'selected' : ''); ?>>PA</option>
+                        <option value="PB" <?php echo e(old('estado') == 'PB' ? 'selected' : ''); ?>>PB</option>
+                        <option value="PR" <?php echo e(old('estado') == 'PR' ? 'selected' : ''); ?>>PR</option>
+                        <option value="PE" <?php echo e(old('estado') == 'PE' ? 'selected' : ''); ?>>PE</option>
+                        <option value="PI" <?php echo e(old('estado') == 'PI' ? 'selected' : ''); ?>>PI</option>
+                        <option value="RJ" <?php echo e(old('estado') == 'RJ' ? 'selected' : ''); ?>>RJ</option>
+                        <option value="RN" <?php echo e(old('estado') == 'RN' ? 'selected' : ''); ?>>RN</option>
+                        <option value="RS" <?php echo e(old('estado') == 'RS' ? 'selected' : ''); ?>>RS</option>
+                        <option value="RO" <?php echo e(old('estado') == 'RO' ? 'selected' : ''); ?>>RO</option>
+                        <option value="RR" <?php echo e(old('estado') == 'RR' ? 'selected' : ''); ?>>RR</option>
+                        <option value="SC" <?php echo e(old('estado') == 'SC' ? 'selected' : ''); ?>>SC</option>
+                        <option value="SP" <?php echo e(old('estado') == 'SP' ? 'selected' : ''); ?>>SP</option>
+                        <option value="SE" <?php echo e(old('estado') == 'SE' ? 'selected' : ''); ?>>SE</option>
+                        <option value="TO" <?php echo e(old('estado') == 'TO' ? 'selected' : ''); ?>>TO</option>
                     </select>
-                    @error('estado')
-                        <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php $__errorArgs = ['estado'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                 </div>
             </div>
         </div>
@@ -259,13 +399,27 @@
                 <input type="text"
                        id="telefone"
                        name="telefone"
-                       value="{{ old('telefone') }}"
+                       value="<?php echo e(old('telefone')); ?>"
                        placeholder="(11) 99999-9999"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('telefone') border-red-500 @enderror"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['telefone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
                        required>
-                @error('telefone')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <?php $__errorArgs = ['telefone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
 
             <!-- Emails -->
@@ -298,9 +452,16 @@
                         </button>
                     </div>
                 </div>
-                @error('emails.*')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <?php $__errorArgs = ['emails.*'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
 
             <!-- Contatos Responsáveis -->
@@ -348,12 +509,26 @@
                         </div>
                     </div>
                 </div>
-                @error('contatos_responsaveis.*.nome')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
-                @error('contatos_responsaveis.*.telefone')
-                    <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                @enderror
+                <?php $__errorArgs = ['contatos_responsaveis.*.nome'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                <?php $__errorArgs = ['contatos_responsaveis.*.telefone'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
             </div>
         </div>
 
@@ -365,10 +540,24 @@
             <textarea id="observacoes" 
                       name="observacoes" 
                       rows="3"
-                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('observacoes') border-red-500 @enderror">{{ old('observacoes') }}</textarea>
-            @error('observacoes')
-                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['observacoes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"><?php echo e(old('observacoes')); ?></textarea>
+            <?php $__errorArgs = ['observacoes'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                <p class="text-red-600 text-sm mt-1"><?php echo e($message); ?></p>
+            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
         </div>
 
         <!-- Botões -->
@@ -379,7 +568,7 @@
                 </svg>
                 Cadastrar Estabelecimento
             </button>
-            <a href="{{ route('estabelecimentos.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors duration-200">
+            <a href="<?php echo e(route('estabelecimentos.index')); ?>" class="inline-flex items-center justify-center px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -389,7 +578,7 @@
     </form>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Máscaras
@@ -445,7 +634,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.textContent = 'Buscando...';
         loadingDiv.classList.remove('hidden');
 
-        fetch(`{{ url('/api/estabelecimentos/buscar-cnpj') }}?cnpj=${cnpj}`, {
+        fetch(`<?php echo e(url('/api/estabelecimentos/buscar-cnpj')); ?>?cnpj=${cnpj}`, {
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Accept': 'application/json',
@@ -620,5 +809,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateContatoRemoveButtons();
 });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\lavanderianovo\resources\views/estabelecimentos/create.blade.php ENDPATH**/ ?>

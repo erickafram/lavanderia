@@ -74,6 +74,14 @@ class Coleta extends Model
     }
 
     /**
+     * Relacionamento com pesagens
+     */
+    public function pesagens()
+    {
+        return $this->hasMany(Pesagem::class);
+    }
+
+    /**
      * Boot method para gerar número da coleta automaticamente
      */
     protected static function boot()
@@ -154,5 +162,47 @@ class Coleta extends Model
     public function podeSerConcluida()
     {
         return $this->status->nome === 'Em andamento';
+    }
+
+    /**
+     * Verifica se a coleta pode ter pesagens registradas
+     */
+    public function podeReceberPesagens()
+    {
+        return in_array($this->status->nome, ['Concluída', 'Em andamento']);
+    }
+
+    /**
+     * Calcula o peso total das pesagens
+     */
+    public function pesoTotalPesagens()
+    {
+        return $this->pesagens->sum('peso');
+    }
+
+    /**
+     * Verifica se há diferença entre peso das peças e pesagens
+     */
+    public function temDiferencaPeso()
+    {
+        $pesoPecas = $this->peso_total;
+        $pesoPesagens = $this->pesoTotalPesagens();
+
+        return abs($pesoPecas - $pesoPesagens) > 0.01; // Tolerância de 10g
+    }
+
+    /**
+     * Calcula a diferença percentual entre peso das peças e pesagens
+     */
+    public function diferencaPercentualPeso()
+    {
+        $pesoPecas = $this->peso_total;
+        $pesoPesagens = $this->pesoTotalPesagens();
+
+        if ($pesoPecas <= 0) {
+            return null;
+        }
+
+        return (($pesoPesagens - $pesoPecas) / $pesoPecas) * 100;
     }
 }
