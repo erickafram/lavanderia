@@ -86,12 +86,28 @@
             <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-2">
                 Observações
             </label>
-            <textarea id="observacoes" 
-                      name="observacoes" 
+            <textarea id="observacoes"
+                      name="observacoes"
                       rows="3"
                       placeholder="Observações sobre a coleta..."
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('observacoes') border-red-500 @enderror">{{ old('observacoes') }}</textarea>
             @error('observacoes')
+                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Acompanhante -->
+        <div class="mt-6">
+            <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-2">
+                Nome do Acompanhante <span class="text-gray-500 text-xs">(opcional)</span>
+            </label>
+            <input type="text"
+                   id="acompanhante"
+                   name="acompanhante"
+                   value="{{ old('acompanhante') }}"
+                   placeholder="Nome de quem acompanhou a coleta..."
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('acompanhante') border-red-500 @enderror">
+            @error('acompanhante')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>

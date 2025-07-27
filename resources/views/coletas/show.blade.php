@@ -150,7 +150,14 @@
                         <span class="text-sm text-gray-600">Responsável:</span>
                         <span class="text-sm font-medium text-gray-900">{{ $coleta->usuario->nome }}</span>
                     </div>
-                    
+
+                    @if($coleta->acompanhante)
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Acompanhante:</span>
+                        <span class="text-sm font-medium text-gray-900">{{ $coleta->acompanhante }}</span>
+                    </div>
+                    @endif
+
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Cadastrado em:</span>
                         <span class="text-sm font-medium text-gray-900">{{ $coleta->created_at->format('d/m/Y H:i') }}</span>
@@ -198,8 +205,13 @@
                         </div>
                         
                         <div class="border-t border-green-200 pt-4">
-                            <p class="text-sm text-gray-600 mb-1">Quantidade de Peças</p>
-                            <p class="text-xl font-semibold text-gray-900">{{ $coleta->pecas->count() }} tipos</p>
+                            <p class="text-sm text-gray-600 mb-1">Quantidade Total de Peças</p>
+                            <p class="text-xl font-semibold text-gray-900">{{ $coleta->pecas->sum('quantidade') }} peças</p>
+                        </div>
+
+                        <div class="border-t border-green-200 pt-4">
+                            <p class="text-sm text-gray-600 mb-1">Tipos de Peças</p>
+                            <p class="text-lg font-medium text-gray-700">{{ $coleta->pecas->count() }} tipos</p>
                         </div>
                     </div>
                 </div>
@@ -246,7 +258,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/kg</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Peças</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
                 </tr>
             </thead>
@@ -266,8 +278,8 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             R$ {{ number_format($peca->preco_unitario, 2, ',', '.') }}
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                            R$ {{ number_format($peca->subtotal, 2, ',', '.') }}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                            {{ $peca->quantidade }} {{ $peca->quantidade == 1 ? 'peça' : 'peças' }}
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">
                             {{ $peca->observacoes ?: '-' }}

@@ -25,7 +25,7 @@ class ColetaPeca extends Model
         'quantidade' => 'integer',
         'peso' => 'decimal:2',
         'preco_unitario' => 'decimal:2',
-        'subtotal' => 'decimal:2'
+        'subtotal' => 'integer'  // Agora representa quantidade de peças
     ];
 
     /**
@@ -52,7 +52,8 @@ class ColetaPeca extends Model
         parent::boot();
 
         static::saving(function ($coletaPeca) {
-            $coletaPeca->subtotal = $coletaPeca->peso * $coletaPeca->preco_unitario;
+            // Subtotal agora representa a quantidade de peças ao invés do valor monetário
+            $coletaPeca->subtotal = $coletaPeca->quantidade;
         });
 
         static::saved(function ($coletaPeca) {
@@ -73,10 +74,10 @@ class ColetaPeca extends Model
 
 
     /**
-     * Accessor para subtotal formatado
+     * Accessor para subtotal formatado (agora representa quantidade de peças)
      */
     public function getSubtotalFormatadoAttribute()
     {
-        return 'R$ ' . number_format($this->subtotal, 2, ',', '.');
+        return $this->subtotal . ($this->subtotal == 1 ? ' peça' : ' peças');
     }
 }

@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'Detalhes da Coleta - Sistema de Gestão de Lavanderia'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -46,8 +48,18 @@
                 Cancelar
             </button>
         <?php endif; ?>
-        
-        <a href="<?php echo e(route('coletas.index')); ?>" 
+
+        <?php if($coleta->podeReceberPesagens()): ?>
+            <a href="<?php echo e(route('pesagem.create', ['coleta_id' => $coleta->id])); ?>"
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Nova Pesagem
+            </a>
+        <?php endif; ?>
+
+        <a href="<?php echo e(route('coletas.index')); ?>"
            class="inline-flex items-center px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-xl transition-colors duration-200">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -140,7 +152,14 @@
                         <span class="text-sm text-gray-600">Responsável:</span>
                         <span class="text-sm font-medium text-gray-900"><?php echo e($coleta->usuario->nome); ?></span>
                     </div>
-                    
+
+                    <?php if($coleta->acompanhante): ?>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Acompanhante:</span>
+                        <span class="text-sm font-medium text-gray-900"><?php echo e($coleta->acompanhante); ?></span>
+                    </div>
+                    <?php endif; ?>
+
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-600">Cadastrado em:</span>
                         <span class="text-sm font-medium text-gray-900"><?php echo e($coleta->created_at->format('d/m/Y H:i')); ?></span>
@@ -188,8 +207,13 @@
                         </div>
                         
                         <div class="border-t border-green-200 pt-4">
-                            <p class="text-sm text-gray-600 mb-1">Quantidade de Peças</p>
-                            <p class="text-xl font-semibold text-gray-900"><?php echo e($coleta->pecas->count()); ?> tipos</p>
+                            <p class="text-sm text-gray-600 mb-1">Quantidade Total de Peças</p>
+                            <p class="text-xl font-semibold text-gray-900"><?php echo e($coleta->pecas->sum('quantidade')); ?> peças</p>
+                        </div>
+
+                        <div class="border-t border-green-200 pt-4">
+                            <p class="text-sm text-gray-600 mb-1">Tipos de Peças</p>
+                            <p class="text-lg font-medium text-gray-700"><?php echo e($coleta->pecas->count()); ?> tipos</p>
                         </div>
                     </div>
                 </div>
@@ -200,13 +224,34 @@
 
 <!-- Peças da Coleta -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-        <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-        Peças da Coleta
-    </h3>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            Peças da Coleta
+        </h3>
+        
+        <?php if($coleta->pecas->count() == 0 && $coleta->status->nome == 'Agendada'): ?>
+        <a href="<?php echo e(route('coletas.add-pecas', $coleta->id)); ?>" 
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Adicionar Peças
+        </a>
+        <?php elseif($coleta->pecas->count() > 0 && $coleta->status->nome == 'Agendada'): ?>
+        <a href="<?php echo e(route('coletas.add-pecas', $coleta->id)); ?>" 
+           class="inline-flex items-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Editar Peças
+        </a>
+        <?php endif; ?>
+    </div>
     
+    <?php if($coleta->pecas->count() > 0): ?>
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -215,7 +260,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/kg</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Peças</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
                 </tr>
             </thead>
@@ -237,8 +282,8 @@
                             R$ <?php echo e(number_format($peca->preco_unitario, 2, ',', '.')); ?>
 
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-green-600">
-                            R$ <?php echo e(number_format($peca->subtotal, 2, ',', '.')); ?>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                            <?php echo e($peca->quantidade); ?> <?php echo e($peca->quantidade == 1 ? 'peça' : 'peças'); ?>
 
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">
@@ -250,7 +295,144 @@
             </tbody>
         </table>
     </div>
+    <?php else: ?>
+    <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma peça cadastrada</h3>
+        <p class="mt-1 text-sm text-gray-500">Adicione as peças coletadas para finalizar a coleta.</p>
+        <?php if($coleta->status->nome == 'Agendada'): ?>
+        <div class="mt-6">
+            <a href="<?php echo e(route('coletas.add-pecas', $coleta->id)); ?>" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Adicionar Peças
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 </div>
+
+<!-- Pesagens da Coleta -->
+<?php if($coleta->pesagens->count() > 0): ?>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l3-1m-3 1l-3-1"></path>
+            </svg>
+            Pesagens Registradas
+            <span class="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                <?php echo e($coleta->pesagens->count()); ?>
+
+            </span>
+        </h3>
+        <a href="<?php echo e(route('pesagem.index', ['coleta_id' => $coleta->id])); ?>"
+           class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            Ver todas
+        </a>
+    </div>
+
+    <!-- Resumo das Pesagens -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="bg-blue-50 rounded-lg p-4">
+            <div class="text-sm text-blue-600 font-medium">Peso Total Pesado</div>
+            <div class="text-xl font-bold text-blue-900">
+                <?php echo e(number_format($coleta->pesoTotalPesagens(), 2, ',', '.')); ?> kg
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-4">
+            <div class="text-sm text-gray-600 font-medium">Peso das Peças</div>
+            <div class="text-xl font-bold text-gray-900">
+                <?php echo e(number_format($coleta->peso_total, 2, ',', '.')); ?> kg
+            </div>
+        </div>
+        <div class="bg-<?php echo e($coleta->temDiferencaPeso() ? 'yellow' : 'green'); ?>-50 rounded-lg p-4">
+            <div class="text-sm text-<?php echo e($coleta->temDiferencaPeso() ? 'yellow' : 'green'); ?>-600 font-medium">
+                Diferença
+            </div>
+            <div class="text-xl font-bold text-<?php echo e($coleta->temDiferencaPeso() ? 'yellow' : 'green'); ?>-900">
+                <?php if($coleta->diferencaPercentualPeso() !== null): ?>
+                    <?php echo e(number_format($coleta->diferencaPercentualPeso(), 1)); ?>%
+                <?php else: ?>
+                    -
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data/Hora</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <?php $__currentLoopData = $coleta->pesagens->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pesagem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <?php echo e($pesagem->data_pesagem->format('d/m/Y H:i')); ?>
+
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <?php echo e($pesagem->tipo->nome); ?>
+
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                            <?php echo e(number_format($pesagem->peso, 2, ',', '.')); ?> kg
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <?php echo e($pesagem->quantidade); ?>
+
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <?php echo e($pesagem->usuario->nome); ?>
+
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <?php if($pesagem->conferido): ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Conferida
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    Pendente
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="<?php echo e(route('pesagem.show', $pesagem->id)); ?>"
+                               class="text-blue-600 hover:text-blue-900">Ver</a>
+                        </td>
+                    </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </tbody>
+        </table>
+    </div>
+
+    <?php if($coleta->pesagens->count() > 5): ?>
+        <div class="mt-4 text-center">
+            <a href="<?php echo e(route('pesagem.index', ['coleta_id' => $coleta->id])); ?>"
+               class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                Ver todas as <?php echo e($coleta->pesagens->count()); ?> pesagens
+            </a>
+        </div>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
 
 <!-- Modal de Cancelamento -->
 <div id="cancelModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">

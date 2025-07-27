@@ -81,12 +81,14 @@ class ColetaController extends Controller
             'estabelecimento_id' => 'required|exists:estabelecimentos,id',
             'data_agendamento' => 'required|date|after_or_equal:today',
             'observacoes' => 'nullable|string',
+            'acompanhante' => 'nullable|string|max:255',
         ], [
             'estabelecimento_id.required' => 'Selecione um estabelecimento.',
             'estabelecimento_id.exists' => 'Estabelecimento inválido.',
             'data_agendamento.required' => 'A data de agendamento é obrigatória.',
             'data_agendamento.date' => 'Data de agendamento inválida.',
             'data_agendamento.after_or_equal' => 'A data deve ser hoje ou futura.',
+            'acompanhante.max' => 'O nome do acompanhante não pode ter mais de 255 caracteres.',
         ]);
 
         try {
@@ -102,6 +104,7 @@ class ColetaController extends Controller
                 'status_id' => $statusInicial->id,
                 'data_agendamento' => $request->data_agendamento,
                 'observacoes' => $request->observacoes,
+                'acompanhante' => $request->acompanhante,
             ]);
 
             return redirect()->route('coletas.add-pecas', $coleta->id)
@@ -135,20 +138,35 @@ class ColetaController extends Controller
         $request->validate([
             'pecas' => 'required|array|min:1',
             'pecas.*.tipo_id' => 'required|exists:tipos,id',
-            'pecas.*.quantidade' => 'required|integer|min:1',
-            'pecas.*.peso' => 'required|numeric|min:0.01',
+            'pecas.*.modo_coleta' => 'required|in:quantidade,peso',
+            'pecas.*.quantidade' => 'nullable|integer|min:1',
+            'pecas.*.peso' => 'nullable|numeric|min:0.01',
         ], [
             'pecas.required' => 'Adicione pelo menos uma peça.',
             'pecas.min' => 'Adicione pelo menos uma peça.',
             'pecas.*.tipo_id.required' => 'Selecione o tipo da peça.',
             'pecas.*.tipo_id.exists' => 'Tipo de peça inválido.',
-            'pecas.*.quantidade.required' => 'Informe a quantidade.',
+            'pecas.*.modo_coleta.required' => 'Selecione o modo de coleta.',
+            'pecas.*.modo_coleta.in' => 'Modo de coleta inválido.',
             'pecas.*.quantidade.integer' => 'A quantidade deve ser um número inteiro.',
             'pecas.*.quantidade.min' => 'A quantidade deve ser pelo menos 1.',
-            'pecas.*.peso.required' => 'Informe o peso.',
             'pecas.*.peso.numeric' => 'O peso deve ser um número.',
             'pecas.*.peso.min' => 'O peso deve ser maior que 0.',
         ]);
+
+        // Validação customizada baseada no modo de coleta
+        foreach ($request->pecas as $index => $pecaData) {
+            if ($pecaData['modo_coleta'] === 'quantidade' && empty($pecaData['quantidade'])) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(["pecas.{$index}.quantidade" => 'A quantidade é obrigatória no modo por quantidade.']);
+            }
+            if ($pecaData['modo_coleta'] === 'peso' && empty($pecaData['peso'])) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(["pecas.{$index}.peso" => 'O peso é obrigatório no modo por peso.']);
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -159,11 +177,15 @@ class ColetaController extends Controller
             foreach ($request->pecas as $pecaData) {
                 $tipo = Tipo::find($pecaData['tipo_id']);
 
+                // Definir valores baseados no modo de coleta
+                $quantidade = $pecaData['modo_coleta'] === 'quantidade' ? $pecaData['quantidade'] : 1;
+                $peso = $pecaData['modo_coleta'] === 'peso' ? $pecaData['peso'] : 0;
+
                 ColetaPeca::create([
                     'coleta_id' => $coleta->id,
                     'tipo_id' => $pecaData['tipo_id'],
-                    'quantidade' => $pecaData['quantidade'],
-                    'peso' => $pecaData['peso'],
+                    'quantidade' => $quantidade,
+                    'peso' => $peso,
                     'preco_unitario' => $tipo->preco_kg,
                     'observacoes' => $pecaData['observacoes'] ?? null,
                 ]);

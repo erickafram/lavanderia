@@ -19,6 +19,7 @@ class Coleta extends Model
         'data_coleta',
         'data_conclusao',
         'observacoes',
+        'acompanhante',
         'motivo_cancelamento',
         'peso_total',
         'valor_total',
@@ -113,7 +114,10 @@ class Coleta extends Model
     public function calcularTotais()
     {
         $pesoTotal = $this->pecas->sum('peso');
-        $valorTotal = $this->pecas->sum('subtotal');
+        // Calcular valor total multiplicando peso por preço unitário de cada peça
+        $valorTotal = $this->pecas->sum(function($peca) {
+            return $peca->peso * $peca->preco_unitario;
+        });
 
         // Usar updateQuietly para evitar disparar eventos e loop infinito
         $this->updateQuietly([
