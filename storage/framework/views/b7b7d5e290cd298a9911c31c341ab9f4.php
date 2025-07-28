@@ -201,15 +201,17 @@
                             <p class="text-2xl font-bold text-gray-900"><?php echo e(number_format($coleta->peso_total, 2, ',', '.')); ?> kg</p>
                         </div>
                         
-                        <div class="border-t border-green-200 pt-4">
-                            <p class="text-sm text-gray-600 mb-1">Valor Total</p>
-                            <p class="text-3xl font-bold text-green-600">R$ <?php echo e(number_format($coleta->valor_total, 2, ',', '.')); ?></p>
-                        </div>
+
                         
+                        <?php
+                            $totalPecas = $coleta->pecas->sum('quantidade');
+                        ?>
+                        <?php if($totalPecas > 0): ?>
                         <div class="border-t border-green-200 pt-4">
                             <p class="text-sm text-gray-600 mb-1">Quantidade Total de Peças</p>
-                            <p class="text-xl font-semibold text-gray-900"><?php echo e($coleta->pecas->sum('quantidade')); ?> peças</p>
+                            <p class="text-xl font-semibold text-gray-900"><?php echo e($totalPecas); ?> peças</p>
                         </div>
+                        <?php endif; ?>
 
                         <div class="border-t border-green-200 pt-4">
                             <p class="text-sm text-gray-600 mb-1">Tipos de Peças</p>
@@ -259,7 +261,6 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/kg</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Peças</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Observações</th>
                 </tr>
@@ -278,13 +279,14 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <?php echo e(number_format($peca->peso, 2, ',', '.')); ?> kg
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            R$ <?php echo e(number_format($peca->preco_unitario, 2, ',', '.')); ?>
 
-                        </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                            <?php echo e($peca->quantidade); ?> <?php echo e($peca->quantidade == 1 ? 'peça' : 'peças'); ?>
+                            <?php if($peca->quantidade > 0): ?>
+                                <?php echo e($peca->quantidade); ?> <?php echo e($peca->quantidade == 1 ? 'peça' : 'peças'); ?>
 
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
                         </td>
                         <td class="px-6 py-4 text-sm text-gray-500">
                             <?php echo e($peca->observacoes ?: '-'); ?>

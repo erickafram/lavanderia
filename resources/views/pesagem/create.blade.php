@@ -16,6 +16,13 @@
             <p class="text-sm text-gray-600">Registrar nova pesagem de peças</p>
         </div>
         <div class="flex gap-2 mt-3 sm:mt-0">
+            <a href="{{ route('pesagem.create-comparacao') }}"
+               class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h5.586a1 1 0 00.707-.293l5.414-5.414a1 1 0 00.293-.707V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Pesagem com Comparação
+            </a>
             <a href="{{ route('pesagem.index') }}"
                class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,54 +45,34 @@
                     </h3>
                 </div>
                 <div class="p-6">
-                    <form method="POST" action="{{ route('pesagem.store') }}" id="formPesagem">
+                    <form method="POST" action="{{ route('pesagem.store-geral') }}" id="formPesagem">
                         @csrf
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="coleta_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Coleta <span class="text-red-500">*</span>
-                                </label>
-                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('coleta_id') border-red-500 @enderror"
-                                        id="coleta_id" name="coleta_id" required>
-                                    <option value="">Selecione uma coleta</option>
-                                    @foreach($coletas as $coletaOption)
-                                        <option value="{{ $coletaOption->id }}"
-                                                {{ (old('coleta_id', $coleta?->id) == $coletaOption->id) ? 'selected' : '' }}
-                                                data-estabelecimento="{{ $coletaOption->estabelecimento->razao_social }}">
-                                            {{ $coletaOption->numero_coleta }} - {{ $coletaOption->estabelecimento->razao_social }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('coleta_id')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label for="tipo_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Tipo de Peça <span class="text-red-500">*</span>
-                                </label>
-                                <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('tipo_id') border-red-500 @enderror"
-                                        id="tipo_id" name="tipo_id" required>
-                                    <option value="">Selecione um tipo</option>
-                                    @foreach($tipos as $tipo)
-                                        <option value="{{ $tipo->id }}"
-                                                {{ old('tipo_id') == $tipo->id ? 'selected' : '' }}
-                                                data-preco="{{ $tipo->preco_kg }}">
-                                            {{ $tipo->nome }} (R$ {{ number_format($tipo->preco_kg, 2, ',', '.') }}/kg)
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('tipo_id')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <div class="mb-4">
+                            <label for="coleta_id" class="block text-sm font-medium text-gray-700 mb-2">
+                                Coleta <span class="text-red-500">*</span>
+                            </label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('coleta_id') border-red-500 @enderror"
+                                    id="coleta_id" name="coleta_id" required>
+                                <option value="">Selecione uma coleta</option>
+                                @foreach($coletas as $coletaOption)
+                                    <option value="{{ $coletaOption->id }}"
+                                            {{ (old('coleta_id', $coleta?->id) == $coletaOption->id) ? 'selected' : '' }}
+                                            data-estabelecimento="{{ $coletaOption->estabelecimento->razao_social }}">
+                                        {{ $coletaOption->numero_coleta }} - {{ $coletaOption->estabelecimento->razao_social }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('coleta_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <!-- Campos de Pesagem -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             <div>
                                 <label for="peso" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Peso (kg) <span class="text-red-500">*</span>
+                                    Peso Total (kg) <span class="text-red-500">*</span>
                                 </label>
                                 <input type="number" step="0.01" min="0.01" max="999.99"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('peso') border-red-500 @enderror"
@@ -97,7 +84,7 @@
                             </div>
                             <div>
                                 <label for="quantidade" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Quantidade <span class="text-red-500">*</span>
+                                    Quantidade Total <span class="text-red-500">*</span>
                                 </label>
                                 <input type="number" min="1" max="999"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('quantidade') border-red-500 @enderror"
@@ -107,11 +94,13 @@
                                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                 @enderror
                             </div>
-                            <div>
-                                <label for="peso_unitario" class="block text-sm font-medium text-gray-700 mb-2">Peso Unitário (kg)</label>
-                                <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm"
-                                       id="peso_unitario" readonly placeholder="Calculado automaticamente">
-                            </div>
+                        </div>
+
+                        <!-- Informações da Coleta -->
+                        <div id="info-coleta-pesagem" style="display: none;" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h5 class="text-sm font-medium text-blue-900 mb-2">Informações da Coleta</h5>
+                            <div id="dados-coleta-pesagem" class="text-sm text-blue-800"></div>
+                            <div id="diferenca-peso" class="mt-2 text-sm font-medium"></div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -141,11 +130,11 @@
                         </div>
 
                         <div class="mt-4">
-                            <label for="observacoes" class="block text-sm font-medium text-gray-700 mb-2">Observações</label>
-                            <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('observacoes') border-red-500 @enderror"
-                                      id="observacoes" name="observacoes" rows="3"
-                                      placeholder="Observações sobre a pesagem...">{{ old('observacoes') }}</textarea>
-                            @error('observacoes')
+                            <label for="observacoes_gerais" class="block text-sm font-medium text-gray-700 mb-2">Observações Gerais</label>
+                            <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('observacoes_gerais') border-red-500 @enderror"
+                                      id="observacoes_gerais" name="observacoes_gerais" rows="3"
+                                      placeholder="Observações gerais sobre a pesagem...">{{ old('observacoes_gerais') }}</textarea>
+                            @error('observacoes_gerais')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
@@ -262,29 +251,50 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const coletaSelect = document.getElementById('coleta_id');
-    const tipoSelect = document.getElementById('tipo_id');
     const pesoInput = document.getElementById('peso');
     const quantidadeInput = document.getElementById('quantidade');
-    const pesoUnitarioInput = document.getElementById('peso_unitario');
     const infoColeta = document.getElementById('infoColeta');
     const dadosColeta = document.getElementById('dadosColeta');
+    const infoColetaPesagem = document.getElementById('info-coleta-pesagem');
+    const dadosColetaPesagem = document.getElementById('dados-coleta-pesagem');
+    const diferencaPeso = document.getElementById('diferenca-peso');
 
-    // Função para calcular peso unitário e valores
-    function calcularValores() {
-        const peso = parseFloat(pesoInput.value) || 0;
-        const quantidade = parseInt(quantidadeInput.value) || 1;
-        const tipoOption = tipoSelect.options[tipoSelect.selectedIndex];
-        const precoKg = parseFloat(tipoOption.dataset.preco) || 0;
+    // URL base para as requisições
+    const baseUrl = '{{ url("coletas") }}';
 
-        const pesoUnitario = quantidade > 0 ? peso / quantidade : 0;
-        const valorEstimado = peso * precoKg;
+    // Dados da coleta atual
+    let coletaAtual = null;
 
-        pesoUnitarioInput.value = pesoUnitario.toFixed(2);
+    // Função para calcular diferença de peso total
+    function calcularDiferencaPesoTotal() {
+        if (!coletaAtual) return;
 
-        // Atualizar calculadora
-        document.getElementById('calcPesoTotal').textContent = peso.toFixed(2).replace('.', ',') + ' kg';
-        document.getElementById('calcPesoUnitario').textContent = pesoUnitario.toFixed(2).replace('.', ',') + ' kg';
-        document.getElementById('calcValorEstimado').textContent = 'R$ ' + valorEstimado.toFixed(2).replace('.', ',');
+        const pesoInserido = parseFloat(pesoInput.value) || 0;
+        const pesoColeta = coletaAtual.peso_total || 0;
+
+        if (pesoColeta > 0) {
+            // Coleta tem peso - calcular diferença
+            const diferenca = pesoInserido - pesoColeta;
+            let htmlDiferenca = '';
+
+            if (Math.abs(diferenca) > 0.01) {
+                const sinal = diferenca > 0 ? '+' : '';
+                const cor = diferenca > 0 ? 'text-green-600' : 'text-red-600';
+                const texto = diferenca > 0 ? 'a mais' : 'a menos';
+                htmlDiferenca = `<div class="${cor}">Diferença: ${sinal}${Math.abs(diferenca).toFixed(2)} kg ${texto}</div>`;
+            } else {
+                htmlDiferenca = '<div class="text-green-600">✓ Peso confere com a coleta</div>';
+            }
+
+            diferencaPeso.innerHTML = htmlDiferenca;
+        } else {
+            // Coleta não tem peso - só mostrar peso inserido
+            if (pesoInserido > 0) {
+                diferencaPeso.innerHTML = `<div class="text-blue-600">Peso da pesagem: ${pesoInserido.toFixed(2)} kg</div>`;
+            } else {
+                diferencaPeso.innerHTML = '';
+            }
+        }
     }
 
     // Função para carregar dados da coleta
@@ -292,49 +302,76 @@ document.addEventListener('DOMContentLoaded', function() {
         const coletaId = coletaSelect.value;
         if (!coletaId) {
             infoColeta.classList.add('hidden');
+            infoColetaPesagem.style.display = 'none';
+            coletaAtual = null;
             return;
         }
 
-        const coletaOption = coletaSelect.options[coletaSelect.selectedIndex];
-        const estabelecimento = coletaOption.dataset.estabelecimento;
+        // Fazer requisição AJAX para buscar dados da coleta
+        fetch(`${baseUrl}/${coletaId}/pecas`)
+            .then(response => response.json())
+            .then(data => {
+                coletaAtual = data.coleta;
 
-        dadosColeta.innerHTML = `
-            <div class="space-y-3">
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Número:</span>
-                    <div class="text-blue-600 font-semibold">${coletaOption.text.split(' - ')[0]}</div>
-                </div>
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Estabelecimento:</span>
-                    <div class="text-gray-900 text-sm">${estabelecimento}</div>
-                </div>
-                <div>
-                    <span class="text-sm font-medium text-gray-700">Status:</span>
-                    <div>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Disponível para Pesagem
-                        </span>
+                // Atualizar informações da coleta no card principal
+                const coletaOption = coletaSelect.options[coletaSelect.selectedIndex];
+                const estabelecimento = coletaOption.dataset.estabelecimento;
+
+                dadosColeta.innerHTML = `
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Número:</span>
+                            <div class="text-blue-600 font-semibold">${coletaOption.text.split(' - ')[0]}</div>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Estabelecimento:</span>
+                            <div class="text-gray-900 text-sm">${estabelecimento}</div>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Status:</span>
+                            <div>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    Disponível para Pesagem
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        `;
+                `;
 
-        infoColeta.classList.remove('hidden');
+                // Atualizar informações da coleta para pesagem
+                let infoPesagem = '';
+                if (data.coleta.peso_total > 0) {
+                    infoPesagem = `<strong>Peso da Coleta:</strong> ${data.coleta.peso_total} kg`;
+                } else {
+                    infoPesagem = `<strong>Coleta por quantidade</strong> - Inserir peso da pesagem`;
+                }
+
+                if (data.pecas && data.pecas.length > 0) {
+                    infoPesagem += `<br><strong>Tipos de peças:</strong> ${data.pecas.length}`;
+                }
+
+                dadosColetaPesagem.innerHTML = infoPesagem;
+
+                infoColeta.classList.remove('hidden');
+                infoColetaPesagem.style.display = 'block';
+
+                // Calcular diferença inicial
+                calcularDiferencaPesoTotal();
+            })
+            .catch(error => {
+                console.error('Erro ao carregar dados da coleta:', error);
+                infoColetaPesagem.style.display = 'none';
+            });
     }
 
     // Event listeners
-    pesoInput.addEventListener('input', calcularValores);
-    quantidadeInput.addEventListener('input', calcularValores);
-    tipoSelect.addEventListener('change', calcularValores);
     coletaSelect.addEventListener('change', carregarDadosColeta);
+    pesoInput.addEventListener('input', calcularDiferencaPesoTotal);
 
-    // Inicializar se já há uma coleta selecionada
+    // Carregar dados iniciais se houver coleta selecionada
     if (coletaSelect.value) {
         carregarDadosColeta();
     }
-
-    // Calcular valores iniciais
-    calcularValores();
 });
 </script>
 @endpush

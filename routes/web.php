@@ -8,6 +8,7 @@ use App\Http\Controllers\ColetaController;
 use App\Http\Controllers\AnotacaoController;
 use App\Http\Controllers\PesagemController;
 use App\Http\Controllers\EmpacotamentoController;
+use App\Http\Controllers\MotoristaController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\UsuarioController;
@@ -38,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Dashboard/Painel
     Route::get('/painel', [PainelController::class, 'index'])->name('painel');
+    Route::post('/acompanhar-coleta', [PainelController::class, 'acompanharColeta'])->name('acompanhar-coleta');
     
     // Estabelecimentos
     Route::prefix('estabelecimentos')->name('estabelecimentos.')->group(function () {
@@ -75,6 +77,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [PesagemController::class, 'index'])->name('index');
         Route::get('/cadastrar', [PesagemController::class, 'create'])->name('create');
         Route::post('/', [PesagemController::class, 'store'])->name('store');
+        Route::post('/geral', [PesagemController::class, 'storeGeral'])->name('store-geral');
+        Route::get('/comparacao', [PesagemController::class, 'createComparacao'])->name('create-comparacao');
+        Route::post('/comparacao', [PesagemController::class, 'storeComparacao'])->name('store-comparacao');
         Route::get('/{id}', [PesagemController::class, 'show'])->name('show');
         Route::get('/{id}/editar', [PesagemController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PesagemController::class, 'update'])->name('update');
@@ -95,8 +100,17 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}', [EmpacotamentoController::class, 'show'])->name('show');
         Route::put('/{id}/confirmar-entrega', [EmpacotamentoController::class, 'confirmarEntrega'])->name('confirmar-entrega');
         Route::get('/{id}/reimprimir-qr', [EmpacotamentoController::class, 'reimprimirQR'])->name('reimprimir-qr');
+        Route::get('/{id}/etiqueta', [EmpacotamentoController::class, 'gerarEtiqueta'])->name('etiqueta');
     });
-    
+
+    // Motorista routes
+    Route::prefix('motorista')->name('motorista.')->group(function () {
+        Route::get('/dashboard', [MotoristaController::class, 'dashboard'])->name('dashboard');
+        Route::post('/buscar-empacotamento', [MotoristaController::class, 'buscarEmpacotamento'])->name('buscar-empacotamento');
+        Route::post('/confirmar-saida', [MotoristaController::class, 'confirmarSaida'])->name('confirmar-saida');
+        Route::post('/confirmar-entrega', [MotoristaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
+    });
+
     // Relatórios
     Route::prefix('relatorios')->name('relatorios.')->group(function () {
         Route::get('/', [RelatorioController::class, 'index'])->name('index');

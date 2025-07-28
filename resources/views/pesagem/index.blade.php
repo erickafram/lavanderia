@@ -231,9 +231,15 @@
                                     {{ Str::limit($pesagem->coleta->estabelecimento->razao_social, 30) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        {{ $pesagem->tipo->nome }}
-                                    </span>
+                                    @if($pesagem->tipo)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ $pesagem->tipo->nome }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            Pesagem Geral
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                                     {{ number_format($pesagem->peso, 2, ',', '.') }} kg

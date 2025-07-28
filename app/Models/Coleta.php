@@ -22,7 +22,6 @@ class Coleta extends Model
         'acompanhante',
         'motivo_cancelamento',
         'peso_total',
-        'valor_total',
         'numero_coleta'
     ];
 
@@ -30,8 +29,7 @@ class Coleta extends Model
         'data_agendamento' => 'datetime',
         'data_coleta' => 'datetime',
         'data_conclusao' => 'datetime',
-        'peso_total' => 'decimal:2',
-        'valor_total' => 'decimal:2'
+        'peso_total' => 'decimal:2'
     ];
 
     /**
@@ -114,15 +112,10 @@ class Coleta extends Model
     public function calcularTotais()
     {
         $pesoTotal = $this->pecas->sum('peso');
-        // Calcular valor total multiplicando peso por preço unitário de cada peça
-        $valorTotal = $this->pecas->sum(function($peca) {
-            return $peca->peso * $peca->preco_unitario;
-        });
 
         // Usar updateQuietly para evitar disparar eventos e loop infinito
         $this->updateQuietly([
             'peso_total' => $pesoTotal,
-            'valor_total' => $valorTotal,
         ]);
     }
 

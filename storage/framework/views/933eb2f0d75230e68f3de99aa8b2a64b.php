@@ -139,17 +139,14 @@ endif;
 unset($__errorArgs, $__bag); ?>
         </div>
 
-        <!-- Acompanhante -->
+        <!-- Motorista Acompanhante -->
         <div class="mt-6">
-            <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-2">
-                Nome do Acompanhante <span class="text-gray-500 text-xs">(opcional)</span>
+            <label for="acompanhante_id" class="block text-sm font-medium text-gray-700 mb-2">
+                Motorista Acompanhante <span class="text-gray-500 text-xs">(opcional)</span>
             </label>
-            <input type="text"
-                   id="acompanhante"
-                   name="acompanhante"
-                   value="<?php echo e(old('acompanhante')); ?>"
-                   placeholder="Nome de quem acompanhou a coleta..."
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['acompanhante'];
+            <select id="acompanhante_id"
+                    name="acompanhante_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm <?php $__errorArgs = ['acompanhante_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -157,7 +154,15 @@ $message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($messag
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
-            <?php $__errorArgs = ['acompanhante'];
+                <option value="">Selecione um motorista</option>
+                <?php $__currentLoopData = $motoristas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $motorista): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($motorista->id); ?>" <?php echo e(old('acompanhante_id') == $motorista->id ? 'selected' : ''); ?>>
+                        <?php echo e($motorista->nome); ?>
+
+                    </option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </select>
+            <?php $__errorArgs = ['acompanhante_id'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }

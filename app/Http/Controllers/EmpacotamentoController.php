@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Empacotamento;
 use App\Models\Coleta;
+use App\Models\ColetaPeca;
 use App\Models\Usuario;
 use App\Models\Status;
+use App\Models\Tipo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -71,8 +73,15 @@ class EmpacotamentoController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $coletaId = $request->get('coleta_id');
+        $coleta = null;
+
+        if ($coletaId) {
+            $coleta = Coleta::with(['estabelecimento', 'pecas.tipo'])->findOrFail($coletaId);
+        }
+
         // Buscar coletas que podem ser empacotadas (concluídas e não empacotadas)
         $coletas = Coleta::with(['estabelecimento', 'pecas.tipo'])
                         ->whereHas('status', function($q) {
@@ -82,13 +91,9 @@ class EmpacotamentoController extends Controller
                         ->orderBy('numero_coleta', 'desc')
                         ->get();
 
-        $motoristas = Usuario::where('ativo', true)
-                            ->orderBy('nome')
-                            ->get();
+        $tipos = Tipo::ativos()->orderBy('nome')->get();
 
-        $statusEmpacotamento = Status::where('nome', 'Em empacotamento')->first();
-
-        return view('empacotamento.create', compact('coletas', 'motoristas', 'statusEmpacotamento'));
+        return view('empacotamento.create', compact('coletas', 'coleta', 'tipos'));
     }
 
     /**
@@ -98,7 +103,6 @@ class EmpacotamentoController extends Controller
     {
         $request->validate([
             'coleta_id' => 'required|exists:coletas,id',
-            'motorista_id' => 'nullable|exists:usuarios,id',
             'data_empacotamento' => 'required|date',
             'observacoes_empacotamento' => 'nullable|string|max:1000'
         ]);
@@ -111,21 +115,24 @@ class EmpacotamentoController extends Controller
                 return back()->withErrors(['coleta_id' => 'Esta coleta já foi empacotada.']);
             }
 
-            // Buscar status "Em empacotamento"
-            $statusEmpacotamento = Status::where('nome', 'Em empacotamento')->first();
-            if (!$statusEmpacotamento) {
-                return back()->withErrors(['status' => 'Status "Em empacotamento" não encontrado.']);
+            // Buscar status "Pronto para entrega"
+            $statusProntoEntrega = Status::where('nome', 'Pronto para entrega')->first();
+            if (!$statusProntoEntrega) {
+                return back()->withErrors(['status' => 'Status "Pronto para entrega" não encontrado.']);
             }
 
             // Criar empacotamento
             $empacotamento = Empacotamento::create([
                 'coleta_id' => $request->coleta_id,
                 'usuario_empacotamento_id' => Auth::id(),
-                'motorista_id' => $request->motorista_id,
-                'status_id' => $statusEmpacotamento->id,
+                'motorista_id' => null, // Motorista será definido na saída
+                'status_id' => $statusProntoEntrega->id,
                 'data_empacotamento' => $request->data_empacotamento,
                 'observacoes_empacotamento' => $request->observacoes_empacotamento
             ]);
+
+            // Processar peças do empacotamento
+            $this->processarPecasEmpacotamento($request, $empacotamento);
 
             // Atualizar status da coleta para "Empacotada"
             $statusEmpacotada = Status::where('nome', 'Empacotada')->first();
@@ -141,6 +148,50 @@ class EmpacotamentoController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Erro ao criar empacotamento: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Processar peças do empacotamento
+     */
+    private function processarPecasEmpacotamento(Request $request, Empacotamento $empacotamento)
+    {
+        $coleta = $empacotamento->coleta;
+
+        // Verificar se há peças existentes para conferência (coleta por quantidade)
+        if ($request->has('pecas')) {
+            foreach ($request->pecas as $pecaId => $dadosEmpacotamento) {
+                $coletaPeca = $coleta->pecas->find($pecaId);
+                if ($coletaPeca) {
+                    // Atualizar quantidade empacotada na peça da coleta
+                    $coletaPeca->update([
+                        'quantidade_empacotada' => $dadosEmpacotamento['quantidade_empacotada'] ?? 0,
+                        'peso_empacotado' => $dadosEmpacotamento['peso_empacotado'] ?? 0,
+                    ]);
+                }
+            }
+        }
+
+        // Verificar se há novas peças para cadastrar (coleta por peso)
+        if ($request->has('novas_pecas')) {
+            // Para coletas por peso, substituir todas as peças existentes pelas novas
+            // Remover peças existentes da coleta
+            $coleta->pecas()->delete();
+
+            // Criar novas peças baseadas no empacotamento
+            foreach ($request->novas_pecas as $novaPeca) {
+                if (!empty($novaPeca['tipo_id']) && !empty($novaPeca['quantidade'])) {
+                    ColetaPeca::create([
+                        'coleta_id' => $coleta->id,
+                        'tipo_id' => $novaPeca['tipo_id'],
+                        'quantidade' => $novaPeca['quantidade'],
+                        'peso' => 0, // Peso individual não é conhecido
+                        'quantidade_empacotada' => $novaPeca['quantidade'],
+                        'peso_empacotado' => 0,
+                        'observacoes' => 'Tipos definidos no empacotamento (coleta foi por peso total)'
+                    ]);
+                }
+            }
         }
     }
 
@@ -215,7 +266,21 @@ class EmpacotamentoController extends Controller
     public function reimprimirQR($id)
     {
         $empacotamento = Empacotamento::with(['coleta.estabelecimento'])->findOrFail($id);
-        
+
         return view('empacotamento.qrcode', compact('empacotamento'));
+    }
+
+    /**
+     * Gerar etiqueta do empacotamento para impressão
+     */
+    public function gerarEtiqueta($id)
+    {
+        $empacotamento = Empacotamento::with([
+            'coleta.estabelecimento',
+            'coleta.pecas.tipo',
+            'usuarioEmpacotamento'
+        ])->findOrFail($id);
+
+        return view('empacotamento.etiqueta', compact('empacotamento'));
     }
 }

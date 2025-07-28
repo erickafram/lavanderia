@@ -31,6 +31,18 @@ class EstabelecimentoController extends Controller
      */
     public function store(Request $request)
     {
+        // Processar emails antes da validação - remover vazios
+        $requestData = $request->all();
+        if (isset($requestData['emails'])) {
+            $requestData['emails'] = array_filter($requestData['emails'], function($email) {
+                return !empty(trim($email));
+            });
+            $requestData['emails'] = array_values($requestData['emails']);
+        }
+
+        // Atualizar o request com os dados processados
+        $request->merge($requestData);
+
         $request->validate([
             'cnpj' => 'required|string|unique:estabelecimentos,cnpj',
             'razao_social' => 'required|string|max:255',
@@ -44,10 +56,10 @@ class EstabelecimentoController extends Controller
             'cep' => 'required|string|max:9',
             'telefone' => 'required|string|max:20',
             'emails' => 'nullable|array',
-            'emails.*' => 'email|max:255',
+            'emails.*' => 'nullable|email|max:255',
             'contatos_responsaveis' => 'nullable|array',
-            'contatos_responsaveis.*.nome' => 'required|string|max:255',
-            'contatos_responsaveis.*.telefone' => 'required|string|max:20',
+            'contatos_responsaveis.*.nome' => 'nullable|string|max:255',
+            'contatos_responsaveis.*.telefone' => 'nullable|string|max:20',
             'observacoes' => 'nullable|string',
         ], [
             'cnpj.required' => 'O CNPJ é obrigatório.',
@@ -66,18 +78,15 @@ class EstabelecimentoController extends Controller
 
         $data = $request->all();
 
-        // Processar emails - remover vazios
-        if (isset($data['emails'])) {
-            $data['emails'] = array_filter($data['emails'], function($email) {
-                return !empty(trim($email));
-            });
-            $data['emails'] = array_values($data['emails']); // Reindexar array
-        }
 
-        // Processar contatos responsáveis - remover vazios
+
+        // Processar contatos responsáveis - remover vazios (ambos campos devem estar preenchidos ou ambos vazios)
         if (isset($data['contatos_responsaveis'])) {
             $data['contatos_responsaveis'] = array_filter($data['contatos_responsaveis'], function($contato) {
-                return !empty(trim($contato['nome'] ?? '')) && !empty(trim($contato['telefone'] ?? ''));
+                $nome = trim($contato['nome'] ?? '');
+                $telefone = trim($contato['telefone'] ?? '');
+                // Manter contato apenas se ambos os campos estiverem preenchidos
+                return !empty($nome) && !empty($telefone);
             });
             $data['contatos_responsaveis'] = array_values($data['contatos_responsaveis']); // Reindexar array
         }
@@ -125,7 +134,19 @@ class EstabelecimentoController extends Controller
     public function update(Request $request, $id)
     {
         $estabelecimento = Estabelecimento::findOrFail($id);
-        
+
+        // Processar emails antes da validação - remover vazios
+        $requestData = $request->all();
+        if (isset($requestData['emails'])) {
+            $requestData['emails'] = array_filter($requestData['emails'], function($email) {
+                return !empty(trim($email));
+            });
+            $requestData['emails'] = array_values($requestData['emails']);
+        }
+
+        // Atualizar o request com os dados processados
+        $request->merge($requestData);
+
         $request->validate([
             'cnpj' => 'required|string|unique:estabelecimentos,cnpj,' . $id,
             'razao_social' => 'required|string|max:255',
@@ -139,10 +160,10 @@ class EstabelecimentoController extends Controller
             'cep' => 'required|string|max:9',
             'telefone' => 'required|string|max:20',
             'emails' => 'nullable|array',
-            'emails.*' => 'email|max:255',
+            'emails.*' => 'nullable|email|max:255',
             'contatos_responsaveis' => 'nullable|array',
-            'contatos_responsaveis.*.nome' => 'required|string|max:255',
-            'contatos_responsaveis.*.telefone' => 'required|string|max:20',
+            'contatos_responsaveis.*.nome' => 'nullable|string|max:255',
+            'contatos_responsaveis.*.telefone' => 'nullable|string|max:20',
             'observacoes' => 'nullable|string',
         ], [
             'cnpj.required' => 'O CNPJ é obrigatório.',
@@ -157,8 +178,6 @@ class EstabelecimentoController extends Controller
             'cep.required' => 'O CEP é obrigatório.',
             'telefone.required' => 'O telefone é obrigatório.',
             'emails.*.email' => 'O email deve ser válido.',
-            'contatos_responsaveis.*.nome.required' => 'O nome do contato é obrigatório.',
-            'contatos_responsaveis.*.telefone.required' => 'O telefone do contato é obrigatório.',
         ]);
 
         $data = $request->all();

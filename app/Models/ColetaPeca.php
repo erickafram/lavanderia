@@ -16,16 +16,12 @@ class ColetaPeca extends Model
         'tipo_id',
         'quantidade',
         'peso',
-        'preco_unitario',
-        'subtotal',
         'observacoes'
     ];
 
     protected $casts = [
         'quantidade' => 'integer',
-        'peso' => 'decimal:2',
-        'preco_unitario' => 'decimal:2',
-        'subtotal' => 'integer'  // Agora representa quantidade de peças
+        'peso' => 'decimal:2'
     ];
 
     /**
@@ -45,16 +41,11 @@ class ColetaPeca extends Model
     }
 
     /**
-     * Boot method para calcular subtotal automaticamente
+     * Boot method para eventos do modelo
      */
     protected static function boot()
     {
         parent::boot();
-
-        static::saving(function ($coletaPeca) {
-            // Subtotal agora representa a quantidade de peças ao invés do valor monetário
-            $coletaPeca->subtotal = $coletaPeca->quantidade;
-        });
 
         static::saved(function ($coletaPeca) {
             // Recalcular totais da coleta apenas se a coleta existir

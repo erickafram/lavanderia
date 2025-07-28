@@ -69,7 +69,15 @@ class ColetaController extends Controller
                        ->where('nome', 'Agendada')
                        ->first();
 
-        return view('coletas.create', compact('estabelecimentos', 'tipos', 'status'));
+        // Buscar usuários com nível de acesso "Motorista"
+        $motoristas = Usuario::whereHas('nivelAcesso', function($query) {
+                                $query->where('nome', 'Motorista');
+                            })
+                            ->where('ativo', true)
+                            ->orderBy('nome')
+                            ->get();
+
+        return view('coletas.create', compact('estabelecimentos', 'tipos', 'status', 'motoristas'));
     }
 
     /**
@@ -81,14 +89,14 @@ class ColetaController extends Controller
             'estabelecimento_id' => 'required|exists:estabelecimentos,id',
             'data_agendamento' => 'required|date|after_or_equal:today',
             'observacoes' => 'nullable|string',
-            'acompanhante' => 'nullable|string|max:255',
+            'acompanhante_id' => 'nullable|exists:usuarios,id',
         ], [
             'estabelecimento_id.required' => 'Selecione um estabelecimento.',
             'estabelecimento_id.exists' => 'Estabelecimento inválido.',
             'data_agendamento.required' => 'A data de agendamento é obrigatória.',
             'data_agendamento.date' => 'Data de agendamento inválida.',
             'data_agendamento.after_or_equal' => 'A data deve ser hoje ou futura.',
-            'acompanhante.max' => 'O nome do acompanhante não pode ter mais de 255 caracteres.',
+            'acompanhante_id.exists' => 'Motorista selecionado inválido.',
         ]);
 
         try {
@@ -97,6 +105,13 @@ class ColetaController extends Controller
                                   ->where('nome', 'Agendada')
                                   ->first();
 
+            // Buscar nome do motorista se selecionado
+            $nomeAcompanhante = null;
+            if ($request->acompanhante_id) {
+                $motorista = Usuario::find($request->acompanhante_id);
+                $nomeAcompanhante = $motorista ? $motorista->nome : null;
+            }
+
             // Criar coleta
             $coleta = Coleta::create([
                 'estabelecimento_id' => $request->estabelecimento_id,
@@ -104,7 +119,7 @@ class ColetaController extends Controller
                 'status_id' => $statusInicial->id,
                 'data_agendamento' => $request->data_agendamento,
                 'observacoes' => $request->observacoes,
-                'acompanhante' => $request->acompanhante,
+                'acompanhante' => $nomeAcompanhante,
             ]);
 
             return redirect()->route('coletas.add-pecas', $coleta->id)
@@ -122,9 +137,9 @@ class ColetaController extends Controller
      */
     public function addPecas($id)
     {
-        $coleta = Coleta::with(['estabelecimento', 'status'])->findOrFail($id);
+        $coleta = Coleta::with(['estabelecimento', 'status', 'pecas.tipo'])->findOrFail($id);
         $tipos = Tipo::ativos()->orderBy('nome')->get();
-        
+
         return view('coletas.add-pecas', compact('coleta', 'tipos'));
     }
 
@@ -175,10 +190,8 @@ class ColetaController extends Controller
 
             // Criar peças da coleta
             foreach ($request->pecas as $pecaData) {
-                $tipo = Tipo::find($pecaData['tipo_id']);
-
                 // Definir valores baseados no modo de coleta
-                $quantidade = $pecaData['modo_coleta'] === 'quantidade' ? $pecaData['quantidade'] : 1;
+                $quantidade = $pecaData['modo_coleta'] === 'quantidade' ? $pecaData['quantidade'] : 0;
                 $peso = $pecaData['modo_coleta'] === 'peso' ? $pecaData['peso'] : 0;
 
                 ColetaPeca::create([
@@ -186,7 +199,6 @@ class ColetaController extends Controller
                     'tipo_id' => $pecaData['tipo_id'],
                     'quantidade' => $quantidade,
                     'peso' => $peso,
-                    'preco_unitario' => $tipo->preco_kg,
                     'observacoes' => $pecaData['observacoes'] ?? null,
                 ]);
             }
@@ -289,11 +301,30 @@ class ColetaController extends Controller
      */
     public function getPecasColeta($id)
     {
-        $pecas = ColetaPeca::where('coleta_id', $id)
-                          ->with('tipo')
-                          ->get();
+        $coleta = Coleta::with(['pecas.tipo'])->findOrFail($id);
 
-        return response()->json($pecas);
+        return response()->json([
+            'success' => true,
+            'coleta' => [
+                'id' => $coleta->id,
+                'numero_coleta' => $coleta->numero_coleta,
+                'peso_total' => $coleta->peso_total,
+            ],
+            'pecas' => $coleta->pecas->map(function($peca) {
+                return [
+                    'id' => $peca->id,
+                    'tipo_id' => $peca->tipo_id,
+                    'quantidade' => $peca->quantidade,
+                    'peso' => $peca->peso,
+                    'observacoes' => $peca->observacoes,
+                    'tipo' => [
+                        'id' => $peca->tipo->id,
+                        'nome' => $peca->tipo->nome,
+                        'categoria' => $peca->tipo->categoria,
+                    ]
+                ];
+            })
+        ]);
     }
 
     /**

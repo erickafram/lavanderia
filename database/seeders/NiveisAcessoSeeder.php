@@ -35,6 +35,7 @@ class NiveisAcessoSeeder extends Seeder
                     'empacotamento.criar',
                     'empacotamento.editar',
                     'empacotamento.visualizar',
+                    'motorista.visualizar',
                     'relatorios.visualizar',
                     'relatorios.exportar',
                     'tipos.criar',
@@ -60,6 +61,7 @@ class NiveisAcessoSeeder extends Seeder
                     'empacotamento.criar',
                     'empacotamento.editar',
                     'empacotamento.visualizar',
+                    'motorista.visualizar',
                     'relatorios.visualizar'
                 ],
                 'ativo' => true
@@ -70,6 +72,7 @@ class NiveisAcessoSeeder extends Seeder
                 'permissoes' => [
                     'empacotamento.visualizar',
                     'empacotamento.confirmar_entrega',
+                    'motorista.visualizar',
                     'qrcodes.visualizar'
                 ],
                 'ativo' => true

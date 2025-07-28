@@ -236,10 +236,16 @@
 
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        <?php echo e($pesagem->tipo->nome); ?>
+                                    <?php if($pesagem->tipo): ?>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            <?php echo e($pesagem->tipo->nome); ?>
 
-                                    </span>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            Pesagem Geral
+                                        </span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
                                     <?php echo e(number_format($pesagem->peso, 2, ',', '.')); ?> kg

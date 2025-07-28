@@ -60,9 +60,15 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Peça:</label>
                             <div>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                    {{ $pesagem->tipo->nome }}
-                                </span>
+                                @if($pesagem->tipo)
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        {{ $pesagem->tipo->nome }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                        Pesagem Geral
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -187,11 +193,13 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($pesagem->coleta->pecas as $peca)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $peca->tipo->nome }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $peca->quantidade }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ number_format($peca->peso, 2, ',', '.') }} kg</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">R$ {{ number_format($peca->preco_unitario, 2, ',', '.') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R$ {{ number_format($peca->subtotal, 2, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">R$ {{ number_format($peca->preco_unitario ?? 0, 2, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R$ {{ number_format($peca->subtotal ?? 0, 2, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -318,24 +326,32 @@
                     </h3>
                 </div>
                 <div class="p-4 space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-700">Valor Estimado:</span>
-                        <span class="text-lg font-bold text-green-600">
-                            R$ {{ number_format($pesagem->peso * $pesagem->tipo->preco_kg, 2, ',', '.') }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-700">Preço por kg:</span>
-                        <span class="text-sm font-medium text-blue-600">R$ {{ number_format($pesagem->tipo->preco_kg, 2, ',', '.') }}</span>
-                    </div>
-                    <div>
-                        <span class="text-sm font-medium text-gray-700">Categoria:</span>
-                        <div class="mt-1">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                {{ $pesagem->tipo->categoria ?: 'Sem categoria' }}
+                    @if($pesagem->tipo)
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Valor Estimado:</span>
+                            <span class="text-lg font-bold text-green-600">
+                                R$ {{ number_format($pesagem->peso * $pesagem->tipo->preco_kg, 2, ',', '.') }}
                             </span>
                         </div>
-                    </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Preço por kg:</span>
+                            <span class="text-sm font-medium text-blue-600">R$ {{ number_format($pesagem->tipo->preco_kg, 2, ',', '.') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Categoria:</span>
+                            <div class="mt-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {{ $pesagem->tipo->categoria ?: 'Sem categoria' }}
+                                </span>
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-4">
+                            <span class="text-sm text-gray-500">
+                                Pesagem geral - Informações de preço não disponíveis
+                            </span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

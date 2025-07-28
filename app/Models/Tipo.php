@@ -14,13 +14,11 @@ class Tipo extends Model
     protected $fillable = [
         'nome',
         'descricao',
-        'preco_kg',
         'categoria',
         'ativo'
     ];
 
     protected $casts = [
-        'preco_kg' => 'decimal:2',
         'ativo' => 'boolean'
     ];
 
@@ -48,11 +46,5 @@ class Tipo extends Model
         return $query->where('categoria', $categoria);
     }
 
-    /**
-     * Accessor para preço formatado
-     */
-    public function getPrecoFormatadoAttribute()
-    {
-        return 'R$ ' . number_format($this->preco_kg, 2, ',', '.');
-    }
+
 }

@@ -175,6 +175,23 @@
                                     <?php endif; ?>
                                 </a>
                                 <?php endif; ?>
+
+                                <?php if(auth()->user()->temPermissao('motorista.visualizar')): ?>
+                                <a href="<?php echo e(route('motorista.dashboard')); ?>" class="group flex items-center px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 <?php echo e(request()->routeIs('motorista.*') ? 'bg-green-50 text-green-700 border-r-2 border-green-600' : ''); ?>">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-lg <?php echo e(request()->routeIs('motorista.*') ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200'); ?> transition-colors duration-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="font-medium">Motorista</p>
+                                        <p class="text-xs text-gray-400 group-hover:text-gray-500">Entregas e QR Code</p>
+                                    </div>
+                                    <?php if(request()->routeIs('motorista.*')): ?>
+                                    <div class="ml-auto w-2 h-2 bg-green-600 rounded-full"></div>
+                                    <?php endif; ?>
+                                </a>
+                                <?php endif; ?>
                             </div>
                         </div>
 

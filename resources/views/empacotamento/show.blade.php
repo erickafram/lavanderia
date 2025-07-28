@@ -16,14 +16,22 @@
             <p class="text-sm text-gray-600">Detalhes do empacotamento e rastreamento</p>
         </div>
         <div class="flex gap-2 mt-3 sm:mt-0">
-            <a href="{{ route('empacotamento.reimprimir-qr', $empacotamento->id) }}" 
+            <a href="{{ route('empacotamento.etiqueta', $empacotamento->id) }}"
+               target="_blank"
+               class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                Gerar Etiqueta
+            </a>
+            <a href="{{ route('empacotamento.reimprimir-qr', $empacotamento->id) }}"
                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
                 Reimprimir QR
             </a>
-            <a href="{{ route('empacotamento.index') }}" 
+            <a href="{{ route('empacotamento.index') }}"
                class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -201,49 +209,30 @@
         </div>
 
         <div class="lg:col-span-1 space-y-6">
-            <!-- Status do Motorista -->
+            <!-- Código QR -->
             <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-red-50">
+                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
                     <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                        <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"></path>
                         </svg>
-                        Status do Motorista
+                        Código QR
                     </h3>
                 </div>
-                <div class="p-4 space-y-4">
-                    @if($empacotamento->motorista)
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div class="flex items-center mb-3">
-                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-blue-900">Motorista: {{ $empacotamento->motorista->nome }}</div>
-                                    @if($empacotamento->data_saida)
-                                        <div class="text-sm text-blue-700">Data de Confirmação pelo Motorista: {{ $empacotamento->data_saida->format('d/m/Y H:i:s') }}</div>
-                                    @else
-                                        <div class="text-sm text-blue-700">Aguardando confirmação</div>
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @else
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <div class="flex items-center">
-                                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                </svg>
-                                <span class="text-yellow-800 font-medium">Motorista não definido</span>
-                            </div>
-                        </div>
-                    @endif
+                <div class="p-6 text-center">
+                    <div class="mb-4">
+                        {!! QrCode::size(150)->generate($empacotamento->codigo_qr) !!}
+                    </div>
+                    <div class="text-lg font-mono font-bold text-gray-900 mb-2">
+                        {{ $empacotamento->codigo_qr }}
+                    </div>
+                    <div class="text-sm text-gray-600 mb-4">
+                        Escaneie este código para realizar a entrega
+                    </div>
 
                     <!-- Status Atual -->
                     <div class="border-t pt-4">
-                        <span class="text-sm font-medium text-gray-700">Status Atual:</span>
+                        <span class="text-sm font-medium text-gray-700">Status:</span>
                         <div class="mt-2">
                             <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium"
                                   style="background-color: {{ $empacotamento->status->cor }}20; color: {{ $empacotamento->status->cor }};">
@@ -252,87 +241,28 @@
                             </span>
                         </div>
                     </div>
-
-                    <!-- Ações -->
-                    @if($empacotamento->podeSerEntregue() && !$empacotamento->foiEntregue())
-                        <div class="border-t pt-4">
-                            <button type="button" onclick="abrirModalEntrega()"
-                                    class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
-                                <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Confirmar Entrega
-                            </button>
-                        </div>
-                    @endif
                 </div>
             </div>
 
-            <!-- Status do Recebimento -->
-            @if($empacotamento->foiEntregue())
+            <!-- Informações de Entrega -->
+            @if($empacotamento->status->nome === 'Entregue')
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
                         <h3 class="text-lg font-bold text-gray-900 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Status do Recebimento
+                            Entrega Realizada
                         </h3>
                     </div>
-                    <div class="p-4 space-y-4">
-                        <!-- Status de Entrega -->
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div class="flex items-center mb-2">
-                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span class="font-bold text-green-800">ENTREGUE COM SUCESSO</span>
-                            </div>
-                            <div class="text-sm text-green-700">
-                                <strong>Data de Entrega:</strong> {{ $empacotamento->data_entrega->format('d/m/Y H:i:s') }}
-                            </div>
+                    <div class="p-4">
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                            <svg class="w-8 h-8 text-green-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <p class="text-green-800 font-medium">Empacotamento entregue com sucesso</p>
+                            <p class="text-green-600 text-sm mt-1">Processo finalizado</p>
                         </div>
-
-                        <!-- Informações do Recebedor -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-900 mb-3">Dados do Recebimento</h4>
-                            <div class="space-y-2">
-                                <div>
-                                    <span class="text-sm font-medium text-gray-700">Recebido por:</span>
-                                    <div class="text-gray-900 font-medium">{{ $empacotamento->nome_recebedor }}</div>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-medium text-gray-700">Data de Confirmação:</span>
-                                    <div class="text-gray-900">{{ $empacotamento->data_confirmacao_recebimento->format('d/m/Y H:i:s') }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Assinatura do Recebedor -->
-                        <div class="border border-gray-200 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-900 mb-3">Assinatura do Recebedor</h4>
-                            @if($empacotamento->assinatura_recebimento)
-                                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                                    <img src="{{ asset('storage/' . $empacotamento->assinatura_recebimento) }}"
-                                         alt="Assinatura" class="max-h-24 mx-auto">
-                                </div>
-                            @else
-                                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                                    </svg>
-                                    <p class="text-gray-500 text-sm">Assinatura digital não disponível</p>
-                                    <p class="text-gray-400 text-xs mt-1">Recebimento confirmado verbalmente</p>
-                                </div>
-                            @endif
-                        </div>
-
-                        @if($empacotamento->observacoes_entrega)
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-blue-900 mb-2">Observações da Entrega</h4>
-                                <p class="text-blue-800 text-sm">{{ $empacotamento->observacoes_entrega }}</p>
-                            </div>
-                        @endif
                     </div>
                 </div>
             @else
@@ -343,7 +273,7 @@
                             <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Status do Recebimento
+                            Aguardando Entrega
                         </h3>
                     </div>
                     <div class="p-4">

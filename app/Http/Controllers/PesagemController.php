@@ -99,7 +99,7 @@ class PesagemController extends Controller
     {
         $coletaId = $request->get('coleta_id');
         $coleta = null;
-        
+
         if ($coletaId) {
             $coleta = Coleta::with(['estabelecimento', 'pecas.tipo'])->findOrFail($coletaId);
         }
@@ -110,10 +110,33 @@ class PesagemController extends Controller
                         })
                         ->orderBy('numero_coleta', 'desc')
                         ->get();
-        
+
         $tipos = Tipo::ativos()->orderBy('nome')->get();
 
         return view('pesagem.create', compact('coletas', 'tipos', 'coleta'));
+    }
+
+    /**
+     * Show the form for creating pesagem with pieces comparison
+     */
+    public function createComparacao(Request $request)
+    {
+        $coletaId = $request->get('coleta_id');
+
+        if (!$coletaId) {
+            return redirect()->route('pesagem.create')
+                           ->with('error', 'Selecione uma coleta para fazer a pesagem.');
+        }
+
+        $coleta = Coleta::with(['estabelecimento', 'pecas.tipo'])->findOrFail($coletaId);
+
+        // Verificar se a coleta tem peças
+        if ($coleta->pecas->isEmpty()) {
+            return redirect()->route('pesagem.create')
+                           ->with('error', 'Esta coleta não possui peças cadastradas.');
+        }
+
+        return view('pesagem.create-comparacao', compact('coleta'));
     }
 
     /**
@@ -126,18 +149,124 @@ class PesagemController extends Controller
             $pesagem = Pesagem::create([
                 'coleta_id' => $request->coleta_id,
                 'usuario_id' => Auth::id(),
-                'tipo_id' => $request->tipo_id,
+                'tipo_id' => null, // Pesagem geral, sem tipo específico
                 'peso' => $request->peso,
                 'quantidade' => $request->quantidade,
                 'data_pesagem' => $request->data_pesagem,
                 'local_pesagem' => $request->local_pesagem,
-                'observacoes' => $request->observacoes,
+                'observacoes' => $request->observacoes_gerais,
             ]);
 
             DB::commit();
 
             return redirect()->route('pesagem.index')
                            ->with('success', 'Pesagem registrada com sucesso!');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Erro ao registrar pesagem: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store pesagem geral (sem tipo específico)
+     */
+    public function storeGeral(Request $request)
+    {
+        $request->validate([
+            'coleta_id' => 'required|exists:coletas,id',
+            'peso' => 'required|numeric|min:0.01|max:999.99',
+            'quantidade' => 'required|integer|min:1|max:999',
+            'data_pesagem' => 'required|date|before_or_equal:now',
+            'local_pesagem' => 'nullable|string|max:255',
+            'observacoes_gerais' => 'nullable|string|max:1000',
+        ], [
+            'coleta_id.required' => 'Coleta é obrigatória.',
+            'peso.required' => 'Peso é obrigatório.',
+            'peso.numeric' => 'Peso deve ser um número.',
+            'peso.min' => 'Peso deve ser maior que 0.',
+            'quantidade.required' => 'Quantidade é obrigatória.',
+            'quantidade.integer' => 'Quantidade deve ser um número inteiro.',
+            'quantidade.min' => 'Quantidade deve ser pelo menos 1.',
+            'data_pesagem.required' => 'Data da pesagem é obrigatória.',
+            'data_pesagem.before_or_equal' => 'Data da pesagem não pode ser futura.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $pesagem = Pesagem::create([
+                'coleta_id' => $request->coleta_id,
+                'usuario_id' => Auth::id(),
+                'tipo_id' => null, // Pesagem geral, sem tipo específico
+                'peso' => $request->peso,
+                'quantidade' => $request->quantidade,
+                'data_pesagem' => $request->data_pesagem,
+                'local_pesagem' => $request->local_pesagem,
+                'observacoes' => $request->observacoes_gerais,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('pesagem.index')
+                           ->with('success', 'Pesagem registrada com sucesso!');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Erro ao registrar pesagem: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Store pesagem with pieces comparison
+     */
+    public function storeComparacao(Request $request)
+    {
+        $request->validate([
+            'coleta_id' => 'required|exists:coletas,id',
+            'data_pesagem' => 'required|date',
+            'local_pesagem' => 'nullable|string|max:255',
+            'observacoes_gerais' => 'nullable|string',
+            'pecas' => 'required|array|min:1',
+            'pecas.*.peso_pesagem' => 'required|numeric|min:0',
+            'pecas.*.quantidade_pesagem' => 'required|integer|min:0',
+        ], [
+            'coleta_id.required' => 'Coleta é obrigatória.',
+            'data_pesagem.required' => 'Data da pesagem é obrigatória.',
+            'pecas.required' => 'Pelo menos uma peça deve ser pesada.',
+            'pecas.*.peso_pesagem.required' => 'Peso da pesagem é obrigatório.',
+            'pecas.*.quantidade_pesagem.required' => 'Quantidade da pesagem é obrigatória.',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $coleta = Coleta::with('pecas')->findOrFail($request->coleta_id);
+
+            // Criar pesagens para cada peça
+            foreach ($request->pecas as $pecaId => $dadosPesagem) {
+                $coletaPeca = $coleta->pecas->find($pecaId);
+
+                if ($coletaPeca) {
+                    Pesagem::create([
+                        'coleta_id' => $request->coleta_id,
+                        'usuario_id' => Auth::id(),
+                        'tipo_id' => $coletaPeca->tipo_id,
+                        'peso' => $dadosPesagem['peso_pesagem'],
+                        'quantidade' => $dadosPesagem['quantidade_pesagem'],
+                        'data_pesagem' => $request->data_pesagem,
+                        'local_pesagem' => $request->local_pesagem,
+                        'observacoes' => $request->observacoes_gerais,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('pesagem.index')
+                           ->with('success', 'Pesagem com comparação registrada com sucesso!');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -168,7 +297,7 @@ class PesagemController extends Controller
      */
     public function edit($id)
     {
-        $pesagem = Pesagem::with(['coleta.estabelecimento'])->findOrFail($id);
+        $pesagem = Pesagem::with(['coleta.estabelecimento', 'coleta.pecas.tipo'])->findOrFail($id);
 
         if (!$pesagem->podeSerEditada()) {
             return redirect()->route('pesagem.index')
@@ -181,7 +310,7 @@ class PesagemController extends Controller
                         })
                         ->orderBy('numero_coleta', 'desc')
                         ->get();
-        
+
         $tipos = Tipo::ativos()->orderBy('nome')->get();
 
         return view('pesagem.edit', compact('pesagem', 'coletas', 'tipos'));

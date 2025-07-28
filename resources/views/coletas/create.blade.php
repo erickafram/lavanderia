@@ -96,18 +96,22 @@
             @enderror
         </div>
 
-        <!-- Acompanhante -->
+        <!-- Motorista Acompanhante -->
         <div class="mt-6">
-            <label for="acompanhante" class="block text-sm font-medium text-gray-700 mb-2">
-                Nome do Acompanhante <span class="text-gray-500 text-xs">(opcional)</span>
+            <label for="acompanhante_id" class="block text-sm font-medium text-gray-700 mb-2">
+                Motorista Acompanhante <span class="text-gray-500 text-xs">(opcional)</span>
             </label>
-            <input type="text"
-                   id="acompanhante"
-                   name="acompanhante"
-                   value="{{ old('acompanhante') }}"
-                   placeholder="Nome de quem acompanhou a coleta..."
-                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('acompanhante') border-red-500 @enderror">
-            @error('acompanhante')
+            <select id="acompanhante_id"
+                    name="acompanhante_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm @error('acompanhante_id') border-red-500 @enderror">
+                <option value="">Selecione um motorista</option>
+                @foreach($motoristas as $motorista)
+                    <option value="{{ $motorista->id }}" {{ old('acompanhante_id') == $motorista->id ? 'selected' : '' }}>
+                        {{ $motorista->nome }}
+                    </option>
+                @endforeach
+            </select>
+            @error('acompanhante_id')
                 <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
             @enderror
         </div>

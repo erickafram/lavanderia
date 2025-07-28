@@ -3,7 +3,7 @@
         'name' => 'lavanderia/sistema-gestao',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '7233dbc36f85074ff151c278fe5f60a36fd93110',
+        'reference' => 'e0836b3d451bc8c5b2b3ee91350aed0f167c6857',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -481,7 +481,7 @@
         'lavanderia/sistema-gestao' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '7233dbc36f85074ff151c278fe5f60a36fd93110',
+            'reference' => 'e0836b3d451bc8c5b2b3ee91350aed0f167c6857',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1033,6 +1033,15 @@
             'install_path' => __DIR__ . '/../sebastian/version',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'simplesoftwareio/simple-qrcode' => array(
+            'pretty_version' => '4.2.0',
+            'version' => '4.2.0.0',
+            'reference' => '916db7948ca6772d54bb617259c768c9cdc8d537',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../simplesoftwareio/simple-qrcode',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'spatie/backtrace' => array(
             'pretty_version' => '1.7.4',

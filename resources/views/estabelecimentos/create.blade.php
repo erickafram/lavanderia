@@ -272,7 +272,7 @@
             <div class="mb-6">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">
-                        Emails
+                        Emails (Opcional)
                     </label>
                     <button type="button"
                             id="add-email"
@@ -307,7 +307,7 @@
             <div class="mb-6">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">
-                        Contatos Responsáveis
+                        Contatos Responsáveis (Opcional)
                     </label>
                     <button type="button"
                             id="add-contato"
