@@ -16,6 +16,8 @@ class Empacotamento extends Model
         'coleta_id',
         'usuario_empacotamento_id',
         'motorista_id',
+        'motorista_saida_id',
+        'motorista_entrega_id',
         'status_id',
         'codigo_qr',
         'data_empacotamento',
@@ -23,6 +25,7 @@ class Empacotamento extends Model
         'data_entrega',
         'data_confirmacao_recebimento',
         'assinatura_recebimento',
+        'assinatura_recebedor',
         'nome_recebedor',
         'observacoes_empacotamento',
         'observacoes_entrega'
@@ -60,11 +63,35 @@ class Empacotamento extends Model
     }
 
     /**
+     * Relacionamento com motorista que confirmou saída
+     */
+    public function motoristaSaida()
+    {
+        return $this->belongsTo(Usuario::class, 'motorista_saida_id');
+    }
+
+    /**
+     * Relacionamento com motorista que confirmou entrega
+     */
+    public function motoristaEntrega()
+    {
+        return $this->belongsTo(Usuario::class, 'motorista_entrega_id');
+    }
+
+    /**
      * Relacionamento com status
      */
     public function status()
     {
         return $this->belongsTo(Status::class);
+    }
+
+    /**
+     * Relacionamento com entrega
+     */
+    public function entrega()
+    {
+        return $this->hasOne(Entrega::class);
     }
 
     /**

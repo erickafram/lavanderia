@@ -129,12 +129,20 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900"><?php echo e($empacotamento->coleta->numero_coleta); ?></div>
+                                    <?php if($empacotamento->coleta): ?>
+                                        <div class="text-sm text-gray-900"><?php echo e($empacotamento->coleta->numero_coleta); ?></div>
+                                    <?php else: ?>
+                                        <div class="text-sm text-red-600">Coleta não encontrada</div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900"><?php echo e($empacotamento->coleta->estabelecimento->razao_social); ?></div>
-                                    <?php if($empacotamento->coleta->estabelecimento->nome_fantasia): ?>
-                                        <div class="text-xs text-gray-500"><?php echo e($empacotamento->coleta->estabelecimento->nome_fantasia); ?></div>
+                                    <?php if($empacotamento->coleta && $empacotamento->coleta->estabelecimento): ?>
+                                        <div class="text-sm text-gray-900"><?php echo e($empacotamento->coleta->estabelecimento->razao_social); ?></div>
+                                        <?php if($empacotamento->coleta->estabelecimento->nome_fantasia): ?>
+                                            <div class="text-xs text-gray-500"><?php echo e($empacotamento->coleta->estabelecimento->nome_fantasia); ?></div>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <div class="text-sm text-red-600">Estabelecimento não encontrado</div>
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">

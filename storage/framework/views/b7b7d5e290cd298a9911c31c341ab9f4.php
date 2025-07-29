@@ -269,8 +269,8 @@
                 <?php $__currentLoopData = $coleta->pecas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo->nome); ?></div>
-                            <div class="text-sm text-gray-500"><?php echo e($peca->tipo->categoria); ?></div>
+                            <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo ? $peca->tipo->nome : 'Tipo não definido'); ?></div>
+                            <div class="text-sm text-gray-500"><?php echo e($peca->tipo ? $peca->tipo->categoria : 'Categoria não definida'); ?></div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             <?php echo e($peca->quantidade); ?>
@@ -389,7 +389,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                <?php echo e($pesagem->tipo->nome); ?>
+                                <?php echo e($pesagem->tipo ? $pesagem->tipo->nome : 'Tipo não definido'); ?>
 
                             </span>
                         </td>

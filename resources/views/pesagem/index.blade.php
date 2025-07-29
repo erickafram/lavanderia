@@ -253,7 +253,7 @@
                                     {{ $pesagem->peso_unitario ? number_format($pesagem->peso_unitario, 2, ',', '.') . ' kg' : '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ $pesagem->usuario->nome }}
+                                    {{ $pesagem->usuario ? $pesagem->usuario->nome : 'Usuário não definido' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($pesagem->conferido)

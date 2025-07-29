@@ -169,7 +169,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                                                <div class="text-sm font-medium text-gray-900">{{ $peca->tipo->nome }}</div>
+                                                <div class="text-sm font-medium text-gray-900">{{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}</div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">

@@ -81,7 +81,7 @@
                         <td class="px-6 py-4 text-sm text-gray-900"><?php echo e($estabelecimento->cnpj_formatado); ?></td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900"><?php echo e($estabelecimento->telefone); ?></div>
-                            <?php if($estabelecimento->emails && count($estabelecimento->emails) > 0): ?>
+                            <?php if($estabelecimento->emails && is_array($estabelecimento->emails) && count($estabelecimento->emails) > 0): ?>
                             <div class="text-sm text-gray-500"><?php echo e($estabelecimento->emails[0]); ?></div>
                             <?php if(count($estabelecimento->emails) > 1): ?>
                             <div class="text-xs text-gray-400">+<?php echo e(count($estabelecimento->emails) - 1); ?> mais</div>

@@ -261,7 +261,7 @@
 
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?php echo e($pesagem->usuario->nome); ?>
+                                    <?php echo e($pesagem->usuario ? $pesagem->usuario->nome : 'Usuário não definido'); ?>
 
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">

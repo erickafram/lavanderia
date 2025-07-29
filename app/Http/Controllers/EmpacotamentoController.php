@@ -20,7 +20,8 @@ class EmpacotamentoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Empacotamento::with(['coleta.estabelecimento', 'usuarioEmpacotamento', 'motorista', 'status']);
+        $query = Empacotamento::with(['coleta.estabelecimento', 'usuarioEmpacotamento', 'motorista', 'status'])
+                              ->whereHas('coleta'); // Apenas empacotamentos com coleta válida
 
         // Filtros
         if ($request->filled('status_id')) {

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\EstabelecimentoController;
@@ -28,6 +29,10 @@ use App\Http\Controllers\UsuarioController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Rotas públicas para confirmação do cliente
+Route::get('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteController::class, 'index'])->name('confirmacao-cliente.index');
+Route::post('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteController::class, 'confirmar'])->name('confirmacao-cliente.confirmar');
 
 // Rotas de autenticação
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -109,15 +114,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/buscar-empacotamento', [MotoristaController::class, 'buscarEmpacotamento'])->name('buscar-empacotamento');
         Route::post('/confirmar-saida', [MotoristaController::class, 'confirmarSaida'])->name('confirmar-saida');
         Route::post('/confirmar-entrega', [MotoristaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
+
+
     });
 
-    // Relatórios
+    // Relatórios routes
     Route::prefix('relatorios')->name('relatorios.')->group(function () {
-        Route::get('/', [RelatorioController::class, 'index'])->name('index');
-        Route::get('/coletas', [RelatorioController::class, 'coletas'])->name('coletas');
-        Route::get('/empacotamentos', [RelatorioController::class, 'empacotamentos'])->name('empacotamentos');
-        Route::get('/produtividade', [RelatorioController::class, 'produtividade'])->name('produtividade');
+        Route::get('/', [App\Http\Controllers\RelatoriosController::class, 'index'])->name('index');
+        Route::post('/exportar', [App\Http\Controllers\RelatoriosController::class, 'exportar'])->name('exportar');
     });
+
+
     
     // QR Codes
     Route::prefix('qrcodes')->name('qrcodes.')->group(function () {

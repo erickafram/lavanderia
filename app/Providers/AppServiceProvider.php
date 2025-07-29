@@ -21,5 +21,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Helper global para tratar propriedades que podem ser null
+        if (!function_exists('safe_property')) {
+            function safe_property($object, $property, $default = 'Não definido') {
+                return $object && $object->$property ? $object->$property : $default;
+            }
+        }
     }
 }

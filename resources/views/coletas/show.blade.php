@@ -267,8 +267,8 @@
                 @foreach($coleta->pecas as $peca)
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">{{ $peca->tipo->nome }}</div>
-                            <div class="text-sm text-gray-500">{{ $peca->tipo->categoria }}</div>
+                            <div class="text-sm font-medium text-gray-900">{{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}</div>
+                            <div class="text-sm text-gray-500">{{ $peca->tipo ? $peca->tipo->categoria : 'Categoria não definida' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $peca->quantidade }}
@@ -382,7 +382,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                {{ $pesagem->tipo->nome }}
+                                {{ $pesagem->tipo ? $pesagem->tipo->nome : 'Tipo não definido' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">

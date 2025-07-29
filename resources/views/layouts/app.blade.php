@@ -102,6 +102,21 @@
                                 <div class="ml-auto w-2 h-2 bg-blue-600 rounded-full"></div>
                                 @endif
                             </a>
+
+                            <a href="{{ route('relatorios.index') }}" class="group flex items-center px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('relatorios.*') ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600' : '' }}">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-lg {{ request()->routeIs('relatorios.*') ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium">Relatórios</p>
+                                    <p class="text-xs text-gray-400 group-hover:text-gray-500">Análises e estatísticas</p>
+                                </div>
+                                @if(request()->routeIs('relatorios.*'))
+                                <div class="ml-auto w-2 h-2 bg-blue-600 rounded-full"></div>
+                                @endif
+                            </a>
                         </div>
 
                         <!-- Operações -->
@@ -195,26 +210,7 @@
                             </div>
                         </div>
 
-                        <!-- Relatórios -->
-                        @if(auth()->user()->temPermissao('relatorios.visualizar'))
-                        <div class="mb-6">
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Análises</h3>
-                            <a href="{{ route('relatorios.index') }}" class="group flex items-center px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('relatorios.*') ? 'bg-amber-50 text-amber-700 border-r-2 border-amber-600' : '' }}">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-lg {{ request()->routeIs('relatorios.*') ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="font-medium">Relatórios</p>
-                                    <p class="text-xs text-gray-400 group-hover:text-gray-500">Dados e estatísticas</p>
-                                </div>
-                                @if(request()->routeIs('relatorios.*'))
-                                <div class="ml-auto w-2 h-2 bg-amber-600 rounded-full"></div>
-                                @endif
-                            </a>
-                        </div>
-                        @endif
+
 
                         <!-- Usuários (apenas para administradores) -->
                         @if(auth()->user()->temPermissao('usuarios.visualizar'))

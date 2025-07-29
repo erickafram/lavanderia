@@ -259,12 +259,19 @@
 <!-- Acompanhamento de Coleta -->
 <div class="mb-6">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-            </svg>
-            Acompanhar Coleta
-        </h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                Acompanhar Coleta
+            </h2>
+            <div class="flex items-center space-x-2">
+                <div id="realtime-indicator" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="text-sm text-green-600 font-medium">Tempo Real</span>
+                <span id="last-update" class="text-xs text-gray-500"></span>
+            </div>
+        </div>
 
         <!-- Tabs -->
         <div class="mb-4">
@@ -282,21 +289,62 @@
 
         <!-- Tab: Lista de Coletas -->
         <div id="content-lista" class="tab-acompanhamento-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div id="coletas-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <?php $__currentLoopData = $coletasAcompanhamento; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $coleta): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <?php
+                        // Calcular progresso e tempos
+                        $dataColeta = $coleta->created_at;
+                        $dataPesagem = $coleta->pesagens->first()?->created_at;
+                        $dataEmpacotamento = $coleta->empacotamento?->data_empacotamento;
+                        $dataEntrega = $coleta->empacotamento?->entrega?->data_entrega;
+
+                        // Verificar status do empacotamento e entrega
+                        $statusEmpacotamento = $coleta->empacotamento?->status->nome;
+                        $entrega = $coleta->empacotamento?->entrega;
+                        $statusEntrega = $entrega?->status->nome;
+                        $entregaConcluida = $entrega && in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente']);
+                        $confirmacaoConcluida = $entrega && $statusEntrega === 'Confirmado pelo Cliente';
+
                         $progresso = [
                             'coleta' => ['concluida' => true],
                             'pesagem' => ['concluida' => $coleta->pesagens->count() > 0],
                             'empacotamento' => ['concluida' => $coleta->empacotamento !== null],
-                            'entrega' => ['concluida' => $coleta->empacotamento && $coleta->empacotamento->status->nome === 'Entregue']
+                            'entrega' => ['concluida' => $entregaConcluida],
+                            'confirmacao_cliente' => ['concluida' => $confirmacaoConcluida]
                         ];
                         $etapasConcluidas = collect($progresso)->where('concluida', true)->count();
-                        $percentual = round(($etapasConcluidas / 4) * 100);
+                        $percentual = round(($etapasConcluidas / 5) * 100);
+
+                        // Calcular tempo total
+                        $tempoTotal = null;
+                        $dataConfirmacao = $entrega?->data_confirmacao_recebimento;
+
+                        if ($dataConfirmacao) {
+                            // Se confirmado pelo cliente, usar data de confirmação
+                            $diffMinutes = $dataColeta->diffInMinutes($dataConfirmacao);
+                        } elseif ($entrega && $entrega->data_entrega) {
+                            // Se apenas entregue, usar data de entrega
+                            $diffMinutes = $dataColeta->diffInMinutes($entrega->data_entrega);
+                        } else {
+                            // Tempo até agora
+                            $diffMinutes = $dataColeta->diffInMinutes(now());
+                        }
+
+                        if ($diffMinutes < 60) {
+                            $tempoTotal = $diffMinutes . 'm';
+                        } elseif ($diffMinutes < 1440) {
+                            $horas = floor($diffMinutes / 60);
+                            $minutos = $diffMinutes % 60;
+                            $tempoTotal = $horas . 'h ' . $minutos . 'm';
+                        } else {
+                            $dias = floor($diffMinutes / 1440);
+                            $horasRestantes = floor(($diffMinutes % 1440) / 60);
+                            $tempoTotal = $dias . 'd ' . $horasRestantes . 'h';
+                        }
                     ?>
 
                     <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                         onclick="acompanharColetaPorId('<?php echo e($coleta->numero_coleta); ?>')">
+                         onclick="acompanharColetaPorId(<?php echo e(json_encode($coleta->numero_coleta)); ?>)">
                         <div class="flex justify-between items-start mb-3">
                             <div>
                                 <h3 class="font-semibold text-gray-900"><?php echo e($coleta->numero_coleta); ?></h3>
@@ -310,6 +358,16 @@
                             </span>
                         </div>
 
+                        <!-- Tempo Total -->
+                        <?php if($tempoTotal): ?>
+                        <div class="mb-2 flex items-center text-xs text-blue-600">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-medium">Tempo total: <?php echo e($tempoTotal); ?></span>
+                        </div>
+                        <?php endif; ?>
+
                         <!-- Mini Progress Bar -->
                         <div class="mb-2">
                             <div class="flex justify-between text-xs text-gray-600 mb-1">
@@ -322,30 +380,36 @@
                         </div>
 
                         <!-- Mini Status Icons -->
-                        <div class="flex justify-between">
-                            <div class="flex items-center text-xs <?php echo e($progresso['coleta']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <div class="grid grid-cols-5 gap-1 text-xs">
+                            <div class="flex flex-col items-center <?php echo e($progresso['coleta']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
+                                <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                Coleta
+                                <span>Coleta</span>
                             </div>
-                            <div class="flex items-center text-xs <?php echo e($progresso['pesagem']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex flex-col items-center <?php echo e($progresso['pesagem']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
+                                <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                Pesagem
+                                <span>Pesagem</span>
                             </div>
-                            <div class="flex items-center text-xs <?php echo e($progresso['empacotamento']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex flex-col items-center <?php echo e($progresso['empacotamento']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
+                                <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                Empac.
+                                <span>Empac.</span>
                             </div>
-                            <div class="flex items-center text-xs <?php echo e($progresso['entrega']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
-                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex flex-col items-center <?php echo e($progresso['entrega']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
+                                <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                Entrega
+                                <span>Entrega</span>
+                            </div>
+                            <div class="flex flex-col items-center <?php echo e($progresso['confirmacao_cliente']['concluida'] ? 'text-green-600' : 'text-gray-400'); ?>">
+                                <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Confirm.</span>
                             </div>
                         </div>
                     </div>
@@ -388,60 +452,112 @@
                 </div>
             </div>
 
+            <!-- Tempo Total -->
+            <div id="tempo-total" class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200" style="display: none;">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium text-blue-900">Tempo Total do Processo</span>
+                    </div>
+                    <span id="tempo-total-valor" class="text-lg font-bold text-blue-700">-</span>
+                </div>
+            </div>
+
             <!-- Etapas -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div id="etapa-coleta" class="etapa-item">
-                    <div class="flex items-center p-3 rounded-lg border">
-                        <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
+                    <div class="flex flex-col p-3 rounded-lg border">
+                        <div class="flex items-center mb-2">
+                            <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Coleta</p>
+                                <p class="text-xs text-gray-500" id="data-coleta">-</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium text-sm">Coleta</p>
-                            <p class="text-xs text-gray-500" id="data-coleta">-</p>
+                        <div id="tempo-coleta" class="text-xs text-blue-600 font-medium" style="display: none;">
+                            Início do processo
                         </div>
                     </div>
                 </div>
 
                 <div id="etapa-pesagem" class="etapa-item">
-                    <div class="flex items-center p-3 rounded-lg border">
-                        <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
-                            </svg>
+                    <div class="flex flex-col p-3 rounded-lg border">
+                        <div class="flex items-center mb-2">
+                            <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Pesagem</p>
+                                <p class="text-xs text-gray-500" id="data-pesagem">-</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium text-sm">Pesagem</p>
-                            <p class="text-xs text-gray-500" id="data-pesagem">-</p>
+                        <div id="tempo-pesagem" class="text-xs text-blue-600 font-medium" style="display: none;">
+                            <span id="tempo-desde-coleta">-</span> após coleta
                         </div>
                     </div>
                 </div>
 
                 <div id="etapa-empacotamento" class="etapa-item">
-                    <div class="flex items-center p-3 rounded-lg border">
-                        <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                            </svg>
+                    <div class="flex flex-col p-3 rounded-lg border">
+                        <div class="flex items-center mb-2">
+                            <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Empacotamento</p>
+                                <p class="text-xs text-gray-500" id="data-empacotamento">-</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium text-sm">Empacotamento</p>
-                            <p class="text-xs text-gray-500" id="data-empacotamento">-</p>
+                        <div id="tempo-empacotamento" class="text-xs text-blue-600 font-medium" style="display: none;">
+                            <span id="tempo-desde-pesagem">-</span> após pesagem
                         </div>
                     </div>
                 </div>
 
                 <div id="etapa-entrega" class="etapa-item">
-                    <div class="flex items-center p-3 rounded-lg border">
-                        <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
+                    <div class="flex flex-col p-3 rounded-lg border">
+                        <div class="flex items-center mb-2">
+                            <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Entrega</p>
+                                <p class="text-xs text-gray-500" id="data-entrega">-</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="font-medium text-sm">Entrega</p>
-                            <p class="text-xs text-gray-500" id="data-entrega">-</p>
+                        <div id="tempo-entrega" class="text-xs text-blue-600 font-medium" style="display: none;">
+                            <span id="tempo-desde-empacotamento">-</span> após empacotamento
+                        </div>
+                    </div>
+                </div>
+
+                <div id="etapa-confirmacao-cliente" class="etapa-item">
+                    <div class="flex flex-col p-3 rounded-lg border">
+                        <div class="flex items-center mb-2">
+                            <div class="etapa-icon w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-sm">Confirmação</p>
+                                <p class="text-xs text-gray-500" id="data-confirmacao-cliente">-</p>
+                            </div>
+                        </div>
+                        <div id="tempo-confirmacao-cliente" class="text-xs text-blue-600 font-medium" style="display: none;">
+                            <span id="tempo-desde-entrega">-</span> após entrega
                         </div>
                     </div>
                 </div>
@@ -540,46 +656,58 @@ function mostrarProgresso(coleta, progresso) {
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 class="font-semibold text-blue-900">${coleta.numero_coleta}</h3>
             <p class="text-blue-700">${coleta.estabelecimento.razao_social}</p>
-            <p class="text-sm text-blue-600">Peso: ${coleta.peso_total}kg | Status: ${coleta.status.nome}</p>
+            <p class="text-sm text-blue-600">Peso: ${coleta.peso_total || 0}kg | Status: ${coleta.status.nome}</p>
         </div>
     `;
 
+    // Mostrar tempo total
+    if (progresso.tempo_total) {
+        document.getElementById('tempo-total').style.display = 'block';
+        document.getElementById('tempo-total-valor').textContent = progresso.tempo_total;
+    } else {
+        document.getElementById('tempo-total').style.display = 'none';
+    }
+
     // Calcular progresso
     let etapasConcluidas = 0;
-    const totalEtapas = 4;
 
-    // Atualizar etapas
-    atualizarEtapa('coleta', progresso.coleta.concluida, progresso.coleta.data);
+    // Atualizar etapas com tempos
+    atualizarEtapaComTempo('coleta', progresso.coleta);
     if (progresso.coleta.concluida) etapasConcluidas++;
 
-    atualizarEtapa('pesagem', progresso.pesagem.concluida, progresso.pesagem.data);
+    atualizarEtapaComTempo('pesagem', progresso.pesagem);
     if (progresso.pesagem.concluida) etapasConcluidas++;
 
-    atualizarEtapa('empacotamento', progresso.empacotamento.concluida, progresso.empacotamento.data);
+    atualizarEtapaComTempo('empacotamento', progresso.empacotamento);
     if (progresso.empacotamento.concluida) etapasConcluidas++;
 
-    atualizarEtapa('entrega', progresso.entrega.concluida, progresso.entrega.data);
+    atualizarEtapaComTempo('entrega', progresso.entrega);
     if (progresso.entrega.concluida) etapasConcluidas++;
 
+    atualizarEtapaComTempo('confirmacao-cliente', progresso.confirmacao_cliente);
+    if (progresso.confirmacao_cliente.concluida) etapasConcluidas++;
+
     // Atualizar barra de progresso
+    const totalEtapas = 5; // Agora são 5 etapas
     const percentual = Math.round((etapasConcluidas / totalEtapas) * 100);
     document.getElementById('progressoPercentual').textContent = percentual + '%';
     document.getElementById('barraProgresso').style.width = percentual + '%';
 }
 
-function atualizarEtapa(etapa, concluida, data) {
+function atualizarEtapaComTempo(etapa, dadosEtapa) {
     const elemento = document.getElementById('etapa-' + etapa);
     const icone = elemento.querySelector('.etapa-icon');
     const dataElemento = document.getElementById('data-' + etapa);
+    const tempoElemento = document.getElementById('tempo-' + etapa);
 
-    if (concluida) {
+    if (dadosEtapa.concluida) {
         icone.classList.add('bg-green-100', 'text-green-600');
         icone.classList.remove('bg-gray-100', 'text-gray-400');
         elemento.classList.add('border-green-200');
         elemento.classList.remove('border-gray-200');
 
-        if (data) {
-            const dataFormatada = new Date(data).toLocaleDateString('pt-BR', {
+        if (dadosEtapa.data) {
+            const dataFormatada = new Date(dadosEtapa.data).toLocaleDateString('pt-BR', {
                 day: '2-digit',
                 month: '2-digit',
                 hour: '2-digit',
@@ -589,13 +717,56 @@ function atualizarEtapa(etapa, concluida, data) {
         } else {
             dataElemento.textContent = 'Concluído';
         }
+
+        // Mostrar tempo específico para cada etapa
+        if (tempoElemento) {
+            tempoElemento.style.display = 'block';
+
+            switch(etapa) {
+                case 'coleta':
+                    tempoElemento.innerHTML = 'Início do processo';
+                    break;
+                case 'pesagem':
+                    if (dadosEtapa.tempo_desde_coleta) {
+                        document.getElementById('tempo-desde-coleta').textContent = dadosEtapa.tempo_desde_coleta;
+                    }
+                    break;
+                case 'empacotamento':
+                    if (dadosEtapa.tempo_desde_pesagem) {
+                        document.getElementById('tempo-desde-pesagem').textContent = dadosEtapa.tempo_desde_pesagem;
+                    }
+                    break;
+                case 'entrega':
+                    if (dadosEtapa.tempo_desde_empacotamento) {
+                        document.getElementById('tempo-desde-empacotamento').textContent = dadosEtapa.tempo_desde_empacotamento;
+                    }
+                    break;
+                case 'confirmacao-cliente':
+                    if (dadosEtapa.tempo_desde_entrega) {
+                        document.getElementById('tempo-desde-entrega').textContent = dadosEtapa.tempo_desde_entrega;
+                    }
+                    break;
+            }
+        }
     } else {
         icone.classList.add('bg-gray-100', 'text-gray-400');
         icone.classList.remove('bg-green-100', 'text-green-600');
         elemento.classList.add('border-gray-200');
         elemento.classList.remove('border-green-200');
         dataElemento.textContent = 'Pendente';
+
+        if (tempoElemento) {
+            tempoElemento.style.display = 'none';
+        }
     }
+}
+
+// Manter função original para compatibilidade
+function atualizarEtapa(etapa, concluida, data) {
+    atualizarEtapaComTempo(etapa, {
+        concluida: concluida,
+        data: data
+    });
 }
 
 // Event listener para Enter no campo de busca
@@ -603,6 +774,52 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('numeroColeta').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             acompanharColeta();
+        }
+    });
+
+    // Real-time updates
+    let realtimeInterval;
+
+    function startRealtimeUpdates() {
+        updateLastUpdateTime();
+
+        realtimeInterval = setInterval(() => {
+            updateLastUpdateTime();
+            flashRealtimeIndicator();
+        }, 30000); // Update every 30 seconds
+    }
+
+    function flashRealtimeIndicator() {
+        const indicator = document.getElementById('realtime-indicator');
+        if (indicator) {
+            indicator.classList.remove('animate-pulse');
+            indicator.classList.add('animate-ping');
+            setTimeout(() => {
+                indicator.classList.remove('animate-ping');
+                indicator.classList.add('animate-pulse');
+            }, 1000);
+        }
+    }
+
+    function updateLastUpdateTime() {
+        const lastUpdate = document.getElementById('last-update');
+        if (lastUpdate) {
+            const now = new Date();
+            lastUpdate.textContent = 'Atualizado: ' + now.toLocaleTimeString('pt-BR');
+        }
+    }
+
+    // Start real-time updates
+    startRealtimeUpdates();
+
+    // Stop updates when page is hidden (performance)
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (realtimeInterval) {
+                clearInterval(realtimeInterval);
+            }
+        } else {
+            startRealtimeUpdates();
         }
     });
 });

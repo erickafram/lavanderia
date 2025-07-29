@@ -81,7 +81,7 @@
                         <td class="px-6 py-4 text-sm text-gray-900">{{ $estabelecimento->cnpj_formatado }}</td>
                         <td class="px-6 py-4">
                             <div class="text-sm text-gray-900">{{ $estabelecimento->telefone }}</div>
-                            @if($estabelecimento->emails && count($estabelecimento->emails) > 0)
+                            @if($estabelecimento->emails && is_array($estabelecimento->emails) && count($estabelecimento->emails) > 0)
                             <div class="text-sm text-gray-500">{{ $estabelecimento->emails[0] }}</div>
                             @if(count($estabelecimento->emails) > 1)
                             <div class="text-xs text-gray-400">+{{ count($estabelecimento->emails) - 1 }} mais</div>

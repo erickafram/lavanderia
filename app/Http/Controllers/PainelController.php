@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Coleta;
 use App\Models\Empacotamento;
+use App\Models\Entrega;
 use App\Models\Estabelecimento;
 use App\Models\Usuario;
 use Carbon\Carbon;
@@ -38,7 +39,7 @@ class PainelController extends Controller
                                 ->get();
 
         // Coletas para acompanhamento (últimas 20)
-        $coletasAcompanhamento = Coleta::with(['estabelecimento', 'status', 'pesagens', 'empacotamento.status'])
+        $coletasAcompanhamento = Coleta::with(['estabelecimento', 'status', 'pesagens', 'empacotamento.status', 'empacotamento.entrega.status'])
                                       ->orderBy('created_at', 'desc')
                                       ->limit(20)
                                       ->get();
@@ -74,44 +75,104 @@ class PainelController extends Controller
     }
 
     /**
-     * Calcular progresso de uma coleta
+     * Calcular progresso de uma coleta com tempos entre etapas
      */
     private function calcularProgressoColeta($coleta)
     {
+        // Datas das etapas
+        $dataColeta = $coleta->created_at;
+        $dataPesagem = $coleta->pesagens->first()?->created_at;
+        $dataEmpacotamento = $coleta->empacotamento?->data_empacotamento;
+        $entrega = $coleta->empacotamento?->entrega;
+        $dataEntrega = $entrega?->data_entrega;
+
         $progresso = [
             'coleta' => [
                 'concluida' => true,
-                'data' => $coleta->created_at,
-                'status' => $coleta->status->nome
+                'data' => $dataColeta,
+                'status' => $coleta->status->nome,
+                'tempo_desde_inicio' => '0h 0m'
             ],
             'pesagem' => [
                 'concluida' => $coleta->pesagens->count() > 0,
-                'data' => $coleta->pesagens->first()?->created_at,
-                'quantidade' => $coleta->pesagens->count()
+                'data' => $dataPesagem,
+                'quantidade' => $coleta->pesagens->count(),
+                'tempo_desde_coleta' => $dataPesagem ? $this->calcularTempoEntre($dataColeta, $dataPesagem) : null,
+                'tempo_desde_inicio' => $dataPesagem ? $this->calcularTempoEntre($dataColeta, $dataPesagem) : null
             ],
             'empacotamento' => [
                 'concluida' => $coleta->empacotamento !== null,
-                'data' => $coleta->empacotamento?->created_at,
+                'data' => $dataEmpacotamento,
                 'status' => $coleta->empacotamento?->status->nome,
-                'codigo_qr' => $coleta->empacotamento?->codigo_qr
+                'codigo_qr' => $coleta->empacotamento?->codigo_qr,
+                'tempo_desde_pesagem' => $dataEmpacotamento && $dataPesagem ? $this->calcularTempoEntre($dataPesagem, $dataEmpacotamento) : null,
+                'tempo_desde_inicio' => $dataEmpacotamento ? $this->calcularTempoEntre($dataColeta, $dataEmpacotamento) : null
             ],
             'entrega' => [
-                'concluida' => $coleta->empacotamento && $coleta->empacotamento->status->nome === 'Entregue',
-                'data' => $coleta->empacotamento?->data_entrega,
-                'motorista' => $coleta->empacotamento?->motorista?->nome
+                'concluida' => $entrega && in_array($entrega->status->nome, ['Entregue', 'Confirmado pelo Cliente']),
+                'data' => $dataEntrega,
+                'motorista' => $entrega?->motoristaEntrega?->nome ?? $entrega?->motoristaSaida?->nome,
+                'tempo_desde_empacotamento' => $dataEntrega && $dataEmpacotamento ? $this->calcularTempoEntre($dataEmpacotamento, $dataEntrega) : null,
+                'tempo_desde_inicio' => $dataEntrega ? $this->calcularTempoEntre($dataColeta, $dataEntrega) : null
+            ],
+            'confirmacao_cliente' => [
+                'concluida' => $entrega && $entrega->status->nome === 'Confirmado pelo Cliente',
+                'data' => $entrega?->data_confirmacao_recebimento,
+                'tempo_desde_entrega' => $entrega?->data_confirmacao_recebimento && $dataEntrega ?
+                    $this->calcularTempoEntre($dataEntrega, $entrega->data_confirmacao_recebimento) : null,
+                'tempo_desde_inicio' => $entrega?->data_confirmacao_recebimento ?
+                    $this->calcularTempoEntre($dataColeta, $entrega->data_confirmacao_recebimento) : null
             ]
         ];
 
-        // Calcular percentual
+        // Calcular percentual (5 etapas agora)
         $etapasConcluidas = 0;
         if ($progresso['coleta']['concluida']) $etapasConcluidas++;
         if ($progresso['pesagem']['concluida']) $etapasConcluidas++;
         if ($progresso['empacotamento']['concluida']) $etapasConcluidas++;
         if ($progresso['entrega']['concluida']) $etapasConcluidas++;
+        if ($progresso['confirmacao_cliente']['concluida']) $etapasConcluidas++;
 
-        $progresso['percentual'] = round(($etapasConcluidas / 4) * 100);
+        $progresso['percentual'] = round(($etapasConcluidas / 5) * 100);
+
+        // Tempo total do processo (se confirmado pelo cliente)
+        if ($progresso['confirmacao_cliente']['concluida']) {
+            $progresso['tempo_total'] = $this->calcularTempoEntre($dataColeta, $entrega->data_confirmacao_recebimento);
+        } elseif ($progresso['entrega']['concluida']) {
+            $progresso['tempo_total'] = $this->calcularTempoEntre($dataColeta, $dataEntrega);
+        } else {
+            // Tempo até agora
+            $progresso['tempo_total'] = $this->calcularTempoEntre($dataColeta, Carbon::now());
+        }
 
         return $progresso;
+    }
+
+    /**
+     * Calcular tempo entre duas datas
+     */
+    private function calcularTempoEntre($dataInicio, $dataFim)
+    {
+        if (!$dataInicio || !$dataFim) {
+            return null;
+        }
+
+        $inicio = Carbon::parse($dataInicio);
+        $fim = Carbon::parse($dataFim);
+
+        $diffInMinutes = $inicio->diffInMinutes($fim);
+
+        if ($diffInMinutes < 60) {
+            return $diffInMinutes . 'm';
+        } elseif ($diffInMinutes < 1440) { // menos de 24 horas
+            $horas = floor($diffInMinutes / 60);
+            $minutos = $diffInMinutes % 60;
+            return $horas . 'h ' . $minutos . 'm';
+        } else { // mais de 24 horas
+            $dias = floor($diffInMinutes / 1440);
+            $horasRestantes = floor(($diffInMinutes % 1440) / 60);
+            return $dias . 'd ' . $horasRestantes . 'h';
+        }
     }
 
     /**
@@ -123,7 +184,7 @@ class PainelController extends Controller
             'numero_coleta' => 'required|string'
         ]);
 
-        $coleta = Coleta::with(['estabelecimento', 'status', 'pesagens', 'empacotamento.status'])
+        $coleta = Coleta::with(['estabelecimento', 'status', 'pesagens', 'empacotamento.status', 'empacotamento.entrega.status'])
             ->where('numero_coleta', $request->numero_coleta)
             ->first();
 

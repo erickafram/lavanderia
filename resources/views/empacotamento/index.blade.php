@@ -127,12 +127,20 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $empacotamento->coleta->numero_coleta }}</div>
+                                    @if($empacotamento->coleta)
+                                        <div class="text-sm text-gray-900">{{ $empacotamento->coleta->numero_coleta }}</div>
+                                    @else
+                                        <div class="text-sm text-red-600">Coleta não encontrada</div>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $empacotamento->coleta->estabelecimento->razao_social }}</div>
-                                    @if($empacotamento->coleta->estabelecimento->nome_fantasia)
-                                        <div class="text-xs text-gray-500">{{ $empacotamento->coleta->estabelecimento->nome_fantasia }}</div>
+                                    @if($empacotamento->coleta && $empacotamento->coleta->estabelecimento)
+                                        <div class="text-sm text-gray-900">{{ $empacotamento->coleta->estabelecimento->razao_social }}</div>
+                                        @if($empacotamento->coleta->estabelecimento->nome_fantasia)
+                                            <div class="text-xs text-gray-500">{{ $empacotamento->coleta->estabelecimento->nome_fantasia }}</div>
+                                        @endif
+                                    @else
+                                        <div class="text-sm text-red-600">Estabelecimento não encontrado</div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
