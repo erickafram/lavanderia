@@ -300,8 +300,9 @@
                         $statusEmpacotamento = $coleta->empacotamento?->status->nome;
                         $entrega = $coleta->empacotamento?->entrega;
                         $statusEntrega = $entrega?->status->nome;
-                        $entregaConcluida = $entrega && in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente']);
-                        $confirmacaoConcluida = $entrega && $statusEntrega === 'Confirmado pelo Cliente';
+                        // Se já foi entregue, considera que passou pelo trânsito também
+                        $entregaConcluida = $entrega && in_array($statusEntrega, ['Em trânsito', 'Entregue', 'Confirmado pelo Cliente']);
+                        $confirmacaoConcluida = $entrega && in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente']);
 
                         $progresso = [
                             'coleta' => ['concluida' => true],
@@ -400,13 +401,13 @@
                                 <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Entrega</span>
+                                <span>Trânsito</span>
                             </div>
                             <div class="flex flex-col items-center {{ $progresso['confirmacao_cliente']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
                                 <svg class="w-3 h-3 mb-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Confirm.</span>
+                                <span>Entregue</span>
                             </div>
                         </div>
                     </div>
@@ -530,7 +531,7 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="font-medium text-sm">Entrega</p>
+                                <p class="font-medium text-sm">Em Trânsito</p>
                                 <p class="text-xs text-gray-500" id="data-entrega">-</p>
                             </div>
                         </div>
@@ -549,12 +550,12 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="font-medium text-sm">Confirmação</p>
+                                <p class="font-medium text-sm">Entregue</p>
                                 <p class="text-xs text-gray-500" id="data-confirmacao-cliente">-</p>
                             </div>
                         </div>
                         <div id="tempo-confirmacao-cliente" class="text-xs text-blue-600 font-medium" style="display: none;">
-                            <span id="tempo-desde-entrega">-</span> após entrega
+                            <span id="tempo-desde-entrega">-</span> após saída
                         </div>
                     </div>
                 </div>

@@ -17,8 +17,8 @@
                     'coleta' => ['concluida' => true],
                     'pesagem' => ['concluida' => $coleta->pesagens->count() > 0],
                     'empacotamento' => ['concluida' => $coleta->empacotamento !== null],
-                    'entrega' => ['concluida' => $coleta->empacotamento && $coleta->empacotamento->entrega && in_array($coleta->empacotamento->entrega->status->nome, ['Entregue', 'Confirmado pelo Cliente'])],
-                    'confirmacao_cliente' => ['concluida' => $coleta->empacotamento && $coleta->empacotamento->entrega && $coleta->empacotamento->entrega->status->nome === 'Confirmado pelo Cliente']
+                    'entrega' => ['concluida' => $coleta->empacotamento && $coleta->empacotamento->entrega && in_array($coleta->empacotamento->entrega->status->nome, ['Em trânsito', 'Entregue', 'Confirmado pelo Cliente'])],
+                    'confirmacao_cliente' => ['concluida' => $coleta->empacotamento && $coleta->empacotamento->entrega && in_array($coleta->empacotamento->entrega->status->nome, ['Entregue', 'Confirmado pelo Cliente'])]
                 ];
                 $etapasConcluidas = collect($progresso)->where('concluida', true)->count();
                 $percentual = round(($etapasConcluidas / 5) * 100);

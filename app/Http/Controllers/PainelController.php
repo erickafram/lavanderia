@@ -109,19 +109,21 @@ class PainelController extends Controller
                 'tempo_desde_inicio' => $dataEmpacotamento ? $this->calcularTempoEntre($dataColeta, $dataEmpacotamento) : null
             ],
             'entrega' => [
-                'concluida' => $entrega && in_array($entrega->status->nome, ['Entregue', 'Confirmado pelo Cliente']),
-                'data' => $dataEntrega,
-                'motorista' => $entrega?->motoristaEntrega?->nome ?? $entrega?->motoristaSaida?->nome,
-                'tempo_desde_empacotamento' => $dataEntrega && $dataEmpacotamento ? $this->calcularTempoEntre($dataEmpacotamento, $dataEntrega) : null,
-                'tempo_desde_inicio' => $dataEntrega ? $this->calcularTempoEntre($dataColeta, $dataEntrega) : null
+                'concluida' => $entrega && in_array($entrega->status->nome, ['Em trânsito', 'Entregue', 'Confirmado pelo Cliente']),
+                'data' => $entrega?->data_saida,
+                'motorista' => $entrega?->motoristaSaida?->nome,
+                'tempo_desde_empacotamento' => $entrega && $entrega->data_saida && $dataEmpacotamento ? $this->calcularTempoEntre($dataEmpacotamento, $entrega->data_saida) : null,
+                'tempo_desde_inicio' => $entrega && $entrega->data_saida ? $this->calcularTempoEntre($dataColeta, $entrega->data_saida) : null
             ],
             'confirmacao_cliente' => [
-                'concluida' => $entrega && $entrega->status->nome === 'Confirmado pelo Cliente',
-                'data' => $entrega?->data_confirmacao_recebimento,
-                'tempo_desde_entrega' => $entrega?->data_confirmacao_recebimento && $dataEntrega ?
-                    $this->calcularTempoEntre($dataEntrega, $entrega->data_confirmacao_recebimento) : null,
-                'tempo_desde_inicio' => $entrega?->data_confirmacao_recebimento ?
-                    $this->calcularTempoEntre($dataColeta, $entrega->data_confirmacao_recebimento) : null
+                'concluida' => $entrega && in_array($entrega->status->nome, ['Entregue', 'Confirmado pelo Cliente']),
+                'data' => $dataEntrega,
+                'nome_recebedor' => $entrega?->nome_recebedor,
+                'assinatura' => $entrega?->assinatura_recebedor,
+                'tempo_desde_entrega' => $dataEntrega && $entrega && $entrega->data_saida ?
+                    $this->calcularTempoEntre($entrega->data_saida, $dataEntrega) : null,
+                'tempo_desde_inicio' => $dataEntrega ?
+                    $this->calcularTempoEntre($dataColeta, $dataEntrega) : null
             ]
         ];
 

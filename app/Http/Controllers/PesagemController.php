@@ -20,7 +20,7 @@ class PesagemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pesagem::with(['coleta.estabelecimento', 'usuario', 'tipo', 'usuarioConferencia'])
+        $query = Pesagem::with(['coleta.estabelecimento', 'usuario', 'tipo'])
                         ->orderBy('data_pesagem', 'desc');
 
         // Filtros
@@ -36,9 +36,7 @@ class PesagemController extends Controller
             $query->where('usuario_id', $request->usuario_id);
         }
 
-        if ($request->filled('conferido')) {
-            $query->where('conferido', $request->conferido === '1');
-        }
+
 
         if ($request->filled('data_inicio')) {
             $query->whereDate('data_pesagem', '>=', $request->data_inicio);
@@ -77,17 +75,15 @@ class PesagemController extends Controller
         // Estatísticas
         $totalPesagens = Pesagem::count();
         $pesagensHoje = Pesagem::whereDate('data_pesagem', today())->count();
-        $pesagensConferidas = Pesagem::where('conferido', true)->count();
         $pesoTotalHoje = Pesagem::whereDate('data_pesagem', today())->sum('peso');
 
         return view('pesagem.index', compact(
-            'pesagens', 
-            'coletas', 
-            'tipos', 
+            'pesagens',
+            'coletas',
+            'tipos',
             'usuarios',
             'totalPesagens',
             'pesagensHoje',
-            'pesagensConferidas',
             'pesoTotalHoje'
         ));
     }
@@ -282,11 +278,10 @@ class PesagemController extends Controller
     public function show($id)
     {
         $pesagem = Pesagem::with([
-            'coleta.estabelecimento', 
+            'coleta.estabelecimento',
             'coleta.pecas.tipo',
-            'usuario', 
-            'tipo', 
-            'usuarioConferencia'
+            'usuario',
+            'tipo'
         ])->findOrFail($id);
 
         return view('pesagem.show', compact('pesagem'));
@@ -371,29 +366,7 @@ class PesagemController extends Controller
                        ->with('success', 'Pesagem excluída com sucesso!');
     }
 
-    /**
-     * Conferir uma pesagem
-     */
-    public function conferir($id)
-    {
-        $pesagem = Pesagem::findOrFail($id);
-        $pesagem->conferir(Auth::id());
 
-        return redirect()->back()
-                       ->with('success', 'Pesagem conferida com sucesso!');
-    }
-
-    /**
-     * Desconferir uma pesagem
-     */
-    public function desconferir($id)
-    {
-        $pesagem = Pesagem::findOrFail($id);
-        $pesagem->desconferir();
-
-        return redirect()->back()
-                       ->with('success', 'Conferência da pesagem removida!');
-    }
 
     /**
      * API: Buscar pesagens por coleta

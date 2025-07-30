@@ -21,19 +21,14 @@ class Pesagem extends Model
         'peso_unitario',
         'data_pesagem',
         'observacoes',
-        'local_pesagem',
-        'conferido',
-        'usuario_conferencia_id',
-        'data_conferencia'
+        'local_pesagem'
     ];
 
     protected $casts = [
         'peso' => 'decimal:2',
         'peso_unitario' => 'decimal:2',
         'quantidade' => 'integer',
-        'data_pesagem' => 'datetime',
-        'data_conferencia' => 'datetime',
-        'conferido' => 'boolean'
+        'data_pesagem' => 'datetime'
     ];
 
     /**
@@ -52,13 +47,7 @@ class Pesagem extends Model
         return $this->belongsTo(Usuario::class);
     }
 
-    /**
-     * Relacionamento com usuário que conferiu a pesagem
-     */
-    public function usuarioConferencia()
-    {
-        return $this->belongsTo(Usuario::class, 'usuario_conferencia_id');
-    }
+
 
     /**
      * Relacionamento com tipo de peça
@@ -174,53 +163,17 @@ class Pesagem extends Model
         return $this->data_pesagem ? $this->data_pesagem->format('d/m/Y H:i') : '-';
     }
 
-    /**
-     * Accessor para data de conferência formatada
-     */
-    public function getDataConferenciaFormatadaAttribute()
-    {
-        return $this->data_conferencia ? $this->data_conferencia->format('d/m/Y H:i') : '-';
-    }
 
-    /**
-     * Método para conferir a pesagem
-     */
-    public function conferir($usuarioId)
-    {
-        $this->update([
-            'conferido' => true,
-            'usuario_conferencia_id' => $usuarioId,
-            'data_conferencia' => now()
-        ]);
-    }
 
-    /**
-     * Método para desconferir a pesagem
-     */
-    public function desconferir()
-    {
-        $this->update([
-            'conferido' => false,
-            'usuario_conferencia_id' => null,
-            'data_conferencia' => null
-        ]);
-    }
+
 
     /**
      * Verifica se a pesagem pode ser editada
      */
     public function podeSerEditada()
     {
-        // Pesagem pode ser editada se não foi conferida ou se foi conferida há menos de 24h
-        if (!$this->conferido) {
-            return true;
-        }
-
-        if ($this->data_conferencia) {
-            return $this->data_conferencia->diffInHours(now()) < 24;
-        }
-
-        return false;
+        // Pesagem sempre pode ser editada
+        return true;
     }
 
     /**

@@ -27,7 +27,7 @@
     </div>
 
     <!-- Estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
             <div class="flex items-center justify-between">
                 <div>
@@ -56,19 +56,7 @@
             </div>
         </div>
 
-        <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-indigo-100 text-sm font-medium">Conferidas</p>
-                    <p class="text-2xl font-bold"><?php echo e(number_format($pesagensConferidas)); ?></p>
-                </div>
-                <div class="bg-indigo-400 bg-opacity-30 rounded-lg p-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-            </div>
-        </div>
+
 
         <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-6 text-white">
             <div class="flex items-center justify-between">
@@ -140,15 +128,7 @@
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
-                    <div>
-                        <label for="conferido" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                                id="conferido" name="conferido">
-                            <option value="">Todos</option>
-                            <option value="1" <?php echo e(request('conferido') === '1' ? 'selected' : ''); ?>>Conferidas</option>
-                            <option value="0" <?php echo e(request('conferido') === '0' ? 'selected' : ''); ?>>Não Conferidas</option>
-                        </select>
-                    </div>
+
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
@@ -214,7 +194,6 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso Unit.</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Responsável</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
@@ -264,23 +243,6 @@
                                     <?php echo e($pesagem->usuario ? $pesagem->usuario->nome : 'Usuário não definido'); ?>
 
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <?php if($pesagem->conferido): ?>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                            </svg>
-                                            Conferida
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                            Pendente
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
                                         <a href="<?php echo e(route('pesagem.show', $pesagem->id)); ?>"
@@ -297,29 +259,6 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
                                             </a>
-                                        <?php endif; ?>
-                                        <?php if(!$pesagem->conferido): ?>
-                                            <form method="POST" action="<?php echo e(route('pesagem.conferir', $pesagem->id)); ?>"
-                                                  class="inline">
-                                                <?php echo csrf_field(); ?>
-                                                <button type="submit" class="text-green-600 hover:text-green-900"
-                                                        title="Conferir" onclick="return confirm('Confirmar a conferência desta pesagem?')">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
-                                        <?php else: ?>
-                                            <form method="POST" action="<?php echo e(route('pesagem.desconferir', $pesagem->id)); ?>"
-                                                  class="inline">
-                                                <?php echo csrf_field(); ?>
-                                                <button type="submit" class="text-gray-600 hover:text-gray-900"
-                                                        title="Remover Conferência" onclick="return confirm('Remover a conferência desta pesagem?')">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
-                                                    </svg>
-                                                </button>
-                                            </form>
                                         <?php endif; ?>
                                     </div>
                                 </td>

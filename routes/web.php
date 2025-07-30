@@ -89,8 +89,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/editar', [PesagemController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PesagemController::class, 'update'])->name('update');
         Route::delete('/{id}', [PesagemController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/conferir', [PesagemController::class, 'conferir'])->name('conferir');
-        Route::post('/{id}/desconferir', [PesagemController::class, 'desconferir'])->name('desconferir');
 
         // APIs
         Route::get('/api/coleta/{coleta_id}', [PesagemController::class, 'getPesagensPorColeta'])->name('api.coleta');
