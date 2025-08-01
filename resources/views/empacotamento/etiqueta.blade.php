@@ -7,16 +7,29 @@
     <style>
         @page {
             size: 6cm 4cm;
-            margin: 0.2cm;
+            margin: 0; /* Remove margens da página */
         }
 
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 6cm;
+            height: 4cm;
             font-family: Arial, sans-serif;
             font-size: 8px;
             line-height: 1.1;
-            margin: 0;
-            padding: 0;
             background: white;
+            overflow: hidden;
+        }
+
+        .container-etiqueta {
+            width: 6cm;
+            height: 4cm;
+            padding: 2mm; /* Pequeno padding para não colar nas bordas */
         }
 
         .etiqueta {
@@ -27,6 +40,8 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         
         .header {
@@ -106,13 +121,39 @@
         }
         
         @media print {
-            body {
+            @page {
+                size: 6cm 4cm;
+                margin: 0;
+            }
+
+            * {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
-            
+
+            html, body {
+                width: 6cm !important;
+                height: 4cm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+
+            .container-etiqueta {
+                width: 6cm !important;
+                height: 4cm !important;
+                margin: 0 !important;
+                padding: 2mm !important;
+            }
+
+            .etiqueta {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                -webkit-break-inside: avoid !important;
+            }
+
             .no-print {
-                display: none;
+                display: none !important;
             }
         }
         
@@ -137,8 +178,9 @@
 </head>
 <body>
     <button class="print-button no-print" onclick="window.print()">🖨️ Imprimir Etiqueta</button>
-    
-    <div class="etiqueta">
+
+    <div class="container-etiqueta">
+        <div class="etiqueta">
         <!-- Header -->
         <div class="header">
             <div class="logo">LAVANDERIA</div>
@@ -196,7 +238,8 @@
             </div>
         </div>
     </div>
-    
+    </div>
+
     <script>
         // Auto-print quando a página carregar (opcional)
         // window.onload = function() { window.print(); }

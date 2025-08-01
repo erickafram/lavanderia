@@ -104,6 +104,7 @@ class PesagemController extends Controller
                         ->whereHas('status', function($q) {
                             $q->whereIn('nome', ['Concluída', 'Em Andamento']);
                         })
+                        ->semPesagem() // Excluir coletas que já possuem pesagem
                         ->orderBy('numero_coleta', 'desc')
                         ->get();
 
@@ -126,6 +127,12 @@ class PesagemController extends Controller
 
         $coleta = Coleta::with(['estabelecimento', 'pecas.tipo'])->findOrFail($coletaId);
 
+        // Verificar se a coleta já possui pesagem
+        if ($coleta->possuiPesagem()) {
+            return redirect()->route('pesagem.create')
+                           ->with('error', 'Esta coleta já possui pesagem cadastrada.');
+        }
+
         // Verificar se a coleta tem peças
         if ($coleta->pecas->isEmpty()) {
             return redirect()->route('pesagem.create')
@@ -140,6 +147,14 @@ class PesagemController extends Controller
      */
     public function store(PesagemRequest $request)
     {
+        // Verificar se a coleta já possui pesagem
+        $coleta = Coleta::findOrFail($request->coleta_id);
+        if ($coleta->possuiPesagem()) {
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Esta coleta já possui pesagem cadastrada.');
+        }
+
         DB::beginTransaction();
         try {
             $pesagem = Pesagem::create([
@@ -237,9 +252,16 @@ class PesagemController extends Controller
             'pecas.*.quantidade_pesagem.required' => 'Quantidade da pesagem é obrigatória.',
         ]);
 
+        // Verificar se a coleta já possui pesagem
+        $coleta = Coleta::with('pecas')->findOrFail($request->coleta_id);
+        if ($coleta->possuiPesagem()) {
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Esta coleta já possui pesagem cadastrada.');
+        }
+
         DB::beginTransaction();
         try {
-            $coleta = Coleta::with('pecas')->findOrFail($request->coleta_id);
 
             // Criar pesagens para cada peça
             foreach ($request->pecas as $pecaId => $dadosPesagem) {

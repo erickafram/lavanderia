@@ -178,6 +178,22 @@ class Coleta extends Model
     }
 
     /**
+     * Verifica se a coleta já possui pesagem cadastrada
+     */
+    public function possuiPesagem()
+    {
+        return $this->pesagens()->exists();
+    }
+
+    /**
+     * Scope para coletas sem pesagem
+     */
+    public function scopeSemPesagem($query)
+    {
+        return $query->whereDoesntHave('pesagens');
+    }
+
+    /**
      * Verifica se há diferença entre peso das peças e pesagens
      */
     public function temDiferencaPeso()
