@@ -122,8 +122,8 @@ class ColetaController extends Controller
                 'acompanhante' => $nomeAcompanhante,
             ]);
 
-            return redirect()->route('coletas.add-pecas', $coleta->id)
-                           ->with('success', 'Coleta criada com sucesso! Agora adicione as peças coletadas.');
+            return redirect()->route('coletas.index')
+                           ->with('success', 'Coleta agendada com sucesso! Você pode visualizar e gerenciar suas coletas na lista.');
 
         } catch (\Exception $e) {
             return redirect()->back()
@@ -152,14 +152,13 @@ class ColetaController extends Controller
 
         $request->validate([
             'pecas' => 'required|array|min:1',
-            'pecas.*.tipo_id' => 'required|exists:tipos,id',
+            'pecas.*.tipo_id' => 'nullable|exists:tipos,id',
             'pecas.*.modo_coleta' => 'required|in:quantidade,peso',
             'pecas.*.quantidade' => 'nullable|integer|min:1',
             'pecas.*.peso' => 'nullable|numeric|min:0.01',
         ], [
             'pecas.required' => 'Adicione pelo menos uma peça.',
             'pecas.min' => 'Adicione pelo menos uma peça.',
-            'pecas.*.tipo_id.required' => 'Selecione o tipo da peça.',
             'pecas.*.tipo_id.exists' => 'Tipo de peça inválido.',
             'pecas.*.modo_coleta.required' => 'Selecione o modo de coleta.',
             'pecas.*.modo_coleta.in' => 'Modo de coleta inválido.',
@@ -171,10 +170,17 @@ class ColetaController extends Controller
 
         // Validação customizada baseada no modo de coleta
         foreach ($request->pecas as $index => $pecaData) {
-            if ($pecaData['modo_coleta'] === 'quantidade' && empty($pecaData['quantidade'])) {
-                return redirect()->back()
-                    ->withInput()
-                    ->withErrors(["pecas.{$index}.quantidade" => 'A quantidade é obrigatória no modo por quantidade.']);
+            if ($pecaData['modo_coleta'] === 'quantidade') {
+                if (empty($pecaData['quantidade'])) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(["pecas.{$index}.quantidade" => 'A quantidade é obrigatória no modo por quantidade.']);
+                }
+                if (empty($pecaData['tipo_id'])) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(["pecas.{$index}.tipo_id" => 'Selecione o tipo da peça.']);
+                }
             }
             if ($pecaData['modo_coleta'] === 'peso' && empty($pecaData['peso'])) {
                 return redirect()->back()
@@ -194,9 +200,14 @@ class ColetaController extends Controller
                 $quantidade = $pecaData['modo_coleta'] === 'quantidade' ? $pecaData['quantidade'] : 0;
                 $peso = $pecaData['modo_coleta'] === 'peso' ? $pecaData['peso'] : 0;
 
+                // Se for coleta por peso, usar o tipo especial "Peso"
+                $tipoId = $pecaData['modo_coleta'] === 'peso'
+                    ? \App\Models\Tipo::getTipoPeso()->id
+                    : $pecaData['tipo_id'];
+
                 ColetaPeca::create([
                     'coleta_id' => $coleta->id,
-                    'tipo_id' => $pecaData['tipo_id'],
+                    'tipo_id' => $tipoId,
                     'quantidade' => $quantidade,
                     'peso' => $peso,
                     'observacoes' => $pecaData['observacoes'] ?? null,

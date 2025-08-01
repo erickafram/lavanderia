@@ -46,5 +46,12 @@ class Tipo extends Model
         return $query->where('categoria', $categoria);
     }
 
+    /**
+     * Retorna o tipo especial "Peso" para coletas por peso
+     */
+    public static function getTipoPeso()
+    {
+        return static::where('nome', 'Peso')->where('categoria', 'peso')->first();
+    }
 
 }

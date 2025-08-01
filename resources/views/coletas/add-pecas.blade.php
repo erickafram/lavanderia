@@ -124,7 +124,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Tipo -->
-                    <div>
+                    <div class="campo-tipo">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
                         <select name="pecas[{{ $currentIndex }}][tipo_id]"
                                 class="tipo-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
@@ -136,6 +136,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div class="tipo-peso-info mt-1 text-xs text-gray-500" style="display: none;">
+                            Tipo será definido automaticamente como "Peso" para coletas por peso
+                        </div>
                     </div>
 
                     <!-- Quantidade (visível apenas no modo quantidade) -->
@@ -220,7 +223,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Tipo -->
-                    <div>
+                    <div class="campo-tipo">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Tipo *</label>
                         <select name="pecas[0][tipo_id]"
                                 class="tipo-select w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
@@ -232,6 +235,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        <div class="tipo-peso-info mt-1 text-xs text-gray-500" style="display: none;">
+                            Tipo será definido automaticamente como "Peso" para coletas por peso
+                        </div>
                     </div>
 
                     <!-- Quantidade (visível apenas no modo quantidade) -->
@@ -408,21 +414,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const modoRadio = pecaItem.querySelector('input[name*="[modo_coleta]"]:checked');
         const campoQuantidade = pecaItem.querySelector('.campo-quantidade');
         const campoPeso = pecaItem.querySelector('.campo-peso');
+        const campoTipo = pecaItem.querySelector('.campo-tipo');
+        const tipoSelect = pecaItem.querySelector('.tipo-select');
+        const tipoPesoInfo = pecaItem.querySelector('.tipo-peso-info');
         const quantidadeInput = pecaItem.querySelector('.quantidade-input');
         const pesoInput = pecaItem.querySelector('.peso-input');
 
         if (modoRadio.value === 'quantidade') {
+            // Modo quantidade
             campoQuantidade.style.display = 'block';
             campoPeso.style.display = 'none';
             quantidadeInput.required = true;
             pesoInput.required = false;
             pesoInput.value = ''; // Limpar valor do peso
+
+            // Habilitar campo tipo
+            tipoSelect.disabled = false;
+            tipoSelect.required = true;
+            campoTipo.style.opacity = '1';
+            tipoPesoInfo.style.display = 'none';
         } else {
+            // Modo peso
             campoQuantidade.style.display = 'none';
             campoPeso.style.display = 'block';
             quantidadeInput.required = false;
             pesoInput.required = true;
             quantidadeInput.value = ''; // Limpar valor da quantidade
+
+            // Desabilitar campo tipo
+            tipoSelect.disabled = true;
+            tipoSelect.required = false;
+            tipoSelect.value = ''; // Limpar seleção
+            campoTipo.style.opacity = '0.5';
+            tipoPesoInfo.style.display = 'block';
         }
 
         calculateSubtotal(pecaItem);
@@ -501,6 +525,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inicializar
     updateRemoveButtons();
+
+    // Aplicar lógica de modo de coleta para todas as peças existentes
+    document.querySelectorAll('.peca-item').forEach(item => {
+        toggleModoColeta(item);
+    });
 });
 </script>
 @endpush
