@@ -16,9 +16,14 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
+            $usuario = Auth::user();
+            // Redireciona motoristas para o dashboard específico
+            if ($usuario->nivelAcesso && $usuario->nivelAcesso->nome === 'Motorista') {
+                return redirect()->route('motorista.dashboard');
+            }
             return redirect()->route('painel');
         }
-        
+
         return view('auth.login');
     }
 
@@ -51,10 +56,15 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {
             $request->session()->regenerate();
-            
+
             // Atualiza último login
             $usuario->ultimo_login = now();
             $usuario->save();
+
+            // Redireciona motoristas para o dashboard específico
+            if ($usuario->nivelAcesso && $usuario->nivelAcesso->nome === 'Motorista') {
+                return redirect()->route('motorista.dashboard');
+            }
 
             return redirect()->intended(route('painel'));
         }

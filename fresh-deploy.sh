@@ -56,11 +56,11 @@ php artisan migrate:fresh --force
 
 echo ""
 echo "🌱 Inserindo dados básicos..."
-php artisan setup:basic-data
+php artisan db:seed --force
 
 echo ""
-echo "👤 Criando usuário administrador..."
-php artisan admin:create admin@lavanderia.com admin123
+echo "👤 Verificando usuário administrador..."
+echo "ℹ️  Usuário admin já foi criado pelo seeder"
 
 echo ""
 echo "🔗 Criando link simbólico para storage..."

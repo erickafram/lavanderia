@@ -1,236 +1,235 @@
-@extends('layouts.app')
+@extends(auth()->user()->nivelAcesso && auth()->user()->nivelAcesso->nome === 'Motorista' ? 'layouts.motorista' : 'layouts.app')
 
 @section('title', 'Dashboard do Motorista')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
+<div class="container mx-auto px-4 py-4">
     <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Dashboard do Motorista</h1>
-        <p class="text-gray-600 mt-2">Gerencie suas entregas e confirme recebimentos</p>
+    <div class="mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard do Motorista</h1>
+        <p class="text-gray-600 text-sm">Gerencie suas entregas</p>
     </div>
 
-    <!-- Cards de Estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <!-- Cards de Estatísticas - Compactos -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 rounded-full bg-green-100">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Prontos</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $prontos }}</p>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-600">Prontos</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $prontos }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 rounded-full bg-blue-100">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Em Trânsito</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $emTransito }}</p>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-600">Em Trânsito</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $emTransito }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 rounded-full bg-purple-100">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Hoje</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $entreguesHoje }}</p>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-600">Hoje</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $entreguesHoje }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div class="flex items-center">
-                <div class="p-3 rounded-full bg-gray-100">
-                    <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 rounded-full bg-gray-100">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $total }}</p>
+                <div class="ml-3">
+                    <p class="text-xs font-medium text-gray-600">Total</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $total }}</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Buscar Empacotamento -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-        <h2 class="text-xl font-bold text-gray-900 mb-4">Buscar Empacotamento</h2>
-        <p class="text-gray-600 mb-4">Digite ou escaneie o código QR do empacotamento</p>
-        <div class="flex gap-4">
-            <input type="text" id="codigoBusca" placeholder="Código do empacotamento" 
-                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <button onclick="buscarEmpacotamento()" 
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+    <!-- Buscar Empacotamento - Compacto -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
+        <h2 class="text-lg font-bold text-gray-900 mb-2">Buscar Empacotamento</h2>
+        <div class="flex gap-2">
+            <input type="text" id="codigoBusca" placeholder="Código QR"
+                   class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <button onclick="buscarEmpacotamento()"
+                    class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
                 Buscar
             </button>
         </div>
     </div>
 
-    <!-- Tabs -->
+    <!-- Tabs - Compactas -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8 px-6">
-                <button onclick="showTab('prontos')" id="tab-prontos" 
-                        class="tab-button py-4 px-1 border-b-2 border-blue-500 font-medium text-sm text-blue-600">
-                    Prontos para Entrega ({{ $prontos }})
+            <nav class="-mb-px flex space-x-4 px-4">
+                <button onclick="showTab('prontos')" id="tab-prontos"
+                        class="tab-button py-3 px-1 border-b-2 border-blue-500 font-medium text-xs text-blue-600">
+                    Prontos ({{ $prontos }})
                 </button>
-                <button onclick="showTab('transito')" id="tab-transito" 
-                        class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button onclick="showTab('transito')" id="tab-transito"
+                        class="tab-button py-3 px-1 border-b-2 border-transparent font-medium text-xs text-gray-500 hover:text-gray-700 hover:border-gray-300">
                     Em Trânsito ({{ $emTransito }})
                 </button>
-                <button onclick="showTab('entregues')" id="tab-entregues" 
-                        class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    Entregues Hoje ({{ $entreguesHoje }})
+                <button onclick="showTab('entregues')" id="tab-entregues"
+                        class="tab-button py-3 px-1 border-b-2 border-transparent font-medium text-xs text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Entregues ({{ $entreguesHoje }})
                 </button>
             </nav>
         </div>
 
         <!-- Tab Content -->
-        <div class="p-6">
+        <div class="p-4">
             <!-- Prontos para Entrega -->
             <div id="content-prontos" class="tab-content">
                 @forelse($empacotamentosProntos as $empacotamento)
-                    <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="border border-gray-200 rounded-lg p-3 mb-3">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg">{{ $empacotamento->codigo_qr }}</h3>
-                                <p class="text-blue-600 font-medium">{{ $empacotamento->status->nome }}</p>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-base">{{ $empacotamento->codigo_qr }}</h3>
+                                <p class="text-blue-600 font-medium text-sm">{{ $empacotamento->status->nome }}</p>
                                 @if($empacotamento->coleta && $empacotamento->coleta->estabelecimento)
-                                    <p class="text-gray-900 font-medium">{{ $empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social }}</p>
+                                    <p class="text-gray-900 font-medium text-sm">{{ Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30) }}</p>
                                 @else
-                                    <p class="text-red-600 font-medium">Estabelecimento não encontrado</p>
+                                    <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
                                 @endif
-                                <p class="text-gray-600 text-sm">Empacotado: {{ $empacotamento->data_empacotamento->format('d/m/Y H:i') }}</p>
+                                <p class="text-gray-600 text-xs">{{ $empacotamento->data_empacotamento->format('d/m/Y H:i') }}</p>
                             </div>
-                            <button onclick="confirmarSaida({{ $empacotamento->id }})" 
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <button onclick="confirmarSaida({{ $empacotamento->id }})"
+                                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 ml-2">
                                 Confirmar Saída
                             </button>
                         </div>
                     </div>
                 @empty
-                    <p class="text-gray-500 text-center py-8">Nenhum empacotamento pronto para entrega</p>
+                    <p class="text-gray-500 text-center py-6 text-sm">Nenhum empacotamento pronto para entrega</p>
                 @endforelse
             </div>
 
             <!-- Em Trânsito -->
             <div id="content-transito" class="tab-content hidden">
                 @forelse($empacotamentosTransito as $empacotamento)
-                    <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="border border-gray-200 rounded-lg p-3 mb-3">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg">{{ $empacotamento->codigo_qr }}</h3>
-                                <p class="text-yellow-600 font-medium">{{ $empacotamento->status->nome }}</p>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-base">{{ $empacotamento->codigo_qr }}</h3>
+                                <p class="text-yellow-600 font-medium text-sm">{{ $empacotamento->status->nome }}</p>
                                 @if($empacotamento->coleta && $empacotamento->coleta->estabelecimento)
-                                    <p class="text-gray-900 font-medium">{{ $empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social }}</p>
+                                    <p class="text-gray-900 font-medium text-sm">{{ Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30) }}</p>
                                 @else
-                                    <p class="text-red-600 font-medium">Estabelecimento não encontrado</p>
+                                    <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
                                 @endif
                                 @if($empacotamento->entrega && $empacotamento->entrega->data_saida)
-                                    <p class="text-gray-600 text-sm">Saída: {{ $empacotamento->entrega->data_saida->format('d/m/Y H:i') }}</p>
+                                    <p class="text-gray-600 text-xs">Saída: {{ $empacotamento->entrega->data_saida->format('d/m/Y H:i') }}</p>
                                 @endif
                             </div>
-                            <button onclick="abrirModalEntrega({{ $empacotamento->id }}, '{{ $empacotamento->codigo_qr }}')" 
-                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            <button onclick="abrirModalEntrega({{ $empacotamento->id }}, '{{ $empacotamento->codigo_qr }}')"
+                                    class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 ml-2">
                                 Confirmar Entrega
                             </button>
                         </div>
                     </div>
                 @empty
-                    <p class="text-gray-500 text-center py-8">Nenhum empacotamento em trânsito</p>
+                    <p class="text-gray-500 text-center py-6 text-sm">Nenhum empacotamento em trânsito</p>
                 @endforelse
             </div>
 
             <!-- Entregues Hoje -->
             <div id="content-entregues" class="tab-content hidden">
                 @forelse($empacotamentosEntregues as $empacotamento)
-                    <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="border border-gray-200 rounded-lg p-3 mb-3">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="font-bold text-lg">{{ $empacotamento->codigo_qr }}</h3>
-                                <p class="text-green-600 font-medium">{{ $empacotamento->status->nome }}</p>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-base">{{ $empacotamento->codigo_qr }}</h3>
+                                <p class="text-green-600 font-medium text-sm">{{ $empacotamento->status->nome }}</p>
                                 @if($empacotamento->coleta && $empacotamento->coleta->estabelecimento)
-                                    <p class="text-gray-900 font-medium">{{ $empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social }}</p>
+                                    <p class="text-gray-900 font-medium text-sm">{{ Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30) }}</p>
                                 @else
-                                    <p class="text-red-600 font-medium">Estabelecimento não encontrado</p>
+                                    <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
                                 @endif
                                 @if($empacotamento->entrega)
-                                    <p class="text-gray-600 text-sm">Entregue: {{ $empacotamento->entrega->data_entrega->format('d/m/Y H:i') }}</p>
+                                    <p class="text-gray-600 text-xs">{{ $empacotamento->entrega->data_entrega->format('d/m/Y H:i') }}</p>
                                     @if($empacotamento->entrega->nome_recebedor)
-                                        <p class="text-gray-600 text-sm">Recebido por: {{ $empacotamento->entrega->nome_recebedor }}</p>
+                                        <p class="text-gray-600 text-xs">Por: {{ Str::limit($empacotamento->entrega->nome_recebedor, 20) }}</p>
                                     @endif
                                 @endif
                             </div>
-                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium ml-2">
                                 Entregue
                             </span>
                         </div>
                     </div>
                 @empty
-                    <p class="text-gray-500 text-center py-8">Nenhuma entrega realizada hoje</p>
+                    <p class="text-gray-500 text-center py-6 text-sm">Nenhuma entrega realizada hoje</p>
                 @endforelse
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de Confirmação de Entrega -->
+<!-- Modal de Confirmação de Entrega - Compacto -->
 <div id="modalEntrega" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-gray-900 mb-4">Confirmar Entrega</h3>
-                <p class="text-gray-600 mb-4">Empacotamento: <span id="codigoEntrega" class="font-mono font-bold"></span></p>
-                
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div class="p-4">
+                <h3 class="text-base font-bold text-gray-900 mb-3">Confirmar Entrega</h3>
+                <p class="text-gray-600 mb-3 text-sm">QR: <span id="codigoEntrega" class="font-mono font-bold"></span></p>
+
                 <form id="formEntrega">
                     <input type="hidden" id="empacotamentoId" name="empacotamento_id">
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome de quem recebeu</label>
+
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nome de quem recebeu</label>
                         <input type="text" id="nomeRecebedor" name="nome_recebedor" required
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Digite o nome completo">
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Nome completo">
                     </div>
-                    
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Assinatura</label>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Assinatura</label>
                         <div class="border border-gray-300 rounded-lg">
-                            <canvas id="canvasAssinatura" width="400" height="150" class="w-full cursor-crosshair"></canvas>
+                            <canvas id="canvasAssinatura" width="300" height="120" class="w-full cursor-crosshair"></canvas>
                         </div>
-                        <div class="flex justify-between mt-2">
-                            <button type="button" onclick="limparAssinatura()" 
-                                    class="text-sm text-gray-600 hover:text-gray-800">
-                                Limpar Assinatura
+                        <div class="flex justify-between mt-1">
+                            <button type="button" onclick="limparAssinatura()"
+                                    class="text-xs text-gray-600 hover:text-gray-800">
+                                Limpar
                             </button>
-                            <span class="text-xs text-gray-500">Desenhe sua assinatura acima</span>
+                            <span class="text-xs text-gray-500">Desenhe acima</span>
                         </div>
                     </div>
-                    
-                    <div class="flex gap-3">
-                        <button type="button" onclick="fecharModalEntrega()" 
-                                class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+
+                    <div class="flex gap-2">
+                        <button type="button" onclick="fecharModalEntrega()"
+                                class="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                             Cancelar
                         </button>
-                        <button type="submit" 
-                                class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                            Confirmar Entrega
+                        <button type="submit"
+                                class="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            Confirmar
                         </button>
                     </div>
                 </form>

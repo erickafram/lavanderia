@@ -40,35 +40,35 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rotas protegidas por autenticação
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
     
     // Dashboard/Painel
     Route::get('/painel', [PainelController::class, 'index'])->name('painel');
     Route::post('/acompanhar-coleta', [PainelController::class, 'acompanharColeta'])->name('acompanhar-coleta');
     
     // Estabelecimentos
-    Route::prefix('estabelecimentos')->name('estabelecimentos.')->group(function () {
+    Route::prefix('estabelecimentos')->name('estabelecimentos.')->middleware(['nivel.acesso:estabelecimentos.visualizar'])->group(function () {
         Route::get('/', [EstabelecimentoController::class, 'index'])->name('index');
-        Route::get('/cadastro', [EstabelecimentoController::class, 'create'])->name('create');
-        Route::post('/cadastro', [EstabelecimentoController::class, 'store'])->name('store');
+        Route::get('/cadastro', [EstabelecimentoController::class, 'create'])->middleware(['nivel.acesso:estabelecimentos.criar'])->name('create');
+        Route::post('/cadastro', [EstabelecimentoController::class, 'store'])->middleware(['nivel.acesso:estabelecimentos.criar'])->name('store');
         Route::get('/buscar-cnpj', [EstabelecimentoController::class, 'buscarCnpj'])->name('buscar-cnpj');
         Route::get('/{id}', [EstabelecimentoController::class, 'show'])->name('show');
-        Route::get('/{id}/editar', [EstabelecimentoController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [EstabelecimentoController::class, 'update'])->name('update');
-        Route::delete('/{id}', [EstabelecimentoController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/toggle-status', [EstabelecimentoController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{id}/editar', [EstabelecimentoController::class, 'edit'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('edit');
+        Route::put('/{id}', [EstabelecimentoController::class, 'update'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('update');
+        Route::delete('/{id}', [EstabelecimentoController::class, 'destroy'])->middleware(['nivel.acesso:estabelecimentos.excluir'])->name('destroy');
+        Route::post('/{id}/toggle-status', [EstabelecimentoController::class, 'toggleStatus'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('toggle-status');
     });
 
     // Coletas
-    Route::prefix('coletas')->name('coletas.')->group(function () {
+    Route::prefix('coletas')->name('coletas.')->middleware(['nivel.acesso:coletas.visualizar'])->group(function () {
         Route::get('/', [ColetaController::class, 'index'])->name('index');
-        Route::get('/nova', [ColetaController::class, 'create'])->name('create');
-        Route::post('/nova', [ColetaController::class, 'store'])->name('store');
-        Route::get('/{id}/adicionar-pecas', [ColetaController::class, 'addPecas'])->name('add-pecas');
-        Route::post('/{id}/adicionar-pecas', [ColetaController::class, 'storePecas'])->name('store-pecas');
+        Route::get('/nova', [ColetaController::class, 'create'])->middleware(['nivel.acesso:coletas.criar'])->name('create');
+        Route::post('/nova', [ColetaController::class, 'store'])->middleware(['nivel.acesso:coletas.criar'])->name('store');
+        Route::get('/{id}/adicionar-pecas', [ColetaController::class, 'addPecas'])->middleware(['nivel.acesso:coletas.editar'])->name('add-pecas');
+        Route::post('/{id}/adicionar-pecas', [ColetaController::class, 'storePecas'])->middleware(['nivel.acesso:coletas.editar'])->name('store-pecas');
         Route::get('/{id}', [ColetaController::class, 'show'])->name('show');
-        Route::put('/{id}/cancelar', [ColetaController::class, 'cancelar'])->name('cancelar');
-        Route::put('/{id}/concluir', [ColetaController::class, 'concluir'])->name('concluir');
+        Route::put('/{id}/cancelar', [ColetaController::class, 'cancelar'])->middleware(['nivel.acesso:coletas.cancelar'])->name('cancelar');
+        Route::put('/{id}/concluir', [ColetaController::class, 'concluir'])->middleware(['nivel.acesso:coletas.editar'])->name('concluir');
 
         // APIs
         Route::get('/estabelecimento/{estabelecimento_id}/coletas', [ColetaController::class, 'getColetasPorEstabelecimento'])->name('por-estabelecimento');
@@ -96,24 +96,22 @@ Route::middleware(['auth'])->group(function () {
     });
     
     // Empacotamento
-    Route::prefix('empacotamento')->name('empacotamento.')->group(function () {
+    Route::prefix('empacotamento')->name('empacotamento.')->middleware(['nivel.acesso:empacotamento.visualizar'])->group(function () {
         Route::get('/', [EmpacotamentoController::class, 'index'])->name('index');
-        Route::get('/novo', [EmpacotamentoController::class, 'create'])->name('create');
-        Route::post('/', [EmpacotamentoController::class, 'store'])->name('store');
+        Route::get('/novo', [EmpacotamentoController::class, 'create'])->middleware(['nivel.acesso:empacotamento.criar'])->name('create');
+        Route::post('/', [EmpacotamentoController::class, 'store'])->middleware(['nivel.acesso:empacotamento.criar'])->name('store');
         Route::get('/{id}', [EmpacotamentoController::class, 'show'])->name('show');
-        Route::put('/{id}/confirmar-entrega', [EmpacotamentoController::class, 'confirmarEntrega'])->name('confirmar-entrega');
+        Route::put('/{id}/confirmar-entrega', [EmpacotamentoController::class, 'confirmarEntrega'])->middleware(['nivel.acesso:empacotamento.confirmar_entrega'])->name('confirmar-entrega');
         Route::get('/{id}/reimprimir-qr', [EmpacotamentoController::class, 'reimprimirQR'])->name('reimprimir-qr');
         Route::get('/{id}/etiqueta', [EmpacotamentoController::class, 'gerarEtiqueta'])->name('etiqueta');
     });
 
-    // Motorista routes
-    Route::prefix('motorista')->name('motorista.')->group(function () {
+    // Motorista routes - Acesso restrito apenas para motoristas
+    Route::prefix('motorista')->name('motorista.')->withoutMiddleware(['redirecionar.motorista'])->middleware(['nivel.acesso:motorista.visualizar'])->group(function () {
         Route::get('/dashboard', [MotoristaController::class, 'dashboard'])->name('dashboard');
         Route::post('/buscar-empacotamento', [MotoristaController::class, 'buscarEmpacotamento'])->name('buscar-empacotamento');
         Route::post('/confirmar-saida', [MotoristaController::class, 'confirmarSaida'])->name('confirmar-saida');
         Route::post('/confirmar-entrega', [MotoristaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
-
-
     });
 
     // Relatórios routes
@@ -131,15 +129,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Usuários (apenas para administradores)
-    Route::prefix('usuarios')->name('usuarios.')->middleware(['auth'])->group(function () {
+    Route::prefix('usuarios')->name('usuarios.')->middleware(['nivel.acesso:usuarios.visualizar'])->group(function () {
         Route::get('/', [UsuarioController::class, 'index'])->name('index');
-        Route::get('/cadastro', [UsuarioController::class, 'create'])->name('create');
-        Route::post('/cadastro', [UsuarioController::class, 'store'])->name('store');
+        Route::get('/cadastro', [UsuarioController::class, 'create'])->middleware(['nivel.acesso:usuarios.criar'])->name('create');
+        Route::post('/cadastro', [UsuarioController::class, 'store'])->middleware(['nivel.acesso:usuarios.criar'])->name('store');
         Route::get('/{id}', [UsuarioController::class, 'show'])->name('show');
-        Route::get('/{id}/editar', [UsuarioController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [UsuarioController::class, 'update'])->name('update');
-        Route::delete('/{id}', [UsuarioController::class, 'destroy'])->name('destroy');
-        Route::post('/{id}/toggle-status', [UsuarioController::class, 'toggleStatus'])->name('toggle-status');
+        Route::get('/{id}/editar', [UsuarioController::class, 'edit'])->middleware(['nivel.acesso:usuarios.editar'])->name('edit');
+        Route::put('/{id}', [UsuarioController::class, 'update'])->middleware(['nivel.acesso:usuarios.editar'])->name('update');
+        Route::delete('/{id}', [UsuarioController::class, 'destroy'])->middleware(['nivel.acesso:usuarios.excluir'])->name('destroy');
+        Route::post('/{id}/toggle-status', [UsuarioController::class, 'toggleStatus'])->middleware(['nivel.acesso:usuarios.editar'])->name('toggle-status');
     });
     
 });
