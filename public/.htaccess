@@ -30,6 +30,16 @@
 
     # Feature Policy for older browsers
     Header always set Feature-Policy "camera 'self'; microphone 'self'"
+
+    # Force HTTPS redirect (uncomment for production)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# HTTPS Configuration for WAMP (Development)
+<IfModule mod_ssl.c>
+    # Enable HTTPS headers when SSL is available
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
 </IfModule>
 
 # MIME type for JavaScript modules

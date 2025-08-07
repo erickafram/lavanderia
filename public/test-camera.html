@@ -96,10 +96,16 @@
         </div>
         
         <div class="test-section">
+            <h2>🔧 Soluções Rápidas</h2>
+            <div id="solucoes-rapidas"></div>
+        </div>
+
+        <div class="test-section">
             <h2>🔗 Links Úteis</h2>
             <p>
                 <a href="motorista/dashboard" target="_blank">🚚 Dashboard do Motorista</a><br>
-                <a href="../CAMERA_TROUBLESHOOTING.md" target="_blank">📖 Guia de Solução de Problemas</a>
+                <a href="../CAMERA_TROUBLESHOOTING.md" target="_blank">📖 Guia de Solução de Problemas</a><br>
+                <a href="https://localhost/lavanderia/public/motorista/dashboard" target="_blank">🔒 Acesso HTTPS (se configurado)</a>
             </p>
         </div>
     </div>
@@ -116,18 +122,53 @@
         
         function executarDiagnostico() {
             const diagnosticoDiv = document.getElementById('diagnostico');
+            const solucoesDiv = document.getElementById('solucoes-rapidas');
             diagnosticoDiv.innerHTML = '';
-            
+            solucoesDiv.innerHTML = '';
+
+            let problemas = [];
+            let solucoes = [];
+
             // Verificar protocolo
-            const isSecure = location.protocol === 'https:' || 
-                           location.hostname === 'localhost' || 
+            const isSecure = location.protocol === 'https:' ||
+                           location.hostname === 'localhost' ||
                            location.hostname === '127.0.0.1';
-            
+
             diagnosticoDiv.appendChild(log(
                 `🔒 Protocolo: ${location.protocol} ${isSecure ? '✅' : '❌ Necessário HTTPS ou localhost'}`,
                 isSecure ? 'success' : 'error'
             ));
-            
+
+            if (!isSecure) {
+                problemas.push('protocolo');
+                solucoes.push(`
+                    <div class="status error">
+                        <strong>❌ Problema: Protocolo não seguro</strong><br>
+                        <strong>Solução:</strong> Acesse via <a href="http://localhost/lavanderia/public/test-camera.html" target="_blank">http://localhost/lavanderia/public/test-camera.html</a><br>
+                        <strong>Ou configure HTTPS:</strong> Execute o arquivo <code>setup-https-wamp.bat</code> como administrador
+                    </div>
+                `);
+            }
+
+            // Verificar host
+            const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            diagnosticoDiv.appendChild(log(
+                `🌐 Host: ${location.hostname} ${isLocalhost || location.protocol === 'https:' ? '✅' : '❌'}`,
+                isLocalhost || location.protocol === 'https:' ? 'success' : 'error'
+            ));
+
+            if (!isLocalhost && location.protocol !== 'https:') {
+                problemas.push('host');
+                if (!solucoes.some(s => s.includes('localhost'))) {
+                    solucoes.push(`
+                        <div class="status error">
+                            <strong>❌ Problema: Host não é localhost nem HTTPS</strong><br>
+                            <strong>Solução:</strong> Acesse via <a href="http://localhost/lavanderia/public/test-camera.html" target="_blank">localhost</a>
+                        </div>
+                    `);
+                }
+            }
+
             // Verificar getUserMedia
             const hasGetUserMedia = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
             diagnosticoDiv.appendChild(log(
@@ -166,15 +207,41 @@
             // Verificar permissões
             if (navigator.permissions) {
                 navigator.permissions.query({name: 'camera'}).then(result => {
-                    const status = result.state === 'granted' ? 'success' : 
+                    const status = result.state === 'granted' ? 'success' :
                                  result.state === 'denied' ? 'error' : 'warning';
-                    const text = result.state === 'granted' ? '✅ Permitida' : 
+                    const text = result.state === 'granted' ? '✅ Permitida' :
                                result.state === 'denied' ? '❌ Negada' : '⚠️ Não definida';
-                    
+
                     diagnosticoDiv.appendChild(log(`🔐 Permissão: ${text}`, status));
+
+                    if (result.state === 'denied') {
+                        solucoes.push(`
+                            <div class="status error">
+                                <strong>❌ Problema: Permissão de câmera negada</strong><br>
+                                <strong>Solução:</strong><br>
+                                1. Clique no ícone de câmera 📷 na barra de endereços<br>
+                                2. Selecione "Permitir" para câmera<br>
+                                3. Recarregue a página (F5)
+                            </div>
+                        `);
+                    }
+
+                    // Mostrar soluções
+                    if (solucoes.length > 0) {
+                        solucoesDiv.innerHTML = solucoes.join('');
+                    } else {
+                        solucoesDiv.innerHTML = '<div class="status success"><strong>✅ Tudo configurado corretamente!</strong><br>A câmera deve funcionar normalmente.</div>';
+                    }
                 }).catch(() => {
                     diagnosticoDiv.appendChild(log('🔐 Permissão: ❓ Não verificável', 'warning'));
+                    if (solucoes.length > 0) {
+                        solucoesDiv.innerHTML = solucoes.join('');
+                    }
                 });
+            } else {
+                if (solucoes.length > 0) {
+                    solucoesDiv.innerHTML = solucoes.join('');
+                }
             }
             
             // Verificar câmeras disponíveis
