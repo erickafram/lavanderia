@@ -19,3 +19,21 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# Security Headers for Camera Access
+<IfModule mod_headers.c>
+    # Allow camera access for QR code scanning
+    Header always set Permissions-Policy "camera=*, microphone=*"
+
+    # Content Security Policy - Allow camera access
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; frame-src 'none';"
+
+    # Feature Policy for older browsers
+    Header always set Feature-Policy "camera 'self'; microphone 'self'"
+</IfModule>
+
+# MIME type for JavaScript modules
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType application/javascript .mjs
+</IfModule>

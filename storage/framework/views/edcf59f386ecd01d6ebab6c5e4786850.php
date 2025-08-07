@@ -3,7 +3,31 @@
 <?php $__env->startSection('title', 'Dashboard do Motorista'); ?>
 
 <?php $__env->startPush('scripts'); ?>
-<script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
+<script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"
+        onerror="console.error('Erro ao carregar QR Scanner library'); window.qrScannerError = true;"></script>
+<script>
+// Verificar se a biblioteca foi carregada corretamente
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        if (typeof QrScanner === 'undefined' || window.qrScannerError) {
+            console.error('QR Scanner library não carregou corretamente');
+            // Tentar carregar de um CDN alternativo
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.umd.min.js';
+            script.onload = function() {
+                console.log('QR Scanner carregado do CDN alternativo');
+            };
+            script.onerror = function() {
+                console.error('Falha ao carregar QR Scanner de ambos os CDNs');
+                mostrarStatus('⚠️ Erro ao carregar biblioteca de QR Code. Use o modo manual.', 'warning');
+            };
+            document.head.appendChild(script);
+        } else {
+            console.log('QR Scanner library carregada com sucesso');
+        }
+    }, 1000);
+});
+</script>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -136,19 +160,34 @@
                                     <div id="qr-contador" class="absolute bottom-2 right-2 bg-blue-600 text-white px-2 py-1 rounded text-sm">
                                         Escaneados: <span id="contador-numero">0</span>
                                     </div>
+                                    <!-- Status da câmera -->
+                                    <div id="camera-status" class="absolute top-2 right-2 bg-gray-800 bg-opacity-75 text-white px-2 py-1 rounded text-xs hidden">
+                                        <span id="camera-status-text">Aguardando...</span>
+                                    </div>
                                 </div>
+
+                                <!-- Informações de diagnóstico -->
+                                <div id="diagnostico-camera" class="text-xs text-gray-600 bg-gray-50 p-2 rounded hidden">
+                                    <div class="font-medium mb-1">🔍 Diagnóstico:</div>
+                                    <div id="diagnostico-info"></div>
+                                </div>
+
                                 <div class="flex gap-2 justify-center">
-                                    <button onclick="iniciarScanner()" id="btnIniciarCamera" 
+                                    <button onclick="iniciarScanner()" id="btnIniciarCamera"
                                             class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
                                         📷 Iniciar Scanner
                                     </button>
-                                    <button onclick="pararScanner()" id="btnPararCamera" 
+                                    <button onclick="pararScanner()" id="btnPararCamera"
                                             class="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors hidden">
                                         ⏹️ Parar
                                     </button>
-                                    <button onclick="limparLista()" id="btnLimparLista" 
+                                    <button onclick="limparLista()" id="btnLimparLista"
                                             class="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors">
                                         🗑️ Limpar
+                                    </button>
+                                    <button onclick="mostrarDiagnostico()" id="btnDiagnostico"
+                                            class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                        🔍 Diagnóstico
                                     </button>
                                 </div>
                             </div>
@@ -198,6 +237,10 @@
 
             <!-- Prontos para Entrega -->
             <div id="content-prontos" class="main-tab-content hidden">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📦 Empacotamentos Prontos para Entrega</h3>
+                    <p class="text-gray-600 text-sm">Confirme a saída destes empacotamentos para entrega</p>
+                </div>
                 <?php $__empty_1 = true; $__currentLoopData = $empacotamentosProntos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $empacotamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <div class="border border-gray-200 rounded-lg p-3 mb-3">
                         <div class="flex justify-between items-start">
@@ -223,7 +266,11 @@
             </div>
 
             <!-- Em Trânsito -->
-            <div id="content-transito" class="tab-content hidden">
+            <div id="content-transito" class="main-tab-content hidden">
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">🚚 Empacotamentos Em Trânsito</h3>
+                    <p class="text-gray-600 text-sm">Confirme a entrega destes empacotamentos com assinatura</p>
+                </div>
                 <?php $__empty_1 = true; $__currentLoopData = $empacotamentosTransito; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $empacotamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <div class="border border-gray-200 rounded-lg p-3 mb-3">
                         <div class="flex justify-between items-start">
@@ -555,51 +602,257 @@ function alternarModo(modo) {
 }
 
 function iniciarScanner() {
+    // Verificar se a biblioteca QR Scanner foi carregada
     if (typeof QrScanner === 'undefined') {
-        mostrarStatus('❌ Biblioteca QR Scanner não carregada', 'error');
+        mostrarStatus('❌ Biblioteca QR Scanner não carregada. Recarregue a página.', 'error');
         return;
     }
 
+    // Verificar suporte básico para getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        mostrarStatus('❌ Câmera não suportada neste dispositivo', 'error');
+        mostrarStatus('❌ Câmera não suportada neste navegador/dispositivo', 'error');
+        mostrarInstrucoesCameraManual();
         return;
     }
 
-    try {
-        qrScanner = new QrScanner(
-            videoElement,
-            (result) => {
-                mostrarStatus('✅ QR Code detectado!', 'success');
-                document.getElementById('qr-resultado').classList.remove('hidden');
-                
-                // Processar o resultado automaticamente
-                processarQRDetectado(result.data);
-                
-                // Ocultar resultado após 2 segundos
-                setTimeout(() => {
-                    document.getElementById('qr-resultado').classList.add('hidden');
-                }, 2000);
-            },
-            {
-                returnDetailedScanResult: true,
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
-            }
-        );
+    // Verificar se estamos em contexto seguro (HTTPS ou localhost)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        mostrarStatus('⚠️ Para usar a câmera, acesse via HTTPS ou localhost', 'warning');
+        mostrarInstrucoesCameraManual();
+        return;
+    }
 
-        qrScanner.start().then(() => {
-            document.getElementById('btnIniciarCamera').classList.add('hidden');
-            document.getElementById('btnPararCamera').classList.remove('hidden');
-            document.getElementById('qr-overlay').classList.remove('hidden');
-            mostrarStatus('📷 Câmera ativa - Aponte para o QR Code', 'info');
-        }).catch(error => {
-            console.error('Erro ao iniciar scanner:', error);
-            mostrarStatus('❌ Erro ao acessar a câmera', 'error');
+    // Verificar permissões de câmera primeiro
+    verificarPermissaoCamera().then(temPermissao => {
+        if (!temPermissao) {
+            mostrarStatus('❌ Permissão de câmera negada. Verifique as configurações do navegador.', 'error');
+            mostrarInstrucoesCameraManual();
+            return;
+        }
+
+        // Inicializar o scanner
+        try {
+            mostrarStatus('🔄 Inicializando câmera...', 'info');
+            atualizarStatusCamera('Inicializando...', 'info');
+
+            qrScanner = new QrScanner(
+                videoElement,
+                (result) => {
+                    mostrarStatus('✅ QR Code detectado!', 'success');
+                    atualizarStatusCamera('QR detectado!', 'success');
+                    document.getElementById('qr-resultado').classList.remove('hidden');
+
+                    // Processar o resultado automaticamente
+                    processarQRDetectado(result.data);
+
+                    // Ocultar resultado após 2 segundos
+                    setTimeout(() => {
+                        document.getElementById('qr-resultado').classList.add('hidden');
+                    }, 2000);
+                },
+                {
+                    returnDetailedScanResult: true,
+                    highlightScanRegion: true,
+                    highlightCodeOutline: true,
+                    preferredCamera: 'environment', // Preferir câmera traseira em dispositivos móveis
+                    maxScansPerSecond: 5, // Limitar para melhor performance
+                }
+            );
+
+            qrScanner.start().then(() => {
+                document.getElementById('btnIniciarCamera').classList.add('hidden');
+                document.getElementById('btnPararCamera').classList.remove('hidden');
+                document.getElementById('qr-overlay').classList.remove('hidden');
+                mostrarStatus('📷 Câmera ativa - Aponte para o QR Code', 'success');
+                atualizarStatusCamera('Ativa', 'success');
+                console.log('Scanner QR iniciado com sucesso');
+            }).catch(error => {
+                console.error('Erro ao iniciar scanner:', error);
+                atualizarStatusCamera('Erro', 'error');
+                tratarErroCamera(error);
+            });
+
+        } catch (error) {
+            console.error('Erro ao criar scanner:', error);
+            atualizarStatusCamera('Falha', 'error');
+            mostrarStatus('❌ Erro ao inicializar scanner: ' + error.message, 'error');
+            mostrarInstrucoesCameraManual();
+        }
+    }).catch(error => {
+        console.error('Erro ao verificar permissões:', error);
+        mostrarStatus('❌ Erro ao verificar permissões de câmera', 'error');
+        mostrarInstrucoesCameraManual();
+    });
+}
+
+// Nova função para verificar permissões de câmera
+async function verificarPermissaoCamera() {
+    try {
+        // Tentar obter permissão de câmera
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: 'environment' // Preferir câmera traseira
+            }
         });
 
+        // Se conseguiu, parar o stream e retornar true
+        stream.getTracks().forEach(track => track.stop());
+        return true;
     } catch (error) {
-        console.error('Erro ao criar scanner:', error);
-        mostrarStatus('❌ Erro ao inicializar scanner', 'error');
+        console.error('Erro ao verificar permissão de câmera:', error);
+        return false;
+    }
+}
+
+// Nova função para tratar erros específicos da câmera
+function tratarErroCamera(error) {
+    console.error('Erro detalhado da câmera:', error);
+
+    let mensagem = '❌ Erro ao acessar a câmera: ';
+
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        mensagem += 'Permissão negada. Permita o acesso à câmera nas configurações do navegador.';
+    } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        mensagem += 'Nenhuma câmera encontrada no dispositivo.';
+    } else if (error.name === 'NotSupportedError') {
+        mensagem += 'Câmera não suportada neste navegador.';
+    } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+        mensagem += 'Câmera está sendo usada por outro aplicativo.';
+    } else if (error.name === 'OverconstrainedError') {
+        mensagem += 'Configurações de câmera não suportadas.';
+    } else {
+        mensagem += error.message || 'Erro desconhecido.';
+    }
+
+    mostrarStatus(mensagem, 'error');
+    mostrarInstrucoesCameraManual();
+}
+
+// Nova função para mostrar instruções quando a câmera não funciona
+function mostrarInstrucoesCameraManual() {
+    const statusDiv = document.getElementById('statusBusca');
+    statusDiv.className = 'mt-2 text-sm p-3 rounded-lg bg-blue-100 text-blue-800 border border-blue-200';
+    statusDiv.innerHTML = `
+        <div class="font-medium mb-2">💡 Alternativas para escanear QR Codes:</div>
+        <div class="text-xs space-y-1">
+            <div>• Use o <strong>Modo Manual</strong> e digite o código</div>
+            <div>• Use um app de QR Code no celular e digite o resultado</div>
+            <div>• Verifique se está acessando via <strong>HTTPS</strong> ou <strong>localhost</strong></div>
+            <div>• Permita o acesso à câmera nas configurações do navegador</div>
+            <div>• Clique em <strong>Diagnóstico</strong> para mais informações</div>
+        </div>
+    `;
+    statusDiv.classList.remove('hidden');
+
+    // Alternar automaticamente para modo manual
+    setTimeout(() => {
+        alternarModo('manual');
+    }, 1000);
+}
+
+// Nova função para mostrar diagnóstico detalhado
+function mostrarDiagnostico() {
+    const diagnosticoDiv = document.getElementById('diagnostico-camera');
+    const infoDiv = document.getElementById('diagnostico-info');
+
+    let info = [];
+
+    // Verificar protocolo
+    info.push(`Protocolo: ${location.protocol} ${location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? '✅' : '❌'}`);
+
+    // Verificar hostname
+    info.push(`Host: ${location.hostname} ${location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'https:' ? '✅' : '❌'}`);
+
+    // Verificar suporte a getUserMedia
+    info.push(`getUserMedia: ${navigator.mediaDevices && navigator.mediaDevices.getUserMedia ? '✅ Suportado' : '❌ Não suportado'}`);
+
+    // Verificar biblioteca QR Scanner
+    info.push(`QR Scanner: ${typeof QrScanner !== 'undefined' ? '✅ Carregado' : '❌ Não carregado'}`);
+
+    // Verificar se é dispositivo móvel
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    info.push(`Dispositivo: ${isMobile ? '📱 Mobile' : '💻 Desktop'}`);
+
+    // Verificar navegador
+    const isChrome = /Chrome/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !isChrome;
+    const isEdge = /Edge/.test(navigator.userAgent);
+
+    let browser = 'Desconhecido';
+    if (isChrome) browser = 'Chrome ✅';
+    else if (isFirefox) browser = 'Firefox ✅';
+    else if (isSafari) browser = 'Safari ⚠️';
+    else if (isEdge) browser = 'Edge ✅';
+
+    info.push(`Navegador: ${browser}`);
+
+    // Verificar permissões (se disponível)
+    if (navigator.permissions) {
+        navigator.permissions.query({name: 'camera'}).then(result => {
+            const permissao = result.state === 'granted' ? '✅ Permitida' :
+                             result.state === 'denied' ? '❌ Negada' :
+                             '⚠️ Não definida';
+            info.push(`Permissão câmera: ${permissao}`);
+            infoDiv.innerHTML = info.join('<br>');
+        }).catch(() => {
+            info.push('Permissão câmera: ❓ Não verificável');
+            infoDiv.innerHTML = info.join('<br>');
+        });
+    } else {
+        info.push('Permissão câmera: ❓ API não disponível');
+        infoDiv.innerHTML = info.join('<br>');
+    }
+
+    diagnosticoDiv.classList.remove('hidden');
+
+    // Verificar câmeras disponíveis
+    if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        navigator.mediaDevices.enumerateDevices().then(devices => {
+            const cameras = devices.filter(device => device.kind === 'videoinput');
+            info.push(`Câmeras encontradas: ${cameras.length} ${cameras.length > 0 ? '✅' : '❌'}`);
+            infoDiv.innerHTML = info.join('<br>');
+        }).catch(error => {
+            info.push('Câmeras encontradas: ❌ Erro ao verificar');
+            infoDiv.innerHTML = info.join('<br>');
+        });
+    }
+}
+
+// Função para atualizar status da câmera
+function atualizarStatusCamera(status, tipo = 'info') {
+    const statusElement = document.getElementById('camera-status');
+    const statusText = document.getElementById('camera-status-text');
+
+    statusText.textContent = status;
+    statusElement.classList.remove('hidden');
+
+    // Remover classes anteriores
+    statusElement.classList.remove('bg-green-600', 'bg-red-600', 'bg-yellow-600', 'bg-blue-600', 'bg-gray-800');
+
+    // Adicionar classe baseada no tipo
+    switch(tipo) {
+        case 'success':
+            statusElement.classList.add('bg-green-600');
+            break;
+        case 'error':
+            statusElement.classList.add('bg-red-600');
+            break;
+        case 'warning':
+            statusElement.classList.add('bg-yellow-600');
+            break;
+        case 'info':
+            statusElement.classList.add('bg-blue-600');
+            break;
+        default:
+            statusElement.classList.add('bg-gray-800');
+    }
+
+    // Auto-hide para alguns tipos
+    if (tipo === 'success' || tipo === 'info') {
+        setTimeout(() => {
+            statusElement.classList.add('hidden');
+        }, 3000);
     }
 }
 
@@ -609,11 +862,14 @@ function pararScanner() {
         qrScanner.destroy();
         qrScanner = null;
     }
-    
+
     document.getElementById('btnIniciarCamera').classList.remove('hidden');
     document.getElementById('btnPararCamera').classList.add('hidden');
     document.getElementById('qr-overlay').classList.add('hidden');
     document.getElementById('qr-resultado').classList.add('hidden');
+    document.getElementById('camera-status').classList.add('hidden');
+
+    mostrarStatus('📷 Scanner parado', 'info');
 }
 
 function processarQRDetectado(codigo) {
