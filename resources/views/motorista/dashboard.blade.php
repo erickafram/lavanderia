@@ -613,8 +613,11 @@ function iniciarScanner() {
 
     // Verificar se estamos em contexto seguro (HTTPS ou localhost)
     if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        const currentUrl = location.href;
+        const localhostUrl = currentUrl.replace(location.hostname, 'localhost');
+
         mostrarStatus('⚠️ Para usar a câmera, acesse via HTTPS ou localhost', 'warning');
-        mostrarInstrucoesCameraManual();
+        mostrarInstrucoesCameraManual(localhostUrl);
         return;
     }
 
