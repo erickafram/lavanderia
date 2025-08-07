@@ -64,21 +64,29 @@ class MotoristaController extends Controller
     public function buscarEmpacotamento(Request $request)
     {
         $codigo = $request->input('codigo');
-        
-        $empacotamento = Empacotamento::with(['coleta.estabelecimento', 'status'])
+
+        $empacotamento = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->where('codigo_qr', $codigo)
             ->first();
-            
+
         if (!$empacotamento) {
             return response()->json([
                 'success' => false,
-                'message' => 'Empacotamento não encontrado!'
+                'message' => '❌ Empacotamento não encontrado!\nVerifique se o QR Code está correto.'
             ]);
         }
-        
+
+        // Verificar se o empacotamento está ativo
+        if (!$empacotamento->coleta) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Empacotamento sem coleta associada!'
+            ]);
+        }
+
         return response()->json([
             'success' => true,
-            'empacotamento' => $empacotamento
+            'empacotamento' => $empacotamento->load(['coleta.estabelecimento', 'status', 'entrega'])
         ]);
     }
     
