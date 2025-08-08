@@ -166,6 +166,7 @@ class PesagemController extends Controller
                 'data_pesagem' => $request->data_pesagem,
                 'local_pesagem' => $request->local_pesagem,
                 'observacoes' => $request->observacoes_gerais,
+                'status' => $request->status ?? Pesagem::STATUS_CONCLUIDA, // Status do formulário ou concluída por padrão
             ]);
 
             DB::commit();
@@ -193,6 +194,7 @@ class PesagemController extends Controller
             'data_pesagem' => 'required|date|before_or_equal:now',
             'local_pesagem' => 'nullable|string|max:255',
             'observacoes_gerais' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:rascunho,concluida',
         ], [
             'coleta_id.required' => 'Coleta é obrigatória.',
             'peso.required' => 'Peso é obrigatório.',
@@ -216,6 +218,7 @@ class PesagemController extends Controller
                 'data_pesagem' => $request->data_pesagem,
                 'local_pesagem' => $request->local_pesagem,
                 'observacoes' => $request->observacoes_gerais,
+                'status' => $request->status ?? Pesagem::STATUS_CONCLUIDA, // Status do formulário ou concluída por padrão
             ]);
 
             DB::commit();
@@ -277,6 +280,7 @@ class PesagemController extends Controller
                         'data_pesagem' => $request->data_pesagem,
                         'local_pesagem' => $request->local_pesagem,
                         'observacoes' => $request->observacoes_gerais,
+                        'status' => $request->status ?? Pesagem::STATUS_CONCLUIDA, // Status do formulário ou concluída por padrão
                     ]);
                 }
             }
@@ -355,6 +359,7 @@ class PesagemController extends Controller
                 'data_pesagem' => $request->data_pesagem,
                 'local_pesagem' => $request->local_pesagem,
                 'observacoes' => $request->observacoes,
+                'status' => $request->status ?? $pesagem->status, // Manter status atual se não informado
             ]);
 
             DB::commit();
@@ -420,5 +425,29 @@ class PesagemController extends Controller
                         ->get();
 
         return response()->json($resumo);
+    }
+
+    /**
+     * Altera o status da pesagem para concluída
+     */
+    public function concluir($id)
+    {
+        $pesagem = Pesagem::findOrFail($id);
+        $pesagem->concluir();
+
+        return redirect()->back()
+                       ->with('success', 'Pesagem concluída com sucesso!');
+    }
+
+    /**
+     * Altera o status da pesagem para rascunho
+     */
+    public function definirComoRascunho($id)
+    {
+        $pesagem = Pesagem::findOrFail($id);
+        $pesagem->definirComoRascunho();
+
+        return redirect()->back()
+                       ->with('success', 'Pesagem definida como rascunho!');
     }
 }

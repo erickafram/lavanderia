@@ -155,65 +155,78 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <!-- Peças da Coleta -->
-                <?php if($empacotamento->coleta->pecas->count() > 0): ?>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
-                        <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                            <h3 class="text-lg font-bold text-gray-900 flex items-center">
-                                <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                                </svg>
-                                Peças da Coleta
-                            </h3>
-                            <p class="text-sm text-gray-600 mt-1">Ajuste as quantidades empacotadas se necessário</p>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Coletada</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Empacotada</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Peso (kg)</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
-                                    <?php $__currentLoopData = $empacotamento->coleta->pecas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center">
-                                                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                                                    <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo ? $peca->tipo->nome : 'Tipo não definido'); ?></div>
-                                                </div>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                                    <?php echo e($peca->quantidade); ?>
-
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                <input type="number" 
-                                                       name="pecas[<?php echo e($peca->id); ?>][quantidade_empacotada]"
-                                                       value="<?php echo e(old('pecas.'.$peca->id.'.quantidade_empacotada', $peca->quantidade_empacotada ?: $peca->quantidade)); ?>"
-                                                       min="0" 
-                                                       max="<?php echo e($peca->quantidade); ?>"
-                                                       class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                <input type="number" 
-                                                       name="pecas[<?php echo e($peca->id); ?>][peso_empacotado]"
-                                                       value="<?php echo e(old('pecas.'.$peca->id.'.peso_empacotado', $peca->peso_empacotado ?: $peca->peso)); ?>"
-                                                       step="0.01"
-                                                       min="0"
-                                                       class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Peças da Coleta
+                        </h3>
+                        <p class="text-sm text-gray-600 mt-1">Ajuste as quantidades empacotadas e adicione novas peças se necessário</p>
                     </div>
-                <?php endif; ?>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Coletada</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Empacotada</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Peso (kg)</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-pecas-empacotamento" class="bg-white divide-y divide-gray-200">
+                                <?php $__currentLoopData = $empacotamento->coleta->pecas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                                                <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo ? $peca->tipo->nome : 'Tipo não definido'); ?></div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                                <?php echo e($peca->quantidade); ?>
+
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <input type="number" 
+                                                   name="pecas[<?php echo e($peca->id); ?>][quantidade_empacotada]"
+                                                   value="<?php echo e(old('pecas.'.$peca->id.'.quantidade_empacotada', $peca->quantidade_empacotada ?: $peca->quantidade)); ?>"
+                                                   min="0" 
+                                                   max="<?php echo e($peca->quantidade); ?>"
+                                                   class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <input type="number" 
+                                                   name="pecas[<?php echo e($peca->id); ?>][peso_empacotado]"
+                                                   value="<?php echo e(old('pecas.'.$peca->id.'.peso_empacotado', $peca->peso_empacotado ?: $peca->peso)); ?>"
+                                                   step="0.01"
+                                                   min="0"
+                                                   class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="text-gray-400 text-sm">Original</span>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Botão Adicionar Nova Peça -->
+                    <div class="p-4 border-t border-gray-200 bg-gray-50">
+                        <button type="button" onclick="adicionarLinhaPeca()"
+                                class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Adicionar Nova Peça
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Sidebar com informações da coleta -->
@@ -285,5 +298,80 @@ unset($__errorArgs, $__bag); ?>
     </form>
 </div>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+// Tipos de peças disponíveis
+const tiposDisponiveis = <?php echo json_encode($tipos, 15, 512) ?>;
+let contadorNovasPecas = 0;
+
+// Função para adicionar nova linha de peça
+function adicionarLinhaPeca() {
+    const tabela = document.getElementById('tabela-pecas-empacotamento');
+    
+    // Criar opções do select
+    let opcoesSelect = '<option value="">Selecione um tipo</option>';
+    tiposDisponiveis.forEach(function(tipo) {
+        opcoesSelect += `<option value="${tipo.id}">${tipo.nome} (${tipo.categoria})</option>`;
+    });
+
+    // Criar nova linha
+    const novaLinha = document.createElement('tr');
+    novaLinha.className = 'linha-nova-peca hover:bg-gray-50';
+    novaLinha.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap">
+            <select name="novas_pecas[${contadorNovasPecas}][tipo_id]" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                    required>
+                ${opcoesSelect}
+            </select>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-center">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                Nova
+            </span>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-center">
+            <input type="number" 
+                   name="novas_pecas[${contadorNovasPecas}][quantidade]"
+                   min="1" 
+                   placeholder="1"
+                   class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                   required>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-center">
+            <input type="number" 
+                   name="novas_pecas[${contadorNovasPecas}][peso]"
+                   step="0.01" 
+                   min="0"
+                   placeholder="0.00"
+                   class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500">
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-center">
+            <button type="button" 
+                    onclick="removerLinhaPeca(this)"
+                    class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition-colors duration-200">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Remover
+            </button>
+        </td>
+    `;
+
+    // Adicionar a linha à tabela
+    tabela.appendChild(novaLinha);
+    contadorNovasPecas++;
+}
+
+// Função para remover linha de peça
+function removerLinhaPeca(botao) {
+    const linha = botao.closest('tr');
+    if (linha.classList.contains('linha-nova-peca')) {
+        linha.remove();
+    }
+}
+</script>
+<?php $__env->stopPush(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\lavanderia\resources\views/empacotamento/edit.blade.php ENDPATH**/ ?>

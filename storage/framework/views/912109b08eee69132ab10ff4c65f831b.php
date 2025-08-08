@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Detalhes do Estabelecimento - Sistema de Gestão de Lavanderia'); ?>
 
 <?php $__env->startSection('content'); ?>

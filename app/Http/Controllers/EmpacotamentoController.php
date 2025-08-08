@@ -116,10 +116,10 @@ class EmpacotamentoController extends Controller
                 return back()->withErrors(['coleta_id' => 'Esta coleta já foi empacotada.']);
             }
 
-            // Buscar status "Pronto para entrega"
-            $statusProntoEntrega = Status::where('nome', 'Pronto para entrega')->first();
+            // Buscar status "Pronto para motorista"
+            $statusProntoEntrega = Status::where('nome', 'Pronto para motorista')->first();
             if (!$statusProntoEntrega) {
-                return back()->withErrors(['status' => 'Status "Pronto para entrega" não encontrado.']);
+                return back()->withErrors(['status' => 'Status "Pronto para motorista" não encontrado.']);
             }
 
             // Criar empacotamento
@@ -356,31 +356,23 @@ class EmpacotamentoController extends Controller
         $empacotamento = Empacotamento::findOrFail($id);
 
         // Verificar se pode ser concluído
-        if ($empacotamento->status->nome !== 'Pronto para entrega') {
+        if ($empacotamento->status->nome !== 'Pronto para motorista') {
             return response()->json([
                 'success' => false,
-                'message' => 'Apenas empacotamentos "Pronto para entrega" podem ser concluídos.'
+                'message' => 'Apenas empacotamentos "Pronto para motorista" podem ser concluídos.'
             ]);
         }
 
         DB::beginTransaction();
         try {
-            // Buscar status "Em trânsito" ou similar
-            $statusConcluido = Status::where('nome', 'Em trânsito')->first();
-            if (!$statusConcluido) {
-                $statusConcluido = Status::where('nome', 'Pronto para entrega')->first();
-            }
-
-            // Atualizar status
-            $empacotamento->update([
-                'status_id' => $statusConcluido->id
-            ]);
-
+            // Empacotamento já está "Pronto para motorista", não precisa alterar status
+            // O status só mudará quando o motorista confirmar a saída
+            
             DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Empacotamento concluído com sucesso!'
+                'message' => 'Empacotamento concluído e pronto para o motorista!'
             ]);
 
         } catch (\Exception $e) {

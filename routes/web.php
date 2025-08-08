@@ -13,6 +13,7 @@ use App\Http\Controllers\MotoristaController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\AcompanhamentoPublicoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,10 +26,20 @@ use App\Http\Controllers\UsuarioController;
 |
 */
 
-// Rota inicial - redireciona para login
-Route::get('/', function () {
-    return redirect()->route('login');
+// Rota inicial - redireciona para acompanhamento público
+Route::get('/', [AcompanhamentoPublicoController::class, 'index'])->name('acompanhamento.index');
+
+// Rotas públicas para acompanhamento de coletas
+Route::prefix('acompanhamento')->name('acompanhamento.')->group(function () {
+    Route::get('/', [AcompanhamentoPublicoController::class, 'index'])->name('index');
+    Route::post('/buscar', [AcompanhamentoPublicoController::class, 'buscar'])->name('buscar');
+    Route::get('/detalhes/{id}', [AcompanhamentoPublicoController::class, 'detalhes'])->name('detalhes');
 });
+
+// Rota para acesso ao sistema (login)
+Route::get('/sistema', function () {
+    return redirect()->route('login');
+})->name('sistema');
 
 // Rotas públicas para confirmação do cliente
 Route::get('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteController::class, 'index'])->name('confirmacao-cliente.index');
@@ -37,9 +48,11 @@ Route::post('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteCo
 // Rota pública para rastreamento
 Route::get('/rastreamento/{codigo}', [App\Http\Controllers\RastreamentoController::class, 'index'])->name('rastreamento.index');
 
-// Rotas de autenticação
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+// Rotas de autenticação (sistema interno)
+Route::prefix('sistema')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+});
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rotas protegidas por autenticação
@@ -96,6 +109,8 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::get('/{id}/editar', [PesagemController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PesagemController::class, 'update'])->name('update');
         Route::delete('/{id}', [PesagemController::class, 'destroy'])->name('destroy');
+        Route::patch('/{id}/concluir', [PesagemController::class, 'concluir'])->name('concluir');
+        Route::patch('/{id}/rascunho', [PesagemController::class, 'definirComoRascunho'])->name('rascunho');
 
         // APIs
         Route::get('/api/coleta/{coleta_id}', [PesagemController::class, 'getPesagensPorColeta'])->name('api.coleta');

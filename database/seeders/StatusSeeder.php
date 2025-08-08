@@ -65,8 +65,8 @@ class StatusSeeder extends Seeder
                 'ativo' => true
             ],
             [
-                'nome' => 'Pronto para entrega',
-                'descricao' => 'Empacotamento concluído, pronto para ser entregue',
+                'nome' => 'Pronto para motorista',
+                'descricao' => 'Empacotamento concluído, aguardando confirmação do motorista para saída',
                 'tipo' => 'empacotamento',
                 'cor' => '#007bff',
                 'ordem' => 3,

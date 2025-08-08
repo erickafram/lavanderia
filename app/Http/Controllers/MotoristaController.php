@@ -16,7 +16,7 @@ class MotoristaController extends Controller
         $user = Auth::user();
         
         // Buscar status
-        $statusPronto = Status::where('nome', 'Pronto para Entrega')->first();
+        $statusPronto = Status::where('nome', 'Pronto para motorista')->first();
         $statusTransito = Status::where('nome', 'Em Trânsito')->first();
         $statusEntregue = Status::where('nome', 'Entregue')->first();
         $statusConfirmado = Status::where('nome', 'Confirmado pelo Cliente')->first();

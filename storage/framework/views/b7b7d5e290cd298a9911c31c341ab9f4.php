@@ -47,7 +47,7 @@
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        Adicionar Peças
+                        Adicionar Itens
                     </a>
                 </div>
                 <?php endif; ?>
@@ -296,7 +296,7 @@
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Adicionar Peças
+            Adicionar Itens
         </a>
         <?php elseif($coleta->pecas->count() > 0 && $coleta->status->nome == 'Agendada'): ?>
         <a href="<?php echo e(route('coletas.add-pecas', $coleta->id)); ?>" 
@@ -383,7 +383,7 @@
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Adicionar Peças Agora
+                    Adicionar Itens Agora
                 </a>
             </div>
         <?php else: ?>

@@ -12,7 +12,7 @@
         </h1>
         <p class="text-sm text-gray-600">Registre uma coleta completa de forma rápida e objetiva</p>
         <p class="text-xs text-gray-500 mt-1">
-            <kbd class="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl+N</kbd> Adicionar peça •
+            <kbd class="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl+N</kbd> Adicionar Itens •
             <kbd class="px-1 py-0.5 bg-gray-100 rounded text-xs">Ctrl+Enter</kbd> Finalizar
         </p>
     </div>

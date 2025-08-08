@@ -464,7 +464,7 @@ if (modalEntrega) {
 
 // Função para concluir empacotamento
 function concluirEmpacotamento() {
-    if (confirm('Tem certeza que deseja concluir este empacotamento? Ele ficará pronto para entrega.')) {
+    if (confirm('Tem certeza que deseja concluir este empacotamento? Ele ficará pronto para o motorista.')) {
         // Implementar AJAX para concluir empacotamento
         fetch('{{ route("empacotamento.concluir", $empacotamento->id) }}', {
             method: 'PUT',

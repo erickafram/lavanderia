@@ -107,16 +107,16 @@
 </div>
 
 <!-- Resultado do Acompanhamento -->
-<div id="resultadoAcompanhamento" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-semibold text-gray-900 flex items-center">
-            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div id="resultadoAcompanhamento" class="hidden bg-white rounded-xl shadow-lg border border-gray-100 p-4 mb-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
             </svg>
             Detalhes da Coleta
         </h3>
         <button onclick="fecharResultado()" class="text-gray-400 hover:text-gray-600 transition-colors">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
@@ -225,17 +225,17 @@
                     }
                 @endphp
 
-                <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
+                                    <div class="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
                      data-coleta-id="{{ $coleta->id }}"
                      onclick="acompanharColetaPorId('{{ $coleta->numero_coleta }}')">
-                    <div class="flex justify-between items-start mb-4">
+                    <div class="flex justify-between items-start mb-3">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">{{ $coleta->numero_coleta }}</h3>
-                            <p class="text-gray-600">{{ Str::limit($coleta->estabelecimento->razao_social, 30) }}</p>
+                            <h3 class="text-base font-bold text-gray-900">{{ $coleta->numero_coleta }}</h3>
+                            <p class="text-sm text-gray-600">{{ Str::limit($coleta->estabelecimento->razao_social, 25) }}</p>
                             <p class="text-xs text-gray-500 mt-1">{{ $coleta->created_at->format('d/m/Y H:i') }}</p>
                         </div>
                         <div class="text-right">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200" data-percentual>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200" data-percentual>
                                 {{ $percentual }}%
                             </span>
                         </div>
@@ -252,8 +252,8 @@
 
                     <!-- Tempo Total -->
                     @if($tempoTotal)
-                    <div class="mb-4 flex items-center text-sm text-blue-600 bg-blue-50 rounded-lg p-2">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mb-3 flex items-center text-xs text-blue-600 bg-blue-50 rounded-lg p-2">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span class="font-medium">{{ $tempoTotal }}</span>
@@ -261,57 +261,57 @@
                     @endif
 
                     <!-- Barra de Progresso -->
-                    <div class="mb-4">
-                        <div class="flex justify-between text-xs text-gray-600 mb-2">
+                    <div class="mb-3">
+                        <div class="flex justify-between text-xs text-gray-600 mb-1">
                             <span>Progresso</span>
                             <span data-etapas>{{ $etapasConcluidas }}/5</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: {{ $percentual }}%"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500" style="width: {{ $percentual }}%"></div>
                         </div>
                     </div>
 
                     <!-- Mini Etapas -->
                     <div class="grid grid-cols-5 gap-1">
                         <div class="flex flex-col items-center text-xs {{ $progresso['coleta']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center {{ $progresso['coleta']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="coleta">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center {{ $progresso['coleta']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="coleta">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <span>Col.</span>
+                            <span class="text-xs">Col.</span>
                         </div>
                         <div class="flex flex-col items-center text-xs {{ $progresso['pesagem']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center {{ $progresso['pesagem']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="pesagem">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center {{ $progresso['pesagem']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="pesagem">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <span>Pes.</span>
+                            <span class="text-xs">Pes.</span>
                         </div>
                         <div class="flex flex-col items-center text-xs {{ $progresso['empacotamento']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center {{ $progresso['empacotamento']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="empacotamento">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center {{ $progresso['empacotamento']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="empacotamento">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <span>Emp.</span>
+                            <span class="text-xs">Emp.</span>
                         </div>
                         <div class="flex flex-col items-center text-xs {{ $progresso['entrega']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center {{ $progresso['entrega']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="entrega">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center {{ $progresso['entrega']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="entrega">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <span>Trân.</span>
+                            <span class="text-xs">Trân.</span>
                         </div>
                         <div class="flex flex-col items-center text-xs {{ $progresso['confirmacao_cliente']['concluida'] ? 'text-green-600' : 'text-gray-400' }}">
-                            <div class="w-6 h-6 rounded-full flex items-center justify-center {{ $progresso['confirmacao_cliente']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="confirmacao_cliente">
-                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="w-5 h-5 rounded-full flex items-center justify-center {{ $progresso['confirmacao_cliente']['concluida'] ? 'bg-green-100' : 'bg-gray-100' }} mb-1" data-etapa="confirmacao_cliente">
+                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                 </svg>
                             </div>
-                            <span>Entr.</span>
+                            <span class="text-xs">Entr.</span>
                         </div>
                     </div>
                 </div>
@@ -390,18 +390,18 @@
                         }
                     @endphp
 
-                    <div class="bg-gradient-to-br from-green-50 to-white border border-green-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
+                    <div class="bg-gradient-to-br from-green-50 to-white border border-green-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105"
                          data-coleta-id="{{ $coleta->id }}"
                          onclick="acompanharColetaPorId('{{ $coleta->numero_coleta }}')">
-                        <div class="flex justify-between items-start mb-4">
+                        <div class="flex justify-between items-start mb-3">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900">{{ $coleta->numero_coleta }}</h3>
-                                <p class="text-gray-600">{{ Str::limit($coleta->estabelecimento->razao_social, 30) }}</p>
+                                <h3 class="text-base font-bold text-gray-900">{{ $coleta->numero_coleta }}</h3>
+                                <p class="text-sm text-gray-600">{{ Str::limit($coleta->estabelecimento->razao_social, 25) }}</p>
                                 <p class="text-xs text-gray-500 mt-1">{{ $coleta->created_at->format('d/m/Y H:i') }}</p>
                             </div>
                             <div class="text-right">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
-                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                    <svg class="w-2.5 h-2.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                     Concluída
@@ -419,8 +419,8 @@
 
                         <!-- Tempo Total -->
                         @if($tempoTotal)
-                        <div class="mb-4 flex items-center text-sm text-green-600 bg-green-50 rounded-lg p-2">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="mb-3 flex items-center text-xs text-green-600 bg-green-50 rounded-lg p-2">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span class="font-medium">{{ $tempoTotal }}</span>
@@ -428,57 +428,57 @@
                         @endif
 
                         <!-- Barra de Progresso Completa -->
-                        <div class="mb-4">
-                            <div class="flex justify-between text-xs text-gray-600 mb-2">
+                        <div class="mb-3">
+                            <div class="flex justify-between text-xs text-gray-600 mb-1">
                                 <span>Processo Completo</span>
                                 <span>100%</span>
                             </div>
-                            <div class="w-full bg-green-200 rounded-full h-2.5">
-                                <div class="bg-gradient-to-r from-green-500 to-green-600 h-2.5 rounded-full transition-all duration-500" style="width: 100%"></div>
+                            <div class="w-full bg-green-200 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-500" style="width: 100%"></div>
                             </div>
                         </div>
 
                         <!-- Mini Etapas -->
                         <div class="grid grid-cols-5 gap-1">
                             <div class="flex flex-col items-center text-xs text-green-600">
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 mb-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center bg-green-100 mb-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Col.</span>
+                                <span class="text-xs">Col.</span>
                             </div>
                             <div class="flex flex-col items-center text-xs text-green-600">
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 mb-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center bg-green-100 mb-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Pes.</span>
+                                <span class="text-xs">Pes.</span>
                             </div>
                             <div class="flex flex-col items-center text-xs text-green-600">
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 mb-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center bg-green-100 mb-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Emp.</span>
+                                <span class="text-xs">Emp.</span>
                             </div>
                             <div class="flex flex-col items-center text-xs text-green-600">
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 mb-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center bg-green-100 mb-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Trân.</span>
+                                <span class="text-xs">Trân.</span>
                             </div>
                             <div class="flex flex-col items-center text-xs text-green-600">
-                                <div class="w-6 h-6 rounded-full flex items-center justify-center bg-green-100 mb-1">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <div class="w-5 h-5 rounded-full flex items-center justify-center bg-green-100 mb-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Entr.</span>
+                                <span class="text-xs">Entr.</span>
                             </div>
                         </div>
                     </div>
@@ -593,11 +593,11 @@ function mostrarProgresso(coleta, progresso) {
     
     conteudo.innerHTML = `
         <!-- Informações da Coleta -->
-        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-3 mb-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
-                    <h3 class="text-xl font-bold text-blue-900 mb-1">${coleta.numero_coleta}</h3>
-                    <p class="text-blue-700 text-base mb-1">${coleta.estabelecimento.razao_social}</p>
+                    <h3 class="text-lg font-bold text-blue-900 mb-1">${coleta.numero_coleta}</h3>
+                    <p class="text-blue-700 text-sm mb-1">${coleta.estabelecimento.razao_social}</p>
                     <p class="text-xs text-blue-600">Criada em: ${new Date(coleta.created_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit', 
@@ -607,30 +607,30 @@ function mostrarProgresso(coleta, progresso) {
                     })}</p>
                 </div>
                 <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-700 mb-1">${percentual}%</div>
+                    <div class="text-xl font-bold text-blue-700 mb-1">${percentual}%</div>
                     <div class="text-xs text-blue-600">Concluído</div>
                     <div class="text-xs text-blue-500">${etapasConcluidas} de 5 etapas</div>
                 </div>
                 <div class="text-right">
                     ${progresso.tempo_total ? `
                         <div class="bg-white/60 rounded-lg p-2">
-                            <div class="text-base font-bold text-blue-800">${progresso.tempo_total}</div>
-                            <div class="text-xs text-blue-600">Tempo Total</div>
+                            <div class="text-sm font-bold text-blue-800">${progresso.tempo_total}</div>
+                            <div class="text-xs text-blue-600">desde o início</div>
                         </div>
                     ` : ''}
                 </div>
             </div>
             
             <!-- Barra de Progresso -->
-            <div class="mt-4">
-                <div class="w-full bg-blue-200 rounded-full h-3">
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 h-3 rounded-full transition-all duration-1000" style="width: ${percentual}%"></div>
+            <div class="mt-3">
+                <div class="w-full bg-blue-200 rounded-full h-2">
+                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 h-2 rounded-full transition-all duration-1000" style="width: ${percentual}%"></div>
                 </div>
             </div>
         </div>
 
         <!-- Timeline das Etapas -->
-        <div class="space-y-3">
+        <div class="space-y-2">
             ${renderizarEtapa('Coleta Realizada', progresso.coleta, 'blue')}
             ${renderizarEtapa('Pesagem', progresso.pesagem, 'green')}
             ${renderizarEtapa('Empacotamento', progresso.empacotamento, 'purple')}
@@ -657,23 +657,23 @@ function renderizarEtapa(titulo, etapa, cor, coleta = null) {
                                     coleta.empacotamento.entrega.assinatura_recebedor;
     
     return `
-        <div class="flex items-center space-x-3 p-4 rounded-lg border transition-all duration-300 ${concluida ? 'bg-' + cor + '-50 border-' + cor + '-200' : 'bg-gray-50 border-gray-200'}">
+        <div class="flex items-center space-x-2 p-3 rounded-lg border transition-all duration-300 ${concluida ? 'bg-' + cor + '-50 border-' + cor + '-200' : 'bg-gray-50 border-gray-200'}">
             <div class="flex-shrink-0">
-                <div class="w-10 h-10 rounded-full flex items-center justify-center ${concluida ? 'bg-' + cor + '-500 text-white' : 'bg-gray-300 text-gray-500'}">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center ${concluida ? 'bg-' + cor + '-500 text-white' : 'bg-gray-300 text-gray-500'}">
                     ${concluida ? `
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                         </svg>
                     ` : `
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     `}
                 </div>
             </div>
             <div class="flex-1">
-                <h4 class="text-base font-semibold ${concluida ? 'text-' + cor + '-900' : 'text-gray-500'}">${titulo}</h4>
-                <p class="text-sm ${concluida ? 'text-' + cor + '-700' : 'text-gray-500'}">
+                <h4 class="text-sm font-semibold ${concluida ? 'text-' + cor + '-900' : 'text-gray-500'}">${titulo}</h4>
+                <p class="text-xs ${concluida ? 'text-' + cor + '-700' : 'text-gray-500'}">
                     ${concluida ? (dataFormatada || 'Concluído') : 'Pendente'}
                 </p>
                 ${etapa.tempo_desde_inicio ? `
@@ -683,7 +683,7 @@ function renderizarEtapa(titulo, etapa, cor, coleta = null) {
                 ` : ''}
                 ${isEntregueWithSignature ? `
                     <button onclick="visualizarAssinatura('${coleta.empacotamento.entrega.assinatura_recebedor}', '${coleta.empacotamento.entrega.nome_recebedor || 'N/A'}')" 
-                            class="mt-2 inline-flex items-center px-3 py-1 bg-${cor}-100 hover:bg-${cor}-200 text-${cor}-700 text-xs font-medium rounded-full transition-colors duration-200">
+                            class="mt-1 inline-flex items-center px-2 py-1 bg-${cor}-100 hover:bg-${cor}-200 text-${cor}-700 text-xs font-medium rounded-full transition-colors duration-200">
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                         </svg>
@@ -692,9 +692,9 @@ function renderizarEtapa(titulo, etapa, cor, coleta = null) {
                 ` : ''}
             </div>
             <div class="flex-shrink-0">
-                <div class="w-6 h-6 rounded-full ${concluida ? 'bg-' + cor + '-100' : 'bg-gray-100'} flex items-center justify-center">
+                <div class="w-5 h-5 rounded-full ${concluida ? 'bg-' + cor + '-100' : 'bg-gray-100'} flex items-center justify-center">
                     ${concluida ? `
-                        <svg class="w-4 h-4 text-${cor}-600" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-3 h-3 text-${cor}-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                         </svg>
                     ` : `
@@ -882,13 +882,18 @@ function iniciarAtualizacaoTempoReal() {
         clearInterval(realtimeUpdateInterval);
     }
     
-    // Atualizar a cada 15 segundos
+    // Atualizar a cada 10 segundos para detectar mudanças mais rapidamente
     realtimeUpdateInterval = setInterval(() => {
         atualizarDadosTempoReal();
-    }, 15000);
+    }, 10000);
     
-    console.log('✅ Sistema de tempo real iniciado - Atualizações a cada 15s');
+    console.log('✅ Sistema de tempo real iniciado - Atualizações a cada 10s');
     atualizarIndicadorStatus('online');
+    
+    // Fazer primeira atualização imediatamente
+    setTimeout(() => {
+        atualizarDadosTempoReal();
+    }, 1000);
 }
 
 // Função para parar atualizações automáticas
@@ -923,12 +928,12 @@ async function atualizarDadosTempoReal() {
         
         const data = await response.json();
         
-        // Verificar se houve mudanças
-        const currentHash = JSON.stringify(data).substring(0, 100);
-        if (currentHash !== lastUpdateHash) {
+        // Verificar mudanças mais específicas
+        const hasChanges = verificarMudancasProgresso(data);
+        if (hasChanges) {
             await atualizarInterface(data);
-            lastUpdateHash = currentHash;
-            console.log('🔄 Dados atualizados em tempo real');
+            console.log('🔄 Progresso das coletas atualizado');
+            mostrarNotificacaoAtualizacao();
         }
         
         atualizarIndicadorStatus('online');
@@ -940,6 +945,63 @@ async function atualizarDadosTempoReal() {
     } finally {
         isUpdating = false;
     }
+}
+
+// Função para verificar mudanças específicas no progresso
+function verificarMudancasProgresso(novosDados) {
+    const coletasAtuais = document.querySelectorAll('[data-coleta-id]');
+    
+    // Se não há coletas na tela, sempre atualizar
+    if (coletasAtuais.length === 0) return true;
+    
+    let temMudancas = false;
+    
+    // Verificar mudanças nas coletas em andamento
+    if (novosDados.coletasAndamento) {
+        for (const coleta of novosDados.coletasAndamento) {
+            const cardExistente = document.querySelector(`[data-coleta-id="${coleta.id}"]`);
+            if (cardExistente) {
+                // Verificar percentual
+                const percentualAtual = cardExistente.querySelector('[data-percentual]')?.textContent || '0%';
+                const novoPercentual = `${coleta.percentual}%`;
+                
+                // Verificar etapas
+                const etapasAtuais = cardExistente.querySelector('[data-etapas]')?.textContent || '0/5';
+                const novasEtapas = `${coleta.etapas_concluidas}/5`;
+                
+                // Verificar status
+                const statusAtual = cardExistente.querySelector('[data-status]')?.textContent?.trim() || '';
+                const novoStatus = coleta.status;
+                
+                if (percentualAtual !== novoPercentual || etapasAtuais !== novasEtapas || statusAtual !== novoStatus) {
+                    console.log(`📊 Mudança detectada na coleta ${coleta.numero_coleta}:`, {
+                        percentual: { atual: percentualAtual, novo: novoPercentual },
+                        etapas: { atual: etapasAtuais, novo: novasEtapas },
+                        status: { atual: statusAtual, novo: novoStatus }
+                    });
+                    temMudancas = true;
+                    break;
+                }
+            } else {
+                // Nova coleta adicionada
+                temMudancas = true;
+                break;
+            }
+        }
+    }
+    
+    // Verificar mudanças nas coletas concluídas
+    if (!temMudancas && novosDados.coletasConcluidas) {
+        const coletasConcluidas = novosDados.coletasConcluidas.length;
+        const coletasConcluidasAtuais = document.querySelectorAll('#aba-concluidas [data-coleta-id]').length;
+        
+        if (coletasConcluidas !== coletasConcluidasAtuais) {
+            console.log(`📋 Mudança no número de coletas concluídas: ${coletasConcluidasAtuais} → ${coletasConcluidas}`);
+            temMudancas = true;
+        }
+    }
+    
+    return temMudancas;
 }
 
 // Função para atualizar a interface com novos dados
@@ -1077,17 +1139,30 @@ function atualizarGridColetas(tipo, coletas) {
 
 // Atualizar card existente com novos dados
 function atualizarCardColeta(card, coleta) {
+    console.log(`🔄 Atualizando card da coleta ${coleta.numero_coleta}`, coleta);
+    
     // Atualizar barra de progresso
     const barraProgresso = card.querySelector('.bg-gradient-to-r');
     if (barraProgresso) {
         barraProgresso.style.width = `${coleta.percentual}%`;
-        barraProgresso.style.transition = 'width 0.5s ease-in-out';
+        barraProgresso.style.transition = 'width 0.8s ease-in-out';
     }
     
     // Atualizar percentual
     const percentualElement = card.querySelector('[data-percentual]');
     if (percentualElement) {
+        const percentualAnterior = percentualElement.textContent;
         percentualElement.textContent = `${coleta.percentual}%`;
+        
+        // Destacar mudança se houver
+        if (percentualAnterior !== `${coleta.percentual}%`) {
+            percentualElement.style.background = '#10B981';
+            percentualElement.style.color = 'white';
+            setTimeout(() => {
+                percentualElement.style.background = '';
+                percentualElement.style.color = '';
+            }, 2000);
+        }
     }
     
     // Atualizar etapas concluídas
@@ -1110,19 +1185,31 @@ function atualizarCardColeta(card, coleta) {
         const etapaElement = card.querySelector(`[data-etapa="${etapa}"]`);
         if (etapaElement) {
             const concluida = coleta.progresso[etapa];
-            if (concluida) {
-                etapaElement.className = 'w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-medium transition-colors duration-500';
-                etapaElement.innerHTML = '✓';
+            const estavaConcluida = etapaElement.classList.contains('bg-green-100');
+            
+            if (concluida && !estavaConcluida) {
+                // Nova etapa concluída - animação especial
+                etapaElement.className = 'w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 transition-all duration-500';
+                etapaElement.innerHTML = '<svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
+                
+                // Efeito de pulso
+                etapaElement.style.transform = 'scale(1.2)';
+                setTimeout(() => {
+                    etapaElement.style.transform = 'scale(1)';
+                }, 300);
+            } else if (concluida) {
+                etapaElement.className = 'w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600';
+                etapaElement.innerHTML = '<svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
             } else {
-                etapaElement.className = 'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-medium transition-colors duration-500';
-                etapaElement.textContent = index + 1;
+                etapaElement.className = 'w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-gray-400';
+                etapaElement.innerHTML = '<svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>';
             }
         }
     });
     
-    // Animação de atualização
+    // Animação de atualização sutil
+    card.style.transition = 'all 0.3s ease';
     card.style.transform = 'scale(0.98)';
-    card.style.transition = 'transform 0.2s ease';
     setTimeout(() => {
         card.style.transform = 'scale(1)';
     }, 200);
@@ -1246,6 +1333,59 @@ function forcarAtualizacao() {
     console.log('🔄 Atualização manual solicitada');
     atualizarDadosTempoReal();
 }
+
+// Função de debug para monitorar estado das coletas
+function debugEstadoColetas() {
+    const coletasAtuais = document.querySelectorAll('[data-coleta-id]');
+    console.log('📊 Estado atual das coletas na tela:');
+    coletasAtuais.forEach(card => {
+        const id = card.getAttribute('data-coleta-id');
+        const numero = card.querySelector('h3')?.textContent;
+        const percentual = card.querySelector('[data-percentual]')?.textContent;
+        const etapas = card.querySelector('[data-etapas]')?.textContent;
+        const status = card.querySelector('[data-status]')?.textContent;
+        
+        console.log(`  • ${numero} (ID: ${id}): ${percentual} - ${etapas} etapas - Status: ${status}`);
+    });
+}
+
+// Função para mostrar notificação de atualização
+function mostrarNotificacaoAtualizacao() {
+    // Remover notificação anterior se existir
+    const notificacaoExistente = document.getElementById('notificacao-atualizacao');
+    if (notificacaoExistente) {
+        notificacaoExistente.remove();
+    }
+    
+    // Criar nova notificação
+    const notificacao = document.createElement('div');
+    notificacao.id = 'notificacao-atualizacao';
+    notificacao.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-pulse';
+    notificacao.innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+        </svg>
+        <span class="text-sm font-medium">Coletas atualizadas</span>
+    `;
+    
+    document.body.appendChild(notificacao);
+    
+    // Remover automaticamente após 3 segundos
+    setTimeout(() => {
+        if (notificacao && notificacao.parentNode) {
+            notificacao.style.transition = 'all 0.3s ease';
+            notificacao.style.opacity = '0';
+            notificacao.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                notificacao.remove();
+            }, 300);
+        }
+    }, 3000);
+}
+
+// Adicionar comando global para debug
+window.debugColetas = debugEstadoColetas;
+window.forcarAtualizacao = forcarAtualizacao;
 
 // Adicionar botão de atualização manual (opcional)
 window.addEventListener('load', function() {

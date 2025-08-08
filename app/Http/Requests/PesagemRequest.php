@@ -94,6 +94,7 @@ class PesagemRequest extends FormRequest
             ],
             'local_pesagem' => 'nullable|string|max:255',
             'observacoes' => 'nullable|string|max:1000',
+            'status' => 'nullable|in:rascunho,concluida',
         ];
     }
 
@@ -120,6 +121,7 @@ class PesagemRequest extends FormRequest
             'data_pesagem.before_or_equal' => 'A data da pesagem não pode ser futura.',
             'local_pesagem.max' => 'O local deve ter no máximo 255 caracteres.',
             'observacoes.max' => 'As observações devem ter no máximo 1000 caracteres.',
+            'status.in' => 'Status inválido. Deve ser rascunho ou concluída.',
         ];
     }
 
@@ -136,6 +138,7 @@ class PesagemRequest extends FormRequest
             'data_pesagem' => 'data da pesagem',
             'local_pesagem' => 'local da pesagem',
             'observacoes' => 'observações',
+            'status' => 'status',
         ];
     }
 

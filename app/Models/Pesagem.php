@@ -12,6 +12,10 @@ class Pesagem extends Model
 
     protected $table = 'pesagens';
 
+    // Status possíveis para pesagem
+    const STATUS_RASCUNHO = 'rascunho';
+    const STATUS_CONCLUIDA = 'concluida';
+
     protected $fillable = [
         'coleta_id',
         'usuario_id',
@@ -21,7 +25,8 @@ class Pesagem extends Model
         'peso_unitario',
         'data_pesagem',
         'observacoes',
-        'local_pesagem'
+        'local_pesagem',
+        'status'
     ];
 
     protected $casts = [
@@ -100,6 +105,22 @@ class Pesagem extends Model
     }
 
     /**
+     * Scope para pesagens em rascunho
+     */
+    public function scopeRascunho($query)
+    {
+        return $query->where('status', self::STATUS_RASCUNHO);
+    }
+
+    /**
+     * Scope para pesagens concluídas
+     */
+    public function scopeConcluidas($query)
+    {
+        return $query->where('status', self::STATUS_CONCLUIDA);
+    }
+
+    /**
      * Scope para pesagens não conferidas
      */
     public function scopeNaoConferidas($query)
@@ -172,8 +193,40 @@ class Pesagem extends Model
      */
     public function podeSerEditada()
     {
-        // Pesagem sempre pode ser editada
+        // Pesagem sempre pode ser editada, mesmo se concluída
         return true;
+    }
+
+    /**
+     * Verifica se a pesagem está em rascunho
+     */
+    public function isRascunho()
+    {
+        return $this->status === self::STATUS_RASCUNHO;
+    }
+
+    /**
+     * Verifica se a pesagem está concluída
+     */
+    public function isConcluida()
+    {
+        return $this->status === self::STATUS_CONCLUIDA;
+    }
+
+    /**
+     * Conclui a pesagem
+     */
+    public function concluir()
+    {
+        $this->update(['status' => self::STATUS_CONCLUIDA]);
+    }
+
+    /**
+     * Define a pesagem como rascunho
+     */
+    public function definirComoRascunho()
+    {
+        $this->update(['status' => self::STATUS_RASCUNHO]);
     }
 
     /**

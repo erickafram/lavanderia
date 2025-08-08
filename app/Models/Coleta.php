@@ -65,7 +65,15 @@ class Coleta extends Model
     }
 
     /**
-     * Relacionamento com empacotamento
+     * Relacionamento com empacotamentos
+     */
+    public function empacotamentos()
+    {
+        return $this->hasMany(Empacotamento::class);
+    }
+
+    /**
+     * Relacionamento com empacotamento (singular para compatibilidade)
      */
     public function empacotamento()
     {

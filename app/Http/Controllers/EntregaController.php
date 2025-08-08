@@ -22,7 +22,7 @@ class EntregaController extends Controller
         // Empacotamentos prontos para entrega
         $empacotamentosProntos = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->whereHas('status', function($query) {
-                $query->where('nome', 'Pronto para entrega');
+                $query->where('nome', 'Pronto para motorista');
             })
             ->orderBy('data_empacotamento', 'desc')
             ->get();
@@ -110,7 +110,7 @@ class EntregaController extends Controller
             $empacotamento = Empacotamento::findOrFail($request->empacotamento_id);
 
             // Verificar se está pronto para entrega
-            if ($empacotamento->status->nome !== 'Pronto para entrega') {
+            if ($empacotamento->status->nome !== 'Pronto para motorista') {
                 return response()->json([
                     'success' => false,
                     'message' => 'Este empacotamento não está pronto para entrega'

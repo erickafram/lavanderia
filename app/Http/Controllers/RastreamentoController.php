@@ -146,3 +146,4 @@ class RastreamentoController extends Controller
         return $timeline->sortBy('data');
     }
 }
+

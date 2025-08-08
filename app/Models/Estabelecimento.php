@@ -77,15 +77,6 @@ class Estabelecimento extends Model
     }
 
     /**
-     * Accessor para CNPJ formatado
-     */
-    public function getCnpjFormatadoAttribute()
-    {
-        $cnpj = $this->cnpj;
-        return substr($cnpj, 0, 2) . '.' . substr($cnpj, 2, 3) . '.' . substr($cnpj, 5, 3) . '/' . substr($cnpj, 8, 4) . '-' . substr($cnpj, 12, 2);
-    }
-
-    /**
      * Mutator para CEP (remove formatação)
      */
     public function setCepAttribute($value)
@@ -100,5 +91,21 @@ class Estabelecimento extends Model
     {
         $cep = $this->cep;
         return substr($cep, 0, 5) . '-' . substr($cep, 5, 3);
+    }
+
+    /**
+     * Accessor para CNPJ formatado
+     */
+    public function getCnpjFormatadoAttribute()
+    {
+        $cnpj = $this->cnpj;
+        if (strlen($cnpj) !== 14) {
+            return $cnpj;
+        }
+        return substr($cnpj, 0, 2) . '.' . 
+               substr($cnpj, 2, 3) . '.' . 
+               substr($cnpj, 5, 3) . '/' . 
+               substr($cnpj, 8, 4) . '-' . 
+               substr($cnpj, 12, 2);
     }
 }

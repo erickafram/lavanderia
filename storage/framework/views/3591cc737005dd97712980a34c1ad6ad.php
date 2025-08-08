@@ -233,7 +233,7 @@ unset($__errorArgs, $__bag); ?>
                         <ul class="text-xs text-blue-800 space-y-1">
                             <li>• Apenas coletas concluídas podem ser empacotadas</li>
                             <li>• Um código QR será gerado automaticamente</li>
-                            <li>• Status inicial: "Pronto para entrega"</li>
+                            <li>• Status inicial: "Pronto para motorista"</li>
                             <li>• Motorista fará a saída lendo o QR Code</li>
                             <li>• Cliente assinará o recebimento na entrega</li>
                         </ul>
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
             `;
 
-            // Linha inicial para adicionar peças
+            // Linha inicial para adicionar Itens
             html = criarLinhaNovaPeca(0);
         }
 

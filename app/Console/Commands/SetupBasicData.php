@@ -80,8 +80,8 @@ class SetupBasicData extends Command
                 'ativo' => true
             ],
             [
-                'nome' => 'Pronto para Entrega',
-                'descricao' => 'Empacotamento concluído, pronto para entrega',
+                'nome' => 'Pronto para motorista',
+                'descricao' => 'Empacotamento concluído, aguardando confirmação do motorista para saída',
                 'tipo' => 'empacotamento',
                 'cor' => '#20c997',
                 'ordem' => 3,

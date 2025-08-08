@@ -257,7 +257,7 @@ class ColetaController extends Controller
             DB::rollback();
             return redirect()->back()
                            ->withInput()
-                           ->with('error', 'Erro ao adicionar peças: ' . $e->getMessage());
+                           ->with('error', 'Erro ao adicionar Itens: ' . $e->getMessage());
         }
     }
 
