@@ -85,25 +85,56 @@ class ColetaController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        // Validações básicas
+        $rules = [
             'estabelecimento_id' => 'required|exists:estabelecimentos,id',
-            'data_agendamento' => 'required|date|after_or_equal:today',
+            'tipo_coleta' => 'required|in:agendada,imediata',
             'observacoes' => 'nullable|string',
             'acompanhante_id' => 'nullable|exists:usuarios,id',
-        ], [
+        ];
+
+        $messages = [
             'estabelecimento_id.required' => 'Selecione um estabelecimento.',
             'estabelecimento_id.exists' => 'Estabelecimento inválido.',
-            'data_agendamento.required' => 'A data de agendamento é obrigatória.',
-            'data_agendamento.date' => 'Data de agendamento inválida.',
-            'data_agendamento.after_or_equal' => 'A data deve ser hoje ou futura.',
+            'tipo_coleta.required' => 'Selecione o tipo de coleta.',
+            'tipo_coleta.in' => 'Tipo de coleta inválido.',
             'acompanhante_id.exists' => 'Motorista selecionado inválido.',
-        ]);
+        ];
+
+        // Adicionar validação de data apenas se for coleta agendada
+        if ($request->tipo_coleta === 'agendada') {
+            $rules['data_agendamento'] = 'required|date|after_or_equal:today';
+            $messages['data_agendamento.required'] = 'A data de agendamento é obrigatória para coletas agendadas.';
+            $messages['data_agendamento.date'] = 'Data de agendamento inválida.';
+            $messages['data_agendamento.after_or_equal'] = 'A data deve ser hoje ou futura.';
+        }
+
+        $request->validate($rules, $messages);
 
         try {
-            // Buscar status inicial
-            $statusInicial = Status::where('tipo', 'coleta')
-                                  ->where('nome', 'Agendada')
-                                  ->first();
+            // Determinar status inicial baseado no tipo de coleta
+            if ($request->tipo_coleta === 'agendada') {
+                $statusInicial = Status::where('tipo', 'coleta')
+                                      ->where('nome', 'Agendada')
+                                      ->first();
+                $dataAgendamento = $request->data_agendamento;
+                $mensagemSucesso = 'Coleta agendada com sucesso! Você pode visualizar e gerenciar suas coletas na lista.';
+            } else {
+                // Para coleta imediata, usar status "Disponível para Coleta" ou similar
+                $statusInicial = Status::where('tipo', 'coleta')
+                                      ->where('nome', 'Coletado')
+                                      ->first();
+                
+                // Se não encontrar status "Coletado", usar "Agendada" como fallback
+                if (!$statusInicial) {
+                    $statusInicial = Status::where('tipo', 'coleta')
+                                          ->where('nome', 'Agendada')
+                                          ->first();
+                }
+                
+                $dataAgendamento = now(); // Data atual para coletas imediatas
+                $mensagemSucesso = 'Coleta criada com sucesso! Esta coleta está disponível para execução imediata.';
+            }
 
             // Buscar nome do motorista se selecionado
             $nomeAcompanhante = null;
@@ -117,13 +148,13 @@ class ColetaController extends Controller
                 'estabelecimento_id' => $request->estabelecimento_id,
                 'usuario_id' => Auth::id(),
                 'status_id' => $statusInicial->id,
-                'data_agendamento' => $request->data_agendamento,
+                'data_agendamento' => $dataAgendamento,
                 'observacoes' => $request->observacoes,
                 'acompanhante' => $nomeAcompanhante,
             ]);
 
             return redirect()->route('coletas.index')
-                           ->with('success', 'Coleta agendada com sucesso! Você pode visualizar e gerenciar suas coletas na lista.');
+                           ->with('success', $mensagemSucesso);
 
         } catch (\Exception $e) {
             return redirect()->back()
@@ -276,13 +307,34 @@ class ColetaController extends Controller
     /**
      * Concluir uma coleta
      */
-    public function concluir($id)
+    public function concluir(Request $request, $id)
     {
-        $coleta = Coleta::findOrFail($id);
+        $coleta = Coleta::with('pecas')->findOrFail($id);
+
+        // Verificar se a coleta pode ser concluída
+        if (!$coleta->podeSerCancelada() || $coleta->status->nome === 'Concluída') {
+            return redirect()->back()
+                           ->with('error', 'Esta coleta não pode ser concluída.');
+        }
+
+        // Verificar se tem peças cadastradas
+        if ($coleta->pecas->count() === 0) {
+            // Se não tem peças e não foi forçada a conclusão, retornar erro
+            if (!$request->has('forcar_conclusao')) {
+                return redirect()->back()
+                               ->with('warning', 'Esta coleta não possui peças cadastradas. Para concluir mesmo assim, confirme a ação.')
+                               ->with('show_force_completion', true);
+            }
+        }
 
         $statusConcluida = Status::where('tipo', 'coleta')
                                 ->where('nome', 'Concluída')
                                 ->first();
+
+        if (!$statusConcluida) {
+            return redirect()->back()
+                           ->with('error', 'Status "Concluída" não encontrado no sistema.');
+        }
 
         $coleta->update([
             'status_id' => $statusConcluida->id,
@@ -290,8 +342,12 @@ class ColetaController extends Controller
             'data_conclusao' => now(),
         ]);
 
+        $mensagem = $coleta->pecas->count() === 0 
+            ? 'Coleta concluída com sucesso (sem peças cadastradas).'
+            : 'Coleta concluída com sucesso.';
+
         return redirect()->route('coletas.show', $coleta->id)
-                       ->with('success', 'Coleta concluída com sucesso.');
+                       ->with('success', $mensagem);
     }
 
     /**
@@ -356,5 +412,64 @@ class ColetaController extends Controller
     {
         $tipos = Tipo::ativos()->orderBy('nome')->get();
         return response()->json($tipos);
+    }
+
+    /**
+     * API: Buscar dados atualizados das coletas
+     */
+    public function getColetasAtualizadas(Request $request)
+    {
+        $query = Coleta::with(['estabelecimento', 'usuario', 'status'])
+                      ->orderBy('created_at', 'desc');
+
+        // Aplicar os mesmos filtros da index
+        if ($request->filled('estabelecimento_id')) {
+            $query->where('estabelecimento_id', $request->estabelecimento_id);
+        }
+
+        if ($request->filled('status_id')) {
+            $query->where('status_id', $request->status_id);
+        }
+
+        if ($request->filled('data_inicio')) {
+            $query->whereDate('data_agendamento', '>=', $request->data_inicio);
+        }
+
+        if ($request->filled('data_fim')) {
+            $query->whereDate('data_agendamento', '<=', $request->data_fim);
+        }
+
+        if ($request->filled('busca')) {
+            $busca = $request->busca;
+            $query->where(function($q) use ($busca) {
+                $q->where('numero_coleta', 'like', "%{$busca}%")
+                  ->orWhereHas('estabelecimento', function($eq) use ($busca) {
+                      $eq->where('razao_social', 'like', "%{$busca}%")
+                         ->orWhere('nome_fantasia', 'like', "%{$busca}%");
+                  });
+            });
+        }
+
+        $coletas = $query->paginate(15);
+
+        // Calcular estatísticas
+        $stats = [
+            'total_coletas' => Coleta::count(),
+            'em_andamento' => Coleta::whereHas('status', function($q) {
+                $q->where('nome', 'Em andamento');
+            })->count(),
+            'concluidas' => Coleta::whereHas('status', function($q) {
+                $q->where('nome', 'Concluída');
+            })->count(),
+            'mes_atual' => Coleta::whereMonth('created_at', now()->month)
+                                ->whereYear('created_at', now()->year)
+                                ->count()
+        ];
+
+        return response()->json([
+            'coletas' => $coletas,
+            'stats' => $stats,
+            'timestamp' => now()->format('d/m/Y H:i:s')
+        ]);
     }
 }

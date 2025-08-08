@@ -34,6 +34,9 @@ Route::get('/', function () {
 Route::get('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteController::class, 'index'])->name('confirmacao-cliente.index');
 Route::post('/confirmar-recebimento', [App\Http\Controllers\ConfirmacaoClienteController::class, 'confirmar'])->name('confirmacao-cliente.confirmar');
 
+// Rota pública para rastreamento
+Route::get('/rastreamento/{codigo}', [App\Http\Controllers\RastreamentoController::class, 'index'])->name('rastreamento.index');
+
 // Rotas de autenticação
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -44,6 +47,9 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
     
     // Dashboard/Painel
     Route::get('/painel', [PainelController::class, 'index'])->name('painel');
+    
+    // Acompanhar Coletas - Página dedicada
+    Route::get('/acompanhar-coletas', [PainelController::class, 'acompanharColetas'])->name('acompanhar-coletas');
     Route::post('/acompanhar-coleta', [PainelController::class, 'acompanharColeta'])->name('acompanhar-coleta');
     
     // Estabelecimentos
@@ -75,6 +81,7 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::get('/{id}/pecas', [ColetaController::class, 'getPecasColeta'])->name('pecas');
         Route::get('/{id}/detalhes', [ColetaController::class, 'getDetalhesColeta'])->name('detalhes');
         Route::get('/tipos/lista', [ColetaController::class, 'getTipos'])->name('tipos');
+        Route::get('/dados-atualizados', [ColetaController::class, 'getColetasAtualizadas'])->name('dados-atualizados');
     });
     
     // Pesagem
@@ -101,6 +108,9 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::get('/novo', [EmpacotamentoController::class, 'create'])->middleware(['nivel.acesso:empacotamento.criar'])->name('create');
         Route::post('/', [EmpacotamentoController::class, 'store'])->middleware(['nivel.acesso:empacotamento.criar'])->name('store');
         Route::get('/{id}', [EmpacotamentoController::class, 'show'])->name('show');
+        Route::get('/{id}/editar', [EmpacotamentoController::class, 'edit'])->middleware(['nivel.acesso:empacotamento.editar'])->name('edit');
+        Route::put('/{id}', [EmpacotamentoController::class, 'update'])->middleware(['nivel.acesso:empacotamento.editar'])->name('update');
+        Route::put('/{id}/concluir', [EmpacotamentoController::class, 'concluir'])->middleware(['nivel.acesso:empacotamento.editar'])->name('concluir');
         Route::put('/{id}/confirmar-entrega', [EmpacotamentoController::class, 'confirmarEntrega'])->middleware(['nivel.acesso:empacotamento.confirmar_entrega'])->name('confirmar-entrega');
         Route::get('/{id}/reimprimir-qr', [EmpacotamentoController::class, 'reimprimirQR'])->name('reimprimir-qr');
         Route::get('/{id}/etiqueta', [EmpacotamentoController::class, 'gerarEtiqueta'])->name('etiqueta');

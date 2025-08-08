@@ -3,6 +3,19 @@
 @section('title', 'Coletas - Sistema de Gestão de Lavanderia')
 
 @section('content')
+<!-- Indicador de Atualização Automática -->
+<div id="auto-update-status" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between text-sm">
+    <div class="flex items-center">
+        <div class="w-2 h-2 bg-blue-500 rounded-full mr-3 animate-pulse"></div>
+        <span class="text-blue-800">
+            <strong>Atualização automática ativa:</strong> Dados atualizados a cada 30 segundos
+        </span>
+    </div>
+    <div class="text-blue-600 text-xs">
+        Última atualização: <span id="last-update-time">{{ now()->format('H:i:s') }}</span>
+    </div>
+</div>
+
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
     <div>
@@ -261,3 +274,166 @@
 </div>
 @endif
 @endsection
+
+@push('scripts')
+<script>
+let updateInterval;
+let isUpdating = false;
+
+// Função para atualizar os dados das coletas
+function atualizarColetas() {
+    if (isUpdating) return;
+    
+    isUpdating = true;
+    
+    // Mostrar indicador de atualização
+    mostrarIndicadorAtualizacao();
+    
+    // Capturar filtros ativos
+    const filtros = new URLSearchParams();
+    const formData = new FormData(document.querySelector('form'));
+    
+    for (let [key, value] of formData.entries()) {
+        if (value) {
+            filtros.append(key, value);
+        }
+    }
+    
+    // Fazer requisição AJAX
+    fetch(`{{ route('coletas.dados-atualizados') }}?${filtros.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            // Atualizar apenas se houver mudanças
+            atualizarInterfaceColetas(data);
+            ocultarIndicadorAtualizacao();
+        })
+        .catch(error => {
+            console.error('Erro ao atualizar coletas:', error);
+            ocultarIndicadorAtualizacao();
+        })
+        .finally(() => {
+            isUpdating = false;
+        });
+}
+
+// Função para mostrar indicador de atualização
+function mostrarIndicadorAtualizacao() {
+    let indicator = document.getElementById('update-indicator');
+    if (!indicator) {
+        // Criar indicador se não existir
+        indicator = document.createElement('div');
+        indicator.id = 'update-indicator';
+        indicator.className = 'fixed top-4 right-4 z-50 bg-blue-500 text-white px-3 py-2 rounded-lg shadow-lg text-sm';
+        indicator.innerHTML = `
+            <div class="flex items-center">
+                <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Atualizando...
+            </div>
+        `;
+        document.body.appendChild(indicator);
+    }
+    indicator.style.display = 'block';
+}
+
+// Função para ocultar indicador de atualização
+function ocultarIndicadorAtualizacao() {
+    const indicator = document.getElementById('update-indicator');
+    if (indicator) {
+        setTimeout(() => {
+            indicator.style.display = 'none';
+        }, 500);
+    }
+}
+
+// Função para atualizar a interface das coletas
+function atualizarInterfaceColetas(data) {
+    // Atualizar timestamp da última atualização
+    const lastUpdateElement = document.getElementById('last-update-time');
+    if (lastUpdateElement) {
+        const now = new Date();
+        lastUpdateElement.textContent = now.toLocaleTimeString('pt-BR');
+    }
+    
+    // Esta é uma implementação simplificada
+    // Em uma implementação mais robusta, você compararia os dados e atualizaria apenas o que mudou
+    
+    // Por enquanto, vamos mostrar um toast de notificação se houver mudanças
+    const currentColetasCount = document.querySelectorAll('.bg-white.rounded-xl.shadow-sm.border.border-gray-100.p-6.hover\\:shadow-md').length;
+    const newColetasCount = data.coletas.data ? data.coletas.data.length : 0;
+    
+    if (currentColetasCount !== newColetasCount) {
+        mostrarNotificacao('Dados atualizados! Novas alterações detectadas.', 'success');
+        // Recarregar a página para mostrar as mudanças
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    }
+}
+
+// Função para mostrar notificações
+function mostrarNotificacao(mensagem, tipo = 'info') {
+    const cores = {
+        'success': 'bg-green-500',
+        'warning': 'bg-yellow-500',
+        'error': 'bg-red-500',
+        'info': 'bg-blue-500'
+    };
+    
+    const notificacao = document.createElement('div');
+    notificacao.className = `fixed top-16 right-4 z-50 ${cores[tipo]} text-white px-4 py-3 rounded-lg shadow-lg text-sm max-w-sm`;
+    notificacao.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${mensagem}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white hover:text-gray-200">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(notificacao);
+    
+    // Remover automaticamente após 5 segundos
+    setTimeout(() => {
+        if (notificacao.parentElement) {
+            notificacao.remove();
+        }
+    }, 5000);
+}
+
+// Iniciar atualização automática quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Atualizar a cada 30 segundos
+    updateInterval = setInterval(atualizarColetas, 30000);
+    
+    // Parar atualização quando o usuário sair da página
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(updateInterval);
+        } else {
+            // Reiniciar quando voltar à página
+            updateInterval = setInterval(atualizarColetas, 30000);
+            // Atualizar imediatamente quando voltar
+            atualizarColetas();
+        }
+    });
+    
+    // Parar atualização quando houver interação com formulários
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            clearInterval(updateInterval);
+        });
+    }
+});
+
+// Limpar interval quando sair da página
+window.addEventListener('beforeunload', function() {
+    clearInterval(updateInterval);
+});
+</script>
+@endpush

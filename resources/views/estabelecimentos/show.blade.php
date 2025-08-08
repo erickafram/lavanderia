@@ -171,7 +171,7 @@
                 </div>
 
                 <!-- Emails -->
-                @if($estabelecimento->emails && count($estabelecimento->emails) > 0)
+                @if($estabelecimento->emails && is_array($estabelecimento->emails) && count($estabelecimento->emails) > 0)
                 <div class="bg-green-50 rounded-lg p-4 mb-4">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-medium text-gray-700">
@@ -197,7 +197,7 @@
                 @endif
 
                 <!-- Contatos Responsáveis -->
-                @if($estabelecimento->contatos_responsaveis && count($estabelecimento->contatos_responsaveis) > 0)
+                @if($estabelecimento->contatos_responsaveis && is_array($estabelecimento->contatos_responsaveis) && count($estabelecimento->contatos_responsaveis) > 0)
                 <div class="bg-purple-50 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-sm font-medium text-gray-700">

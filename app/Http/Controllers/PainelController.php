@@ -13,6 +13,172 @@ use Carbon\Carbon;
 class PainelController extends Controller
 {
     /**
+     * Exibe a página dedicada para acompanhar coletas
+     */
+    public function acompanharColetas(Request $request)
+    {
+        $mesAtual = Carbon::now()->startOfMonth();
+        
+        // Debug: Ver todas as coletas do mês primeiro
+        $todasColetasDoMes = Coleta::with(['estabelecimento', 'status', 'pesagens', 'empacotamento.status', 'empacotamento.entrega.status'])
+                                  ->where('created_at', '>=', $mesAtual)
+                                  ->orderBy('created_at', 'desc')
+                                  ->get();
+        
+        // Coletas do mês em andamento - versão mais simples e robusta
+        $coletasAndamento = collect();
+        foreach($todasColetasDoMes as $coleta) {
+            $isConcluida = false;
+            
+            // Verificar se é considerada concluída
+            if ($coleta->empacotamento && $coleta->empacotamento->entrega && $coleta->empacotamento->entrega->status) {
+                $statusEntrega = $coleta->empacotamento->entrega->status->nome;
+                if (in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente'])) {
+                    $isConcluida = true;
+                }
+            } elseif ($coleta->empacotamento && $coleta->empacotamento->status) {
+                $statusEmp = $coleta->empacotamento->status->nome;
+                // Considerar concluída apenas quando realmente entregue
+                if ($statusEmp === 'Entregue') {
+                    $isConcluida = true;
+                }
+            }
+            
+            // Se não é concluída, adicionar às em andamento
+            if (!$isConcluida) {
+                $coletasAndamento->push($coleta);
+            }
+        }
+        
+        // Coletas do mês concluídas - versão mais simples e robusta
+        $coletasConcluidas = collect();
+        foreach($todasColetasDoMes as $coleta) {
+            $isConcluida = false;
+            
+            // Verificar se é considerada concluída
+            if ($coleta->empacotamento && $coleta->empacotamento->entrega && $coleta->empacotamento->entrega->status) {
+                $statusEntrega = $coleta->empacotamento->entrega->status->nome;
+                if (in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente'])) {
+                    $isConcluida = true;
+                }
+            } elseif ($coleta->empacotamento && $coleta->empacotamento->status) {
+                $statusEmp = $coleta->empacotamento->status->nome;
+                // Considerar concluída apenas quando realmente entregue
+                if ($statusEmp === 'Entregue') {
+                    $isConcluida = true;
+                }
+            }
+            
+            // Se é concluída, adicionar às concluídas
+            if ($isConcluida) {
+                $coletasConcluidas->push($coleta);
+            }
+        }
+        
+        // Estatísticas rápidas usando os dados já processados
+        $totalColetas = Coleta::count();
+        $totalAndamento = $coletasAndamento->count();
+        $totalConcluidas = $coletasConcluidas->count();
+        
+        // Se for requisição AJAX, retornar JSON para atualização em tempo real
+        if ($request->ajax() || $request->has('ajax')) {
+            return response()->json([
+                'success' => true,
+                'timestamp' => now()->format('H:i:s'),
+                'totalColetas' => $totalColetas,
+                'totalAndamento' => $totalAndamento,
+                'totalConcluidas' => $totalConcluidas,
+                'coletasAndamento' => $coletasAndamento->map(function($coleta) {
+                    // Calcular progresso para cada coleta
+                    $statusEmpacotamento = $coleta->empacotamento?->status->nome;
+                    $entrega = $coleta->empacotamento?->entrega;
+                    $statusEntrega = $entrega?->status->nome;
+                    
+                    $entregaConcluida = false;
+                    if ($statusEmpacotamento && in_array($statusEmpacotamento, ['Em trânsito', 'Entregue'])) {
+                        $entregaConcluida = true;
+                    } elseif ($entrega && in_array($statusEntrega, ['Em trânsito', 'Entregue', 'Confirmado pelo Cliente'])) {
+                        $entregaConcluida = true;
+                    }
+                    
+                    $confirmacaoConcluida = $entrega && in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente']);
+
+                    $progresso = [
+                        'coleta' => true,
+                        'pesagem' => $coleta->pesagens->count() > 0,
+                        'empacotamento' => $coleta->empacotamento !== null,
+                        'entrega' => $entregaConcluida,
+                        'confirmacao_cliente' => $confirmacaoConcluida
+                    ];
+                    $etapasConcluidas = collect($progresso)->filter()->count();
+                    $percentual = round(($etapasConcluidas / 5) * 100);
+                    
+                    return [
+                        'id' => $coleta->id,
+                        'numero_coleta' => $coleta->numero_coleta,
+                        'status' => $coleta->status->nome,
+                        'status_cor' => $coleta->status->cor,
+                        'estabelecimento' => $coleta->estabelecimento->razao_social,
+                        'created_at' => $coleta->created_at->format('d/m/Y H:i'),
+                        'empacotamento_status' => $statusEmpacotamento,
+                        'entrega_status' => $statusEntrega,
+                        'progresso' => $progresso,
+                        'etapas_concluidas' => $etapasConcluidas,
+                        'percentual' => $percentual,
+                    ];
+                }),
+                'coletasConcluidas' => $coletasConcluidas->map(function($coleta) {
+                    // Calcular progresso para cada coleta
+                    $statusEmpacotamento = $coleta->empacotamento?->status->nome;
+                    $entrega = $coleta->empacotamento?->entrega;
+                    $statusEntrega = $entrega?->status->nome;
+                    
+                    $entregaConcluida = false;
+                    if ($statusEmpacotamento && in_array($statusEmpacotamento, ['Em trânsito', 'Entregue'])) {
+                        $entregaConcluida = true;
+                    } elseif ($entrega && in_array($statusEntrega, ['Em trânsito', 'Entregue', 'Confirmado pelo Cliente'])) {
+                        $entregaConcluida = true;
+                    }
+                    
+                    $confirmacaoConcluida = $entrega && in_array($statusEntrega, ['Entregue', 'Confirmado pelo Cliente']);
+
+                    $progresso = [
+                        'coleta' => true,
+                        'pesagem' => $coleta->pesagens->count() > 0,
+                        'empacotamento' => $coleta->empacotamento !== null,
+                        'entrega' => $entregaConcluida,
+                        'confirmacao_cliente' => $confirmacaoConcluida
+                    ];
+                    $etapasConcluidas = collect($progresso)->filter()->count();
+                    $percentual = round(($etapasConcluidas / 5) * 100);
+                    
+                    return [
+                        'id' => $coleta->id,
+                        'numero_coleta' => $coleta->numero_coleta,
+                        'status' => $coleta->status->nome,
+                        'status_cor' => $coleta->status->cor,
+                        'estabelecimento' => $coleta->estabelecimento->razao_social,
+                        'created_at' => $coleta->created_at->format('d/m/Y H:i'),
+                        'empacotamento_status' => $statusEmpacotamento,
+                        'entrega_status' => $statusEntrega,
+                        'progresso' => $progresso,
+                        'etapas_concluidas' => $etapasConcluidas,
+                        'percentual' => $percentual,
+                    ];
+                }),
+            ]);
+        }
+        
+        return view('acompanhar-coletas.index', compact(
+            'coletasAndamento',
+            'coletasConcluidas',
+            'totalColetas',
+            'totalAndamento', 
+            'totalConcluidas'
+        ));
+    }
+
+    /**
      * Exibe o dashboard principal
      */
     public function index()

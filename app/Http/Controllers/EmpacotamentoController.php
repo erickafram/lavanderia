@@ -284,4 +284,111 @@ class EmpacotamentoController extends Controller
 
         return view('empacotamento.etiqueta', compact('empacotamento'));
     }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        $empacotamento = Empacotamento::with([
+            'coleta.estabelecimento',
+            'coleta.pecas.tipo',
+            'usuarioEmpacotamento',
+            'status'
+        ])->findOrFail($id);
+
+        // Verificar se pode ser editado
+        if ($empacotamento->status->nome === 'Entregue') {
+            return redirect()->route('empacotamento.show', $empacotamento->id)
+                           ->with('error', 'Empacotamentos entregues não podem ser editados.');
+        }
+
+        $tipos = Tipo::ativos()->orderBy('nome')->get();
+
+        return view('empacotamento.edit', compact('empacotamento', 'tipos'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $empacotamento = Empacotamento::findOrFail($id);
+
+        // Verificar se pode ser editado
+        if ($empacotamento->status->nome === 'Entregue') {
+            return redirect()->back()
+                           ->with('error', 'Empacotamentos entregues não podem ser editados.');
+        }
+
+        $request->validate([
+            'data_empacotamento' => 'required|date',
+            'observacoes_empacotamento' => 'nullable|string|max:1000'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Atualizar empacotamento
+            $empacotamento->update([
+                'data_empacotamento' => $request->data_empacotamento,
+                'observacoes_empacotamento' => $request->observacoes_empacotamento
+            ]);
+
+            // Processar peças atualizadas
+            $this->processarPecasEmpacotamento($request, $empacotamento);
+
+            DB::commit();
+
+            return redirect()->route('empacotamento.show', $empacotamento->id)
+                           ->with('success', 'Empacotamento atualizado com sucesso!');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Erro ao atualizar empacotamento: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Concluir empacotamento
+     */
+    public function concluir($id)
+    {
+        $empacotamento = Empacotamento::findOrFail($id);
+
+        // Verificar se pode ser concluído
+        if ($empacotamento->status->nome !== 'Pronto para entrega') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Apenas empacotamentos "Pronto para entrega" podem ser concluídos.'
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Buscar status "Em trânsito" ou similar
+            $statusConcluido = Status::where('nome', 'Em trânsito')->first();
+            if (!$statusConcluido) {
+                $statusConcluido = Status::where('nome', 'Pronto para entrega')->first();
+            }
+
+            // Atualizar status
+            $empacotamento->update([
+                'status_id' => $statusConcluido->id
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Empacotamento concluído com sucesso!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao concluir empacotamento: ' . $e->getMessage()
+            ]);
+        }
+    }
 }

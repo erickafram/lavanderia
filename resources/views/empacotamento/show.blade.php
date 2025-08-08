@@ -15,7 +15,27 @@
             </h1>
             <p class="text-sm text-gray-600">Detalhes do empacotamento e rastreamento</p>
         </div>
-        <div class="flex gap-2 mt-3 sm:mt-0">
+        <div class="flex flex-wrap gap-2 mt-3 sm:mt-0">
+            @if($empacotamento->status->nome !== 'Entregue')
+                @if($empacotamento->status->nome === 'Pronto para entrega')
+                    <button onclick="concluirEmpacotamento()" 
+                            class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Concluir Empacotamento
+                    </button>
+                @endif
+                
+                <a href="{{ route('empacotamento.edit', $empacotamento->id) }}"
+                   class="inline-flex items-center px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Editar
+                </a>
+            @endif
+
             <a href="{{ route('empacotamento.etiqueta', $empacotamento->id) }}"
                target="_blank"
                class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
@@ -24,6 +44,7 @@
                 </svg>
                 Gerar Etiqueta
             </a>
+
             <a href="{{ route('empacotamento.reimprimir-qr', $empacotamento->id) }}"
                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,6 +52,7 @@
                 </svg>
                 Reimprimir QR
             </a>
+
             <a href="{{ route('empacotamento.index') }}"
                class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,7 +238,7 @@
                         <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h4"></path>
                         </svg>
-                        Código QR
+                        Código QR para Entrega
                     </h3>
                 </div>
                 <div class="p-6 text-center">
@@ -226,13 +248,76 @@
                     <div class="text-lg font-mono font-bold text-gray-900 mb-2">
                         {{ $empacotamento->codigo_qr }}
                     </div>
-                    <div class="text-sm text-gray-600 mb-4">
-                        Escaneie este código para realizar a entrega
+                    
+                    <!-- Explicação da finalidade -->
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4 text-left">
+                        <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Como usar este QR Code:
+                        </h4>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">🚛</span>
+                                <span><strong>Motorista:</strong> Escaneie para confirmar saída e entrega</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">🏨</span>
+                                <span><strong>Cliente:</strong> Use para rastrear e confirmar o recebimento</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-blue-600 mr-2">📱</span>
+                                <span><strong>Rastreamento:</strong> Acesso rápido aos detalhes da entrega</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="space-y-3">
+                        @if($empacotamento->status->nome === 'Pronto para entrega')
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                <p class="text-yellow-800 text-sm font-medium mb-2">
+                                    ⏳ Aguardando saída para entrega
+                                </p>
+                                <p class="text-yellow-700 text-xs">
+                                    O motorista precisa confirmar a saída usando este QR Code
+                                </p>
+                            </div>
+                        @elseif($empacotamento->status->nome === 'Em trânsito')
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <p class="text-blue-800 text-sm font-medium mb-2">
+                                    🚛 Em trânsito para entrega
+                                </p>
+                                <p class="text-blue-700 text-xs">
+                                    Use o QR Code para confirmar a entrega no destino
+                                </p>
+                            </div>
+                        @elseif($empacotamento->status->nome === 'Entregue')
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                                <p class="text-green-800 text-sm font-medium mb-2">
+                                    ✅ Entrega concluída
+                                </p>
+                                <p class="text-green-700 text-xs">
+                                    QR Code pode ser usado para consultar detalhes da entrega
+                                </p>
+                            </div>
+                        @endif
+
+                        <!-- Link direto para rastreamento -->
+                        <a href="{{ url('/rastreamento/' . $empacotamento->codigo_qr) }}" 
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                            Abrir Rastreamento
+                        </a>
                     </div>
 
                     <!-- Status Atual -->
-                    <div class="border-t pt-4">
-                        <span class="text-sm font-medium text-gray-700">Status:</span>
+                    <div class="border-t pt-4 mt-4">
+                        <span class="text-sm font-medium text-gray-700">Status Atual:</span>
                         <div class="mt-2">
                             <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium"
                                   style="background-color: {{ $empacotamento->status->cor }}20; color: {{ $empacotamento->status->cor }};">
@@ -368,11 +453,41 @@ function fecharModalEntrega() {
 }
 
 // Fechar modal ao clicar fora
-document.getElementById('modalEntrega').addEventListener('click', function(e) {
-    if (e.target === this) {
-        fecharModalEntrega();
+const modalEntrega = document.getElementById('modalEntrega');
+if (modalEntrega) {
+    modalEntrega.addEventListener('click', function(e) {
+        if (e.target === this) {
+            fecharModalEntrega();
+        }
+    });
+}
+
+// Função para concluir empacotamento
+function concluirEmpacotamento() {
+    if (confirm('Tem certeza que deseja concluir este empacotamento? Ele ficará pronto para entrega.')) {
+        // Implementar AJAX para concluir empacotamento
+        fetch('{{ route("empacotamento.concluir", $empacotamento->id) }}', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Erro: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao concluir empacotamento');
+        });
     }
-});
+}
 </script>
 @endpush
 @endsection

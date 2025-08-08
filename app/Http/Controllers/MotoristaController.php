@@ -36,11 +36,16 @@ class MotoristaController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Buscar empacotamentos em trânsito
+        // Buscar empacotamentos em trânsito (pode estar no empacotamento OU na entrega)
         $empacotamentosTransito = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->whereHas('coleta')
-            ->whereHas('entrega', function($query) use ($statusTransito) {
-                $query->where('status_id', $statusTransito?->id);
+            ->where(function($query) use ($statusTransito) {
+                // Empacotamento com status "Em Trânsito"
+                $query->where('status_id', $statusTransito?->id)
+                      // OU tem entrega com status "Em Trânsito"
+                      ->orWhereHas('entrega', function($subQuery) use ($statusTransito) {
+                          $subQuery->where('status_id', $statusTransito?->id);
+                      });
             })
             ->orderBy('created_at', 'desc')
             ->get();
