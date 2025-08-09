@@ -48,6 +48,19 @@
                     <p class="text-sm text-gray-600">Digite seu CNPJ ou número da coleta</p>
                 </div>
 
+                <!-- Mensagens de erro -->
+                @if(session('error'))
+                    <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 <div class="space-y-2">
                     <label for="busca" class="block text-sm font-medium text-gray-700 mb-2">
                         CNPJ ou Número da Coleta

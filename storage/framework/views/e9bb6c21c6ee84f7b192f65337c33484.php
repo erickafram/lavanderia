@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Acompanhe sua Coleta'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -47,6 +45,21 @@
                     <h2 class="text-lg font-bold text-gray-900 mb-2">Consultar Coleta</h2>
                     <p class="text-sm text-gray-600">Digite seu CNPJ ou número da coleta</p>
                 </div>
+
+                <!-- Mensagens de erro -->
+                <?php if(session('error')): ?>
+                    <div class="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                        <?php echo e(session('error')); ?>
+
+                    </div>
+                <?php endif; ?>
+
+                <?php if(session('success')): ?>
+                    <div class="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                        <?php echo e(session('success')); ?>
+
+                    </div>
+                <?php endif; ?>
 
                 <div class="space-y-2">
                     <label for="busca" class="block text-sm font-medium text-gray-700 mb-2">

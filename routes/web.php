@@ -27,12 +27,15 @@ use App\Http\Controllers\AcompanhamentoPublicoController;
 */
 
 // Rota inicial - redireciona para acompanhamento público
-Route::get('/', [AcompanhamentoPublicoController::class, 'index'])->name('acompanhamento.index');
+Route::get('/', [AcompanhamentoPublicoController::class, 'index'])->name('home');
 
 // Rotas públicas para acompanhamento de coletas
-Route::prefix('acompanhamento')->name('acompanhamento.')->group(function () {
+Route::prefix('acompanhamento')->name('acompanhamento.')->middleware('web')->group(function () {
     Route::get('/', [AcompanhamentoPublicoController::class, 'index'])->name('index');
     Route::post('/buscar', [AcompanhamentoPublicoController::class, 'buscar'])->name('buscar');
+    Route::get('/buscar', function () {
+        return redirect()->route('acompanhamento.index')->with('error', 'Use o formulário para fazer a busca.');
+    })->name('buscar.redirect');
     Route::get('/detalhes/{id}', [AcompanhamentoPublicoController::class, 'detalhes'])->name('detalhes');
 });
 
