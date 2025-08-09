@@ -1,50 +1,71 @@
 <?php $__env->startSection('title', 'Acompanhe sua Coleta'); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-    <!-- Hero Section - Compact Design -->
-    <div class="gradient-bg text-white py-12 relative overflow-hidden">
-        <div class="hero-pattern absolute inset-0 opacity-20"></div>
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-            <div class="mb-6">
-                <div class="inline-flex items-center justify-center w-14 h-14 bg-white bg-opacity-20 rounded-xl mb-4">
-                    <span class="text-2xl">🧺</span>
-                </div>
+<div class="min-h-screen bg-gray-50">
+    <!-- Hero Section - Sobre a 212lavanderia -->
+    <div class="bg-gradient-to-br from-blue-50 to-white py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-gray-900">
+                    212<span class="text-blue-600">lavanderia</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto leading-relaxed mb-8">
+                    Cuidamos das suas roupas com a qualidade e atenção que elas merecem
+                </p>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                    Há anos oferecendo serviços de lavanderia profissional com tecnologia avançada, 
+                    processos sustentáveis e acompanhamento em tempo real.
+                </p>
             </div>
-            <h1 class="text-2xl md:text-3xl font-bold mb-4 tracking-tight">
-                Acompanhe sua <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-pink-300">Coleta</span>
-            </h1>
-            <p class="text-sm text-blue-100 max-w-xl mx-auto leading-relaxed mb-6">
-                Rastreamento em tempo real. Digite seu CNPJ ou número da coleta.
-            </p>
-            <div class="flex flex-wrap justify-center gap-2 text-xs">
-                <div class="flex items-center space-x-1 bg-white bg-opacity-20 rounded-full px-3 py-1">
-                    <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                    <span>Tempo Real</span>
+            
+            <!-- Vantagens -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Qualidade Garantida</h3>
+                    <p class="text-gray-600">Tratamento especializado para cada tipo de tecido</p>
                 </div>
-                <div class="flex items-center space-x-1 bg-white bg-opacity-20 rounded-full px-3 py-1">
-                    <div class="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <span>Transparente</span>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Agilidade</h3>
+                    <p class="text-gray-600">Prazos rápidos e pontualidade na entrega</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Transparência</h3>
+                    <p class="text-gray-600">Acompanhe sua coleta em tempo real</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Search Section - Compact Design -->
-    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">
-        <div class="glass-effect rounded-2xl shadow-xl p-6 border">
-            <form method="POST" action="<?php echo e(route('acompanhamento.buscar')); ?>" class="space-y-4">
-                <?php echo csrf_field(); ?>
-                
-                <div class="text-center mb-6">
-                    <div class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl mb-3">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <h2 class="text-lg font-bold text-gray-900 mb-2">Consultar Coleta</h2>
-                    <p class="text-sm text-gray-600">Digite seu CNPJ ou número da coleta</p>
-                </div>
+    <!-- Seção de Consulta - Design Simples -->
+    <div class="bg-white py-16">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Consulte sua Coleta
+                </h2>
+                <p class="text-lg text-gray-600">
+                    Acompanhe o status da sua coleta em tempo real
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <form method="POST" action="<?php echo e(route('acompanhamento.buscar')); ?>" class="space-y-6">
+                    <?php echo csrf_field(); ?>
 
                 <!-- Mensagens de erro -->
                 <?php if(session('error')): ?>
@@ -61,16 +82,16 @@
                     </div>
                 <?php endif; ?>
 
-                <div class="space-y-2">
-                    <label for="busca" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="space-y-3">
+                    <label for="busca" class="block text-sm font-medium text-gray-700">
                         CNPJ ou Número da Coleta
                     </label>
-                    <div class="relative group">
+                    <div class="relative">
                         <input type="text" 
                                id="busca" 
                                name="busca" 
                                value="<?php echo e(old('busca')); ?>"
-                               class="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-gray-50 hover:bg-white group-hover:border-gray-300 <?php $__errorArgs = ['busca'];
+                               class="w-full px-4 py-4 text-base border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 transition-all duration-300 bg-white <?php $__errorArgs = ['busca'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
@@ -80,12 +101,10 @@ endif;
 unset($__errorArgs, $__bag); ?>"
                                placeholder="Ex: 12.345.678/0001-90 ou COL-2024-001"
                                required>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
                         </div>
                     </div>
                     <?php $__errorArgs = ['busca'];
@@ -106,159 +125,128 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <button type="submit" 
-                        class="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 hover:from-blue-700 hover:via-purple-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl">
+                        class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl">
                     <span class="flex items-center justify-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
-                        <span>Buscar Coleta</span>
+                        <span>Consultar Coleta</span>
                     </span>
                 </button>
             </form>
             
             <!-- Quick Tips -->
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <div class="flex flex-wrap justify-center gap-3 text-xs">
-                    <div class="flex items-center space-x-1 text-gray-600">
-                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
-                        <span>Instantâneo</span>
-                    </div>
-                    <div class="flex items-center space-x-1 text-gray-600">
-                        <div class="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                        <span>Tempo Real</span>
-                    </div>
-                    <div class="flex items-center space-x-1 text-gray-600">
-                        <div class="w-1.5 h-1.5 bg-purple-400 rounded-full"></div>
-                        <span>Completo</span>
-                    </div>
-                </div>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+                <p class="text-center text-sm text-gray-500">
+                    ⚡ Consulta instantânea • 🔄 Atualizações em tempo real • 🔒 100% seguro
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Como Funciona - Compact Cards -->
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div class="text-center mb-8">
-            <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">
-                Como <span class="text-gradient">Funciona</span>
+    <!-- Como Funciona - Clean Cards -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50">
+        <div class="text-center mb-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                Como Funciona
             </h2>
-            <p class="text-sm text-gray-600 max-w-xl mx-auto">
-                Processo transparente do início ao fim
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Processo transparente e simples do início ao fim
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="group relative">
-                <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-100">
-                    <div class="absolute -top-3 left-6">
-                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-md">
-                            <span class="text-lg">📋</span>
-                        </div>
-                    </div>
-                    <div class="mt-6">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <span class="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                            <h3 class="text-base font-bold text-gray-900">Coleta Agendada</h3>
-                        </div>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            Agendamento e preparo da sua coleta
-                        </p>
-                    </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">📋</span>
                 </div>
+                <div class="bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-sm font-bold text-gray-900">1</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Agendamento</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Sua coleta é agendada e nossa equipe se prepara para a coleta das peças
+                </p>
             </div>
 
-            <div class="group relative">
-                <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-100">
-                    <div class="absolute -top-3 left-6">
-                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
-                            <span class="text-lg">🚚</span>
-                        </div>
-                    </div>
-                    <div class="mt-6">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <span class="w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                            <h3 class="text-base font-bold text-gray-900">Processamento</h3>
-                        </div>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            Coleta, pesagem e empacotamento
-                        </p>
-                    </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">🚚</span>
                 </div>
+                <div class="bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-sm font-bold text-gray-900">2</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Processamento</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Realizamos a coleta, pesagem e empacotamento das suas peças com total cuidado
+                </p>
             </div>
 
-            <div class="group relative">
-                <div class="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-100">
-                    <div class="absolute -top-3 left-6">
-                        <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-md">
-                            <span class="text-lg">✅</span>
-                        </div>
-                    </div>
-                    <div class="mt-6">
-                        <div class="flex items-center space-x-2 mb-2">
-                            <span class="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                            <h3 class="text-base font-bold text-gray-900">Entrega</h3>
-                        </div>
-                        <p class="text-sm text-gray-600 leading-relaxed">
-                            Peças limpas e entrega programada
-                        </p>
-                    </div>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl">✅</span>
                 </div>
+                <div class="bg-gray-100 rounded-full w-8 h-8 flex items-center justify-center mx-auto mb-4">
+                    <span class="text-sm font-bold text-gray-900">3</span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Entrega</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Suas peças são entregues limpas e organizadas no prazo combinado
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Status Timeline - Compact Design -->
-    <div class="bg-gradient-to-br from-gray-50 to-blue-50/30 py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-8">
-                <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-3">
-                    Status de <span class="text-gradient">Acompanhamento</span>
+    <!-- Status Timeline - Clean Design -->
+    <div class="bg-white py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                    Status de Acompanhamento
                 </h2>
-                <p class="text-sm text-gray-600 max-w-xl mx-auto">
-                    Veja em tempo real cada etapa do processo
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Veja em tempo real cada etapa do processo da sua coleta
                 </p>
             </div>
 
-            <div class="bg-white rounded-xl shadow-lg p-6 border">
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">1</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900">Agendada</h4>
-                            <p class="text-xs text-gray-600">Programada</p>
+            <div class="bg-gray-50 rounded-2xl p-8">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-sm font-bold text-gray-600">1</span>
                         </div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Agendada</h4>
+                        <p class="text-sm text-gray-600">Coleta programada</p>
                     </div>
-                    <div class="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
-                        <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">2</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900">Coletando</h4>
-                            <p class="text-xs text-gray-600">Em andamento</p>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-sm font-bold text-gray-600">2</span>
                         </div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Coletando</h4>
+                        <p class="text-sm text-gray-600">Em andamento</p>
                     </div>
-                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-100">
-                        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">3</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900">Processando</h4>
-                            <p class="text-xs text-gray-600">Pesagem</p>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-sm font-bold text-gray-600">3</span>
                         </div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Processando</h4>
+                        <p class="text-sm text-gray-600">Pesagem e limpeza</p>
                     </div>
-                    <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
-                        <div class="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">4</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900">Em Trânsito</h4>
-                            <p class="text-xs text-gray-600">Saindo</p>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <span class="text-sm font-bold text-gray-600">4</span>
                         </div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Em Trânsito</h4>
+                        <p class="text-sm text-gray-600">A caminho</p>
                     </div>
-                    <div class="flex items-center space-x-3 p-3 bg-emerald-50 rounded-lg border border-emerald-100">
-                        <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-gray-900">Entregue</h4>
-                            <p class="text-xs text-gray-600">Finalizado</p>
-                        </div>
+                        <h4 class="font-semibold text-gray-900 mb-1">Entregue</h4>
+                        <p class="text-sm text-gray-600">Finalizado</p>
                     </div>
                 </div>
             </div>

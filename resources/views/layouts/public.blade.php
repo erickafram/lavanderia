@@ -41,32 +41,28 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header Público - Modern Design -->
-    <header class="gradient-bg text-white shadow-lg relative overflow-hidden">
-        <div class="hero-pattern absolute inset-0 opacity-30"></div>
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                        <span class="text-lg">🧺</span>
-                    </div>
+    <!-- Header Público - Clean Design -->
+    <header class="bg-white shadow-sm border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-6">
+                <div class="flex items-center space-x-4">
                     <div>
-                        <h1 class="text-lg font-bold tracking-tight">212lavanderia</h1>
-                        <p class="text-blue-100 text-xs opacity-90">Acompanhamento</p>
+                        <h1 class="text-2xl font-bold tracking-tight text-gray-900">212<span class="text-blue-600">lavanderia</span></h1>
+                        <p class="text-gray-600 text-sm">Serviços de lavanderia profissional</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <div class="hidden md:flex items-center space-x-1 bg-white bg-opacity-10 rounded-full px-3 py-1">
-                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium">Online</span>
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2 bg-green-50 rounded-full px-4 py-2 border border-green-100">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium text-green-700">Online</span>
                     </div>
                     <a href="{{ route('login') }}" 
-                       class="glass-effect text-gray-700 hover:bg-white hover:bg-opacity-100 px-3 py-1.5 rounded-lg transition-all duration-300 text-xs font-semibold">
-                        <span class="flex items-center space-x-1">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl">
+                        <span class="flex items-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                             </svg>
-                            <span>Sistema</span>
+                            <span>Acessar Sistema</span>
                         </span>
                     </a>
                 </div>

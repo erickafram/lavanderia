@@ -248,30 +248,6 @@
                     <div class="text-lg font-mono font-bold text-gray-900 mb-2">
                         {{ $empacotamento->codigo_qr }}
                     </div>
-                    
-                    <!-- Explicação da finalidade -->
-                    <div class="bg-blue-50 rounded-lg p-4 mb-4 text-left">
-                        <h4 class="font-semibold text-blue-900 mb-2 flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Como usar este QR Code:
-                        </h4>
-                        <ul class="text-sm text-blue-800 space-y-1">
-                            <li class="flex items-start">
-                                <span class="text-blue-600 mr-2">🚛</span>
-                                <span><strong>Motorista:</strong> Escaneie para confirmar saída e entrega</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-blue-600 mr-2">🏨</span>
-                                <span><strong>Cliente:</strong> Use para rastrear e confirmar o recebimento</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-blue-600 mr-2">📱</span>
-                                <span><strong>Rastreamento:</strong> Acesso rápido aos detalhes da entrega</span>
-                            </li>
-                        </ul>
-                    </div>
 
                     <!-- Botões de ação -->
                     <div class="space-y-3">

@@ -135,4 +135,22 @@ class AuthController extends Controller
 
         return redirect()->route('login')->with('success', 'Logout realizado com sucesso!');
     }
+
+    /**
+     * Processa logout via GET (para casos de acesso direto)
+     */
+    public function logoutGet(Request $request)
+    {
+        // Se não há sessão ativa, redirecionar para página inicial
+        if (!auth()->check()) {
+            return redirect()->route('home')->with('info', 'Você não estava logado.');
+        }
+
+        // Se há sessão ativa, fazer logout sem verificação CSRF para GET
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'Logout realizado com sucesso!');
+    }
 }

@@ -124,12 +124,11 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Agendamento</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso/Valor</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($coletas as $coleta)
-                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <tr class="hover:bg-gray-50 transition-colors duration-200 cursor-pointer" onclick="window.location.href='{{ route('coletas.show', $coleta->id) }}'">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">{{ $coleta->numero_coleta }}</div>
                             <div class="text-sm text-gray-500">{{ $coleta->created_at->format('d/m/Y H:i') }}</div>
@@ -161,22 +160,10 @@
                             <div>{{ number_format($coleta->peso_total, 2, ',', '.') }} kg</div>
                             <div class="text-green-600 font-medium">R$ {{ number_format($coleta->valor_total, 2, ',', '.') }}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div class="flex items-center justify-end space-x-2">
-                                <a href="{{ route('coletas.show', $coleta->id) }}" 
-                                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                                   title="Ver Detalhes">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                </a>
-                            </div>
-                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center">
+                        <td colspan="5" class="px-6 py-12 text-center">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h1m5 0h8a2 2 0 002-2V9a2 2 0 00-2-2h-1"></path>
                             </svg>
@@ -202,7 +189,7 @@
 <!-- Cards Mobile -->
 <div class="md:hidden space-y-4">
     @forelse($coletas as $coleta)
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 cursor-pointer hover:shadow-md transition-shadow duration-200" onclick="window.location.href='{{ route('coletas.show', $coleta->id) }}'">
             <div class="flex items-start justify-between mb-3">
                 <div>
                     <h3 class="text-sm font-semibold text-gray-900">{{ $coleta->numero_coleta }}</h3>
@@ -222,7 +209,7 @@
                 </span>
             </div>
             
-            <div class="space-y-2 mb-4">
+            <div class="space-y-2">
                 <div>
                     <p class="text-sm font-medium text-gray-900">{{ $coleta->estabelecimento->razao_social }}</p>
                     @if($coleta->estabelecimento->nome_fantasia)
@@ -237,16 +224,6 @@
                     <span class="text-gray-600">Peso/Valor:</span>
                     <span class="text-gray-900">{{ number_format($coleta->peso_total, 2, ',', '.') }} kg - <span class="text-green-600 font-medium">R$ {{ number_format($coleta->valor_total, 2, ',', '.') }}</span></span>
                 </div>
-            </div>
-            
-            <div class="flex justify-end">
-                <a href="{{ route('coletas.show', $coleta->id) }}" 
-                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                </a>
             </div>
         </div>
     @empty

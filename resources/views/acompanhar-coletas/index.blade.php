@@ -165,8 +165,8 @@
 
     <!-- Aba: Em Andamento -->
     <div id="aba-andamento" class="tab-content">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="coletas-grid-andamento">
         @if($coletasAndamento->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="coletas-grid-andamento">
                 @foreach($coletasAndamento as $coleta)
                 @php
                     // Calcular progresso e tempos
@@ -315,10 +315,11 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
-            </div>
-        @else
-            <div class="text-center py-12">
+                            @endforeach
+        @endif
+        </div>
+        @if($coletasAndamento->count() == 0)
+            <div class="text-center py-12 mensagem-vazia-inicial">
                 <svg class="w-16 h-16 text-orange-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
@@ -801,11 +802,43 @@ function visualizarAssinatura(assinatura, nomeRecebedor) {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    // Enter no campo de busca
-    document.getElementById('numeroColeta').addEventListener('keypress', function(e) {
+    // Enter no campo de busca e proteção contra interferência
+    const campoNumeroColeta = document.getElementById('numeroColeta');
+    
+    campoNumeroColeta.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             acompanharColeta();
         }
+    });
+    
+    // 🔒 PROTEÇÃO: Pausar atualizações enquanto usuário digita
+    campoNumeroColeta.addEventListener('input', function() {
+        usuarioDigitando = true;
+        console.log('⌨️ Usuário digitando - pausando atualizações automáticas');
+        
+        // Limpar timeout anterior
+        if (timeoutDigitacao) {
+            clearTimeout(timeoutDigitacao);
+        }
+        
+        // Retomar atualizações após 3 segundos de inatividade
+        timeoutDigitacao = setTimeout(() => {
+            usuarioDigitando = false;
+            console.log('✅ Retomando atualizações automáticas');
+        }, 3000);
+    });
+    
+    // Proteção adicional no foco/blur
+    campoNumeroColeta.addEventListener('focus', function() {
+        console.log('🎯 Campo de busca focado - pausando atualizações');
+        usuarioDigitando = true;
+    });
+    
+    campoNumeroColeta.addEventListener('blur', function() {
+        setTimeout(() => {
+            usuarioDigitando = false;
+            console.log('👋 Campo de busca desfocado - retomando atualizações');
+        }, 1000);
     });
 
     // Real-time updates
@@ -861,6 +894,8 @@ document.addEventListener('DOMContentLoaded', function() {
 let realtimeUpdateInterval;
 let isUpdating = false;
 let lastUpdateHash = '';
+let usuarioDigitando = false;
+let timeoutDigitacao = null;
 
 // Inicializar sistema de tempo real quando a página carregar
 document.addEventListener('DOMContentLoaded', function() {
@@ -882,12 +917,12 @@ function iniciarAtualizacaoTempoReal() {
         clearInterval(realtimeUpdateInterval);
     }
     
-    // Atualizar a cada 10 segundos para detectar mudanças mais rapidamente
+    // Atualizar a cada 5 segundos para detectar mudanças mais rapidamente
     realtimeUpdateInterval = setInterval(() => {
         atualizarDadosTempoReal();
-    }, 10000);
+    }, 5000);
     
-    console.log('✅ Sistema de tempo real iniciado - Atualizações a cada 10s');
+    console.log('✅ Sistema de tempo real iniciado - Atualizações a cada 5s');
     atualizarIndicadorStatus('online');
     
     // Fazer primeira atualização imediatamente
@@ -909,6 +944,12 @@ function pararAtualizacaoTempoReal() {
 // Função principal de atualização
 async function atualizarDadosTempoReal() {
     if (isUpdating) return; // Evitar múltiplas atualizações simultâneas
+    
+    // 🔒 PROTEÇÃO: Não atualizar se usuário está digitando
+    if (usuarioDigitando) {
+        console.log('⌨️ Usuário digitando - pulando atualização automática');
+        return;
+    }
     
     isUpdating = true;
     atualizarIndicadorStatus('updating');
@@ -934,6 +975,14 @@ async function atualizarDadosTempoReal() {
             await atualizarInterface(data);
             console.log('🔄 Progresso das coletas atualizado');
             mostrarNotificacaoAtualizacao();
+            
+            // Forçar uma nova verificação em 2 segundos para pegar mudanças rápidas
+            setTimeout(() => {
+                if (!isUpdating && !usuarioDigitando) {
+                    console.log('🔄 Verificação adicional após mudança detectada');
+                    atualizarDadosTempoReal();
+                }
+            }, 2000);
         }
         
         atualizarIndicadorStatus('online');
@@ -949,17 +998,76 @@ async function atualizarDadosTempoReal() {
 
 // Função para verificar mudanças específicas no progresso
 function verificarMudancasProgresso(novosDados) {
-    const coletasAtuais = document.querySelectorAll('[data-coleta-id]');
+    console.log('🔍 Verificando mudanças com dados:', novosDados);
     
-    // Se não há coletas na tela, sempre atualizar
-    if (coletasAtuais.length === 0) return true;
+    // Verificar mudanças nos contadores primeiro
+    const totalAndamentoAtual = document.querySelector('[data-card="total-andamento"]')?.textContent || '0';
+    const totalConcluidasAtual = document.querySelector('[data-card="total-concluidas"]')?.textContent || '0';
     
-    let temMudancas = false;
+    console.log('📊 Contadores atuais vs novos:', {
+        andamento: { atual: parseInt(totalAndamentoAtual), novo: novosDados.totalAndamento },
+        concluidas: { atual: parseInt(totalConcluidasAtual), novo: novosDados.totalConcluidas }
+    });
     
-    // Verificar mudanças nas coletas em andamento
+    if (parseInt(totalAndamentoAtual) !== novosDados.totalAndamento || 
+        parseInt(totalConcluidasAtual) !== novosDados.totalConcluidas) {
+        console.log(`📊 Mudança nos contadores detectada - FORÇANDO ATUALIZAÇÃO`);
+        return true;
+    }
+    
+    // Verificar mudanças específicas nas coletas em andamento
+    const gridAndamento = document.getElementById('coletas-grid-andamento');
+    const coletasAndamentoAtuais = gridAndamento ? gridAndamento.querySelectorAll('[data-coleta-id]') : [];
+    const idsAndamentoAtuais = Array.from(coletasAndamentoAtuais).map(el => el.getAttribute('data-coleta-id'));
+    const idsAndamentoNovos = novosDados.coletasAndamento ? novosDados.coletasAndamento.map(c => c.id.toString()) : [];
+    
+    console.log('🔄 Verificando coletas em andamento:', {
+        quantidadeAtual: idsAndamentoAtuais.length,
+        quantidadeNova: idsAndamentoNovos.length,
+        idsAtuais: idsAndamentoAtuais,
+        idsNovos: idsAndamentoNovos
+    });
+    
+    // FORÇAR ATUALIZAÇÃO se:
+    // 1. Há coletas no backend mas não na interface
+    // 2. A quantidade não bate
+    // 3. Os IDs são diferentes
+    if ((novosDados.totalAndamento > 0 && idsAndamentoAtuais.length === 0) ||
+        idsAndamentoAtuais.length !== idsAndamentoNovos.length || 
+        !idsAndamentoAtuais.every(id => idsAndamentoNovos.includes(id))) {
+        console.log(`🔄 FORÇANDO ATUALIZAÇÃO das coletas em andamento - Motivos:`, {
+            coletasBackendSemInterface: novosDados.totalAndamento > 0 && idsAndamentoAtuais.length === 0,
+            quantidadeDiferente: idsAndamentoAtuais.length !== idsAndamentoNovos.length,
+            idsDiferentes: !idsAndamentoAtuais.every(id => idsAndamentoNovos.includes(id))
+        });
+        return true;
+    }
+    
+    // Verificar mudanças específicas nas coletas concluídas
+    const gridConcluidas = document.getElementById('coletas-grid-concluidas');
+    const coletasConcluidasAtuais = gridConcluidas ? gridConcluidas.querySelectorAll('[data-coleta-id]') : [];
+    const idsConcluidasAtuais = Array.from(coletasConcluidasAtuais).map(el => el.getAttribute('data-coleta-id'));
+    const idsConcluidasNovas = novosDados.coletasConcluidas ? novosDados.coletasConcluidas.map(c => c.id.toString()) : [];
+    
+    console.log('✅ Verificando coletas concluídas:', {
+        quantidadeAtual: idsConcluidasAtuais.length,
+        quantidadeNova: idsConcluidasNovas.length,
+        idsAtuais: idsConcluidasAtuais,
+        idsNovos: idsConcluidasNovas
+    });
+    
+    // FORÇAR ATUALIZAÇÃO se há diferença
+    if ((novosDados.totalConcluidas > 0 && idsConcluidasAtuais.length === 0) ||
+        idsConcluidasAtuais.length !== idsConcluidasNovas.length || 
+        !idsConcluidasAtuais.every(id => idsConcluidasNovas.includes(id))) {
+        console.log(`✅ FORÇANDO ATUALIZAÇÃO das coletas concluídas`);
+        return true;
+    }
+    
+    // Verificar mudanças no progresso das coletas existentes
     if (novosDados.coletasAndamento) {
         for (const coleta of novosDados.coletasAndamento) {
-            const cardExistente = document.querySelector(`[data-coleta-id="${coleta.id}"]`);
+            const cardExistente = gridAndamento?.querySelector(`[data-coleta-id="${coleta.id}"]`);
             if (cardExistente) {
                 // Verificar percentual
                 const percentualAtual = cardExistente.querySelector('[data-percentual]')?.textContent || '0%';
@@ -979,33 +1087,27 @@ function verificarMudancasProgresso(novosDados) {
                         etapas: { atual: etapasAtuais, novo: novasEtapas },
                         status: { atual: statusAtual, novo: novoStatus }
                     });
-                    temMudancas = true;
-                    break;
+                    return true;
                 }
-            } else {
-                // Nova coleta adicionada
-                temMudancas = true;
-                break;
             }
         }
     }
     
-    // Verificar mudanças nas coletas concluídas
-    if (!temMudancas && novosDados.coletasConcluidas) {
-        const coletasConcluidas = novosDados.coletasConcluidas.length;
-        const coletasConcluidasAtuais = document.querySelectorAll('#aba-concluidas [data-coleta-id]').length;
-        
-        if (coletasConcluidas !== coletasConcluidasAtuais) {
-            console.log(`📋 Mudança no número de coletas concluídas: ${coletasConcluidasAtuais} → ${coletasConcluidas}`);
-            temMudancas = true;
-        }
-    }
-    
-    return temMudancas;
+    return false;
 }
 
 // Função para atualizar a interface com novos dados
 async function atualizarInterface(data) {
+    // 🔒 PRESERVAR ESTADO DO CAMPO DE BUSCA
+    const campoNumeroColeta = document.getElementById('numeroColeta');
+    const estadoCampoBusca = {
+        valor: campoNumeroColeta ? campoNumeroColeta.value : '',
+        focoAtivo: campoNumeroColeta && document.activeElement === campoNumeroColeta,
+        posicaoCursor: campoNumeroColeta ? campoNumeroColeta.selectionStart : 0
+    };
+    
+    console.log('🔒 Estado do campo preservado:', estadoCampoBusca);
+    
     // Atualizar cards de estatísticas com animação
     await atualizarCards(data);
     
@@ -1014,6 +1116,20 @@ async function atualizarInterface(data) {
     
     // Animar mudanças
     adicionarAnimacaoAtualizacao();
+    
+    // 🔓 RESTAURAR ESTADO DO CAMPO DE BUSCA
+    setTimeout(() => {
+        const campoRestaurado = document.getElementById('numeroColeta');
+        if (campoRestaurado && estadoCampoBusca.valor !== '') {
+            campoRestaurado.value = estadoCampoBusca.valor;
+            
+            if (estadoCampoBusca.focoAtivo) {
+                campoRestaurado.focus();
+                campoRestaurado.setSelectionRange(estadoCampoBusca.posicaoCursor, estadoCampoBusca.posicaoCursor);
+                console.log('🔓 Foco e cursor restaurados no campo de busca');
+            }
+        }
+    }, 50);
 }
 
 // Atualizar cards de estatísticas
@@ -1027,19 +1143,32 @@ function atualizarCards(data) {
         
         cards.forEach((card, index) => {
             setTimeout(() => {
-                const elemento = document.querySelector(`[data-card="${card.id}"]`) || 
-                                document.querySelector('.text-2xl.font-bold');
+                const elemento = document.querySelector(`[data-card="${card.id}"]`);
                 if (elemento) {
-                    elemento.style.transform = 'scale(1.05)';
-                    setTimeout(() => {
-                        elemento.textContent = new Intl.NumberFormat('pt-BR').format(card.valor);
-                        elemento.style.transform = 'scale(1)';
-                    }, 150);
+                    const valorAtual = elemento.textContent;
+                    const novoValor = new Intl.NumberFormat('pt-BR').format(card.valor);
+                    
+                    // Só animar se o valor mudou
+                    if (valorAtual !== novoValor) {
+                        elemento.style.transition = 'transform 0.3s ease';
+                        elemento.style.transform = 'scale(1.05)';
+                        elemento.style.color = '#10B981'; // Verde para indicar mudança
+                        
+                        setTimeout(() => {
+                            elemento.textContent = novoValor;
+                            elemento.style.transform = 'scale(1)';
+                            
+                            // Voltar à cor original após um tempo
+                            setTimeout(() => {
+                                elemento.style.color = '';
+                            }, 1000);
+                        }, 150);
+                    }
                 }
             }, index * 100);
         });
         
-        setTimeout(resolve, 500);
+        setTimeout(resolve, 800);
     });
 }
 
@@ -1073,16 +1202,33 @@ function atualizarAbasColetas(data) {
 // Atualizar grid específico de coletas
 function atualizarGridColetas(tipo, coletas) {
     const grid = document.getElementById(`coletas-grid-${tipo}`);
-    if (!grid) return;
+    if (!grid) {
+        console.error(`❌ Grid não encontrado: coletas-grid-${tipo}`);
+        return;
+    }
+    
+    console.log(`🔄 Iniciando atualização do grid ${tipo} com ${coletas.length} coletas`);
     
     // Verificar se há mudanças nos dados
     const coletasAtuais = grid.querySelectorAll('[data-coleta-id]');
     const idsAtuais = Array.from(coletasAtuais).map(el => el.getAttribute('data-coleta-id'));
     const idsNovos = coletas.map(c => c.id.toString());
     
-    // Verificar mudanças de progresso/status mesmo se os IDs são os mesmos
-    let temMudancas = idsAtuais.length !== idsNovos.length || 
-                      !idsAtuais.every(id => idsNovos.includes(id));
+    console.log(`📊 Grid ${tipo} - Comparação:`, {
+        idsAtuais: idsAtuais,
+        idsNovos: idsNovos,
+        quantidadeAtual: idsAtuais.length,
+        quantidadeNova: idsNovos.length
+    });
+    
+    // SEMPRE atualizar se:
+    // 1. Há coletas no backend mas não na interface
+    // 2. A quantidade é diferente
+    // 3. Os IDs são diferentes
+    let temMudancas = (coletas.length > 0 && idsAtuais.length === 0) ||
+                      idsAtuais.length !== idsNovos.length || 
+                      !idsAtuais.every(id => idsNovos.includes(id)) ||
+                      !idsNovos.every(id => idsAtuais.includes(id));
     
     // Verificar mudanças no progresso das coletas existentes
     if (!temMudancas) {
@@ -1093,47 +1239,79 @@ function atualizarGridColetas(tipo, coletas) {
                 const novoProgresso = `${coleta.percentual}%`;
                 if (progressoAtual !== novoProgresso) {
                     temMudancas = true;
+                    console.log(`📊 Mudança de progresso detectada na coleta ${coleta.id}: ${progressoAtual} → ${novoProgresso}`);
                     break;
                 }
             }
         }
     }
     
+    console.log(`🔄 Grid ${tipo} - Resultado: ${temMudancas ? 'ATUALIZANDO' : 'SEM MUDANÇAS'}`);
+    
     if (temMudancas) {
-        console.log(`🔄 Atualizando grid ${tipo} - ${coletas.length} coletas`);
+        console.log(`🔄 ATUALIZANDO GRID ${tipo.toUpperCase()} - ${coletas.length} coletas`);
         
-        // Atualizar cada coleta individualmente
-        coletas.forEach(coleta => {
+        // Primeiro, adicionar/atualizar todas as coletas necessárias
+        coletas.forEach((coleta, index) => {
             let card = grid.querySelector(`[data-coleta-id="${coleta.id}"]`);
             
             if (card) {
                 // Atualizar card existente
+                console.log(`🔄 Atualizando card existente da coleta ${coleta.numero_coleta}`);
                 atualizarCardColeta(card, coleta);
             } else {
                 // Criar novo card
+                console.log(`✨ Criando novo card para coleta ${coleta.numero_coleta}`);
                 const novoCard = criarCardColeta(coleta, tipo);
                 grid.appendChild(novoCard);
-                // Animação de entrada
+                
+                // Animação de entrada com delay baseado no índice
                 novoCard.style.opacity = '0';
                 novoCard.style.transform = 'translateY(20px)';
                 setTimeout(() => {
-                    novoCard.style.transition = 'all 0.3s ease';
+                    novoCard.style.transition = 'all 0.4s ease';
                     novoCard.style.opacity = '1';
                     novoCard.style.transform = 'translateY(0)';
-                }, 10);
+                }, index * 100 + 50);
             }
         });
         
-        // Remover coletas que não estão mais na lista
+        // Segundo, remover coletas que não estão mais na lista
         coletasAtuais.forEach(card => {
             const id = card.getAttribute('data-coleta-id');
             if (!idsNovos.includes(id)) {
+                console.log(`🗑️ Removendo card da coleta ${id} que não está mais na lista`);
                 card.style.transition = 'all 0.3s ease';
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(-20px)';
                 setTimeout(() => card.remove(), 300);
             }
         });
+        
+        // Atualizar mensagem de "nenhuma coleta" se necessário
+        atualizarMensagemVazia(grid, tipo, coletas.length);
+    }
+}
+
+// Atualizar mensagem de "nenhuma coleta"
+function atualizarMensagemVazia(grid, tipo, quantidadeColetas) {
+    const parentContainer = grid.parentElement;
+    let mensagemVazia = parentContainer.querySelector('.mensagem-vazia-inicial');
+    
+    if (quantidadeColetas === 0) {
+        // Mostrar mensagem vazia inicial se existir
+        if (mensagemVazia) {
+            mensagemVazia.style.display = 'block';
+        }
+        // Grid permanece visível mas vazio
+        grid.style.display = 'grid';
+    } else {
+        // Esconder mensagem vazia inicial se existir
+        if (mensagemVazia) {
+            mensagemVazia.style.display = 'none';
+        }
+        // Grid visível com conteúdo
+        grid.style.display = 'grid';
     }
 }
 
@@ -1217,32 +1395,98 @@ function atualizarCardColeta(card, coleta) {
 
 // Criar novo card de coleta
 function criarCardColeta(coleta, tipo) {
-    const corFundo = tipo === 'concluidas' ? 'bg-gradient-to-br from-green-50 to-white border-green-200' : 'bg-white border-gray-200';
+    const corFundo = tipo === 'concluidas' ? 'bg-gradient-to-br from-green-50 to-white border-green-200' : 'bg-gradient-to-br from-gray-50 to-white border-gray-200';
     
     const card = document.createElement('div');
-    card.className = `${corFundo} rounded-xl shadow-sm border p-6 hover:shadow-md transition-all duration-300`;
+    card.className = `${corFundo} rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105`;
     card.setAttribute('data-coleta-id', coleta.id);
+    card.setAttribute('onclick', `acompanharColetaPorId('${coleta.numero_coleta}')`);
     
-    const miniEtapasHtml = ['coleta', 'pesagem', 'empacotamento', 'entrega', 'confirmacao_cliente'].map((etapa, index) => {
+    // Calcular tempo total com correção para formatos de data
+    let tempoTotal = '';
+    
+    try {
+        // Se já tem tempo_total calculado no backend, usar ele
+        if (coleta.tempo_total) {
+            tempoTotal = coleta.tempo_total;
+        } else {
+            // Calcular tempo manualmente se necessário
+            const agora = new Date();
+            let criadoEm;
+            
+            // Tentar diferentes formatos de data
+            if (typeof coleta.created_at === 'string') {
+                // Se é string, converter para formato JavaScript
+                criadoEm = new Date(coleta.created_at.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1'));
+            } else {
+                criadoEm = new Date(coleta.created_at);
+            }
+            
+            // Verificar se a data é válida
+            if (isNaN(criadoEm.getTime())) {
+                console.warn('Data inválida para coleta:', coleta.numero_coleta, coleta.created_at);
+                tempoTotal = '0m'; // Valor padrão para datas inválidas
+            } else {
+                const diffMinutes = Math.floor((agora - criadoEm) / (1000 * 60));
+                
+                // Garantir que o diff não seja negativo
+                const diffPositivo = Math.max(0, diffMinutes);
+                
+                if (diffPositivo < 60) {
+                    tempoTotal = diffPositivo + 'm';
+                } else if (diffPositivo < 1440) {
+                    const horas = Math.floor(diffPositivo / 60);
+                    const minutos = diffPositivo % 60;
+                    tempoTotal = horas + 'h ' + minutos + 'm';
+                } else {
+                    const dias = Math.floor(diffPositivo / 1440);
+                    const horasRestantes = Math.floor((diffPositivo % 1440) / 60);
+                    tempoTotal = dias + 'd ' + horasRestantes + 'h';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao calcular tempo para coleta:', coleta.numero_coleta, error);
+        tempoTotal = '0m'; // Valor padrão em caso de erro
+    }
+    
+    // Mapeamento de etapas para labels
+    const etapaLabels = {
+        'coleta': 'Col.',
+        'pesagem': 'Pes.',
+        'empacotamento': 'Emp.',
+        'entrega': 'Trân.',
+        'confirmacao_cliente': 'Entr.'
+    };
+    
+    const miniEtapasHtml = ['coleta', 'pesagem', 'empacotamento', 'entrega', 'confirmacao_cliente'].map((etapa) => {
         const concluida = coleta.progresso[etapa];
-        const classes = concluida 
-            ? 'w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-medium'
-            : 'w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-medium';
-        const conteudo = concluida ? '✓' : (index + 1);
-        return `<div class="${classes}" data-etapa="${etapa}">${conteudo}</div>`;
+        const textColor = concluida ? 'text-green-600' : 'text-gray-400';
+        const bgColor = concluida ? 'bg-green-100' : 'bg-gray-100';
+        
+        return `
+            <div class="flex flex-col items-center text-xs ${textColor}">
+                <div class="w-5 h-5 rounded-full flex items-center justify-center ${bgColor} mb-1" data-etapa="${etapa}">
+                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <span class="text-xs">${etapaLabels[etapa]}</span>
+            </div>
+        `;
     }).join('');
     
     card.innerHTML = `
-        <!-- Cabeçalho da Coleta -->
-        <div class="flex justify-between items-start mb-4">
+        <div class="flex justify-between items-start mb-3">
             <div>
-                <h3 class="text-lg font-bold text-gray-900 mb-1">${coleta.numero_coleta}</h3>
-                <p class="text-sm text-gray-600">${coleta.estabelecimento}</p>
-                <p class="text-xs text-gray-500">${coleta.created_at}</p>
+                <h3 class="text-base font-bold text-gray-900">${coleta.numero_coleta}</h3>
+                <p class="text-sm text-gray-600">${coleta.estabelecimento.length > 25 ? coleta.estabelecimento.substring(0, 25) + '...' : coleta.estabelecimento}</p>
+                <p class="text-xs text-gray-500 mt-1">${coleta.created_at}</p>
             </div>
             <div class="text-right">
-                <div class="text-2xl font-bold text-blue-600 mb-1" data-percentual>${coleta.percentual}%</div>
-                <div class="text-xs text-gray-500">Concluído</div>
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200" data-percentual>
+                    ${coleta.percentual}%
+                </span>
             </div>
         </div>
 
@@ -1255,14 +1499,24 @@ function criarCardColeta(coleta, tipo) {
             </span>
         </div>
 
+        <!-- Tempo Total -->
+        ${tempoTotal ? `
+        <div class="mb-3 flex items-center text-xs text-blue-600 bg-blue-50 rounded-lg p-2">
+            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-medium">${tempoTotal}</span>
+        </div>
+        ` : ''}
+
         <!-- Barra de Progresso -->
-        <div class="mb-4">
-            <div class="flex justify-between text-xs text-gray-600 mb-2">
+        <div class="mb-3">
+            <div class="flex justify-between text-xs text-gray-600 mb-1">
                 <span>Progresso</span>
                 <span data-etapas>${coleta.etapas_concluidas}/5</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-2.5">
-                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${coleta.percentual}%"></div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${coleta.percentual}%"></div>
             </div>
         </div>
 

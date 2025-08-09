@@ -113,6 +113,9 @@ class PainelController extends Controller
                     $etapasConcluidas = collect($progresso)->filter()->count();
                     $percentual = round(($etapasConcluidas / 5) * 100);
                     
+                    // Calcular tempo total corretamente
+                    $tempoTotal = $this->calcularTempoEntre($coleta->created_at, Carbon::now());
+                    
                     return [
                         'id' => $coleta->id,
                         'numero_coleta' => $coleta->numero_coleta,
@@ -125,6 +128,7 @@ class PainelController extends Controller
                         'progresso' => $progresso,
                         'etapas_concluidas' => $etapasConcluidas,
                         'percentual' => $percentual,
+                        'tempo_total' => $tempoTotal,
                     ];
                 }),
                 'coletasConcluidas' => $coletasConcluidas->map(function($coleta) {
@@ -152,6 +156,10 @@ class PainelController extends Controller
                     $etapasConcluidas = collect($progresso)->filter()->count();
                     $percentual = round(($etapasConcluidas / 5) * 100);
                     
+                    // Calcular tempo total corretamente
+                    $dataFinal = $entrega?->data_confirmacao_recebimento ?? $entrega?->data_entrega ?? Carbon::now();
+                    $tempoTotal = $this->calcularTempoEntre($coleta->created_at, $dataFinal);
+                    
                     return [
                         'id' => $coleta->id,
                         'numero_coleta' => $coleta->numero_coleta,
@@ -164,6 +172,7 @@ class PainelController extends Controller
                         'progresso' => $progresso,
                         'etapas_concluidas' => $etapasConcluidas,
                         'percentual' => $percentual,
+                        'tempo_total' => $tempoTotal,
                     ];
                 }),
             ]);

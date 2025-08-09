@@ -57,14 +57,7 @@ Route::prefix('sistema')->group(function () {
         Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     });
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/logout', function () {
-    // Se não há sessão ativa, redirecionar para página inicial
-    if (!auth()->check()) {
-        return redirect()->route('home')->with('info', 'Você não estava logado.');
-    }
-    // Se há sessão ativa, redirecionar para login com mensagem
-    return redirect()->route('login')->with('message', 'Use o botão de logout apropriado para sair com segurança.');
-})->name('logout.redirect');
+Route::get('/logout', [AuthController::class, 'logoutGet'])->name('logout.redirect');
 
 // Rotas protegidas por autenticação
 Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
