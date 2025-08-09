@@ -227,6 +227,36 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
 
+                        <div class="mt-4">
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status da Pesagem</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                    id="status" name="status">
+                                <option value="rascunho" <?php echo e(old('status', $pesagem->status) == 'rascunho' ? 'selected' : ''); ?>>
+                                    📝 Rascunho - Pode ser editada
+                                </option>
+                                <option value="concluida" <?php echo e(old('status', $pesagem->status) == 'concluida' ? 'selected' : ''); ?>>
+                                    ✅ Concluída - Pesagem finalizada
+                                </option>
+                            </select>
+                            <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                        </div>
+
                         <div class="flex justify-end space-x-3 mt-6">
                             <a href="<?php echo e(route('pesagem.show', $pesagem->id)); ?>"
                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
@@ -269,7 +299,28 @@ unset($__errorArgs, $__bag); ?>
                 </div>
                 <div class="p-4 space-y-3">
                     <div>
-                        <span class="text-sm font-medium text-gray-700">Status:</span>
+                        <span class="text-sm font-medium text-gray-700">Status da Pesagem:</span>
+                        <div class="mt-1">
+                            <?php if($pesagem->isConcluida()): ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Concluída
+                                </span>
+                            <?php else: ?>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Rascunho
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="text-sm font-medium text-gray-700">Conferência:</span>
                         <div class="mt-1">
                             <?php if($pesagem->conferido): ?>
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">

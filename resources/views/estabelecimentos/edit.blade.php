@@ -264,8 +264,19 @@
                     </button>
                 </div>
                 <div id="emails-container">
-                    @if(old('emails') || $estabelecimento->emails)
-                        @foreach(old('emails', $estabelecimento->emails ?? []) as $email)
+                    @php
+                        $emails = old('emails') ?: $estabelecimento->emails;
+                        // Se emails é uma string, converter para array
+                        if (is_string($emails)) {
+                            $emails = $emails ? explode(',', $emails) : [];
+                        }
+                        // Se emails é null, usar array vazio
+                        if (!is_array($emails)) {
+                            $emails = [];
+                        }
+                    @endphp
+                    @if(!empty($emails))
+                        @foreach($emails as $email)
                         <div class="email-item flex items-center gap-2 mb-2">
                             <input type="email"
                                    name="emails[]"
@@ -317,8 +328,19 @@
                     </button>
                 </div>
                 <div id="contatos-container">
-                    @if(old('contatos_responsaveis') || $estabelecimento->contatos_responsaveis)
-                        @foreach(old('contatos_responsaveis', $estabelecimento->contatos_responsaveis ?? []) as $index => $contato)
+                    @php
+                        $contatos = old('contatos_responsaveis') ?: $estabelecimento->contatos_responsaveis;
+                        // Se contatos é uma string, tentar decodificar como JSON
+                        if (is_string($contatos)) {
+                            $contatos = $contatos ? json_decode($contatos, true) : [];
+                        }
+                        // Se contatos é null ou não é array, usar array vazio
+                        if (!is_array($contatos)) {
+                            $contatos = [];
+                        }
+                    @endphp
+                    @if(!empty($contatos))
+                        @foreach($contatos as $index => $contato)
                         <div class="contato-item border border-gray-200 rounded-lg p-4 mb-3">
                             <div class="flex items-center justify-between mb-3">
                                 <h4 class="text-sm font-medium text-gray-700">Contato {{ $index + 1 }}</h4>
