@@ -2,6 +2,34 @@
 
 @section('title', 'Adicionar Itens - Sistema de Gestão de Lavanderia')
 
+@push('styles')
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+
+    .peca-item {
+        transition: all 0.3s ease;
+    }
+
+    .peca-item.highlight {
+        background-color: #f0f9ff !important;
+        border-color: #0ea5e9 !important;
+        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    .add-item-pulse {
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
@@ -335,7 +363,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Adicionar nova peça
     document.getElementById('add-peca').addEventListener('click', function() {
+        // Animação no botão
+        this.classList.add('add-item-pulse');
+        setTimeout(() => {
+            this.classList.remove('add-item-pulse');
+        }, 500);
+
         addPecaField();
+
+        // Scroll adicional para garantir que o botão "Adicionar Itens" continue visível
+        setTimeout(() => {
+            const addButton = document.getElementById('add-peca');
+            addButton.scrollIntoView({
+                behavior: 'smooth',
+                block: 'end'
+            });
+        }, 200);
     });
     
     // Remover peça
@@ -390,6 +433,28 @@ document.addEventListener('DOMContentLoaded', function() {
         pecaCount++;
         updatePecaNumbers();
         updateRemoveButtons();
+
+        // Scroll suave para o novo item adicionado
+        setTimeout(() => {
+            template.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Destacar o novo item com animação
+            template.classList.add('highlight');
+
+            // Focar no primeiro campo do novo item para facilitar a digitação
+            const firstInput = template.querySelector('select, input[type="text"], input[type="number"]');
+            if (firstInput) {
+                firstInput.focus();
+            }
+
+            // Remover o destaque após alguns segundos
+            setTimeout(() => {
+                template.classList.remove('highlight');
+            }, 2000);
+        }, 100);
     }
     
     function updatePecaNumbers() {

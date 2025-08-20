@@ -342,7 +342,8 @@ class EmpacotamentoController extends Controller
         $empacotamento = Empacotamento::with([
             'coleta.estabelecimento',
             'coleta.pecas.tipo',
-            'usuarioEmpacotamento'
+            'usuarioEmpacotamento',
+            'pecasIndividuais.tipo'
         ])->findOrFail($id);
 
         return view('empacotamento.etiqueta', compact('empacotamento'));
