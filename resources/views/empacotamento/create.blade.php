@@ -2,6 +2,37 @@
 
 @section('title', 'Novo Empacotamento')
 
+@push('styles')
+<style>
+    .peca-extra-duplicada {
+        background-color: #fefce8;
+        border-left: 4px solid #eab308;
+    }
+
+    .peca-duplicada {
+        background-color: #eff6ff;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .highlight-new {
+        animation: highlightFade 2s ease-in-out;
+    }
+
+    @keyframes highlightFade {
+        0% { background-color: #dbeafe; }
+        100% { background-color: transparent; }
+    }
+
+    .btn-duplicate {
+        transition: all 0.2s ease;
+    }
+
+    .btn-duplicate:hover {
+        transform: scale(1.05);
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Header -->
@@ -600,6 +631,14 @@ document.addEventListener('DOMContentLoaded', function() {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex space-x-2">
+                    <button type="button" onclick="duplicarPecaExtra(this)"
+                            class="btn-duplicate inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
+                            title="Duplicar esta peça extra">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Duplicar
+                    </button>
                     <button type="button" onclick="removerLinhaPeca(this)"
                             class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors duration-200"
                             title="Remover peça extra">
@@ -613,6 +652,101 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         
         tabela.appendChild(novaLinha);
+    };
+
+    // Função para duplicar peça extra
+    window.duplicarPecaExtra = function(botao) {
+        const linhaOriginal = botao.closest('tr');
+        const tabela = tabelaPecasEmpacotamento;
+        const novoIndex = Date.now();
+
+        // Obter dados da linha original
+        const selectOriginal = linhaOriginal.querySelector('.tipo-select');
+        const quantidadeOriginal = linhaOriginal.querySelector('input[type="number"]');
+
+        if (!selectOriginal.value) {
+            alert('Selecione um tipo de peça antes de duplicar.');
+            return;
+        }
+
+        // Criar opções do select
+        let opcoesSelect = '<option value="">Selecione um tipo</option>';
+        tiposDisponiveis.forEach(function(tipo) {
+            const selected = tipo.id == selectOriginal.value ? 'selected' : '';
+            opcoesSelect += `<option value="${tipo.id}" ${selected}>${tipo.nome} (${tipo.categoria})</option>`;
+        });
+
+        // Criar nova linha duplicada
+        const novaLinha = document.createElement('tr');
+        novaLinha.className = 'peca-row peca-extra peca-extra-duplicada';
+        novaLinha.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <select name="pecas_extras[${novoIndex}][tipo_id]" class="tipo-select w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    ${opcoesSelect}
+                </select>
+                <div class="text-xs text-blue-600 font-medium mt-1">📋 Extra Duplicada</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">
+                    <strong>-</strong> peças
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
+                    <input type="number" min="1"
+                           name="pecas_extras[${novoIndex}][quantidade]"
+                           value="${quantidadeOriginal.value}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           required>
+                    <input type="hidden" name="pecas_extras[${novoIndex}][peso]" value="0">
+                </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-blue-600 font-medium">+ Duplicada</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex space-x-2">
+                    <button type="button" onclick="duplicarPecaExtra(this)"
+                            class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
+                            title="Duplicar esta peça extra">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Duplicar
+                    </button>
+                    <button type="button" onclick="removerLinhaPeca(this)"
+                            class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors duration-200"
+                            title="Remover peça extra">
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Remover
+                    </button>
+                </div>
+            </td>
+        `;
+
+        // Inserir a nova linha após a linha original
+        linhaOriginal.parentNode.insertBefore(novaLinha, linhaOriginal.nextSibling);
+
+        // Scroll suave para a nova linha
+        setTimeout(() => {
+            novaLinha.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Adicionar animação de destaque
+            novaLinha.classList.add('highlight-new');
+
+            // Focar no campo de quantidade
+            const inputQuantidade = novaLinha.querySelector('input[type="number"]');
+            if (inputQuantidade) {
+                inputQuantidade.focus();
+                inputQuantidade.select();
+            }
+        }, 100);
     };
 
     // Carregar dados iniciais se houver coleta selecionada
