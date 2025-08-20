@@ -163,7 +163,7 @@
             </div>
 
             <!-- Peças Coletadas e Empacotadas -->
-            @if($empacotamento->coleta->pecas->count() > 0)
+            @if($empacotamento->coleta->pecas->count() > 0 || $empacotamento->pecasIndividuais->count() > 0)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
                         <h3 class="text-xl font-bold text-gray-900 flex items-center">
@@ -171,6 +171,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                             </svg>
                             Peças Coletadas e Empacotadas
+                            <span class="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                {{ $empacotamento->pecasIndividuais->count() }} peças
+                            </span>
                         </h3>
                         <p class="text-sm text-gray-600 mt-1">Relação detalhada das peças processadas</p>
                     </div>
@@ -179,48 +182,58 @@
                             <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                                 <tr>
                                     <th class="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">Peça</th>
-                                    <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Quantidade Coletada</th>
-                                    <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Quantidade Entregue</th>
+                                    <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Código QR</th>
+                                    <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Quantidade</th>
                                     <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Peso (kg)</th>
-                                    <th class="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">Valor</th>
+                                    <th class="px-6 py-4 text-center text-sm font-bold text-gray-700 uppercase tracking-wider">Categoria</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($empacotamento->coleta->pecas as $peca)
+                                @foreach($empacotamento->pecasIndividuais as $peca)
                                     <tr class="hover:bg-blue-50 transition-colors duration-200">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                                                <div class="text-sm font-medium text-gray-900">{{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}</div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900">{{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}</div>
+                                                    @if($peca->observacoes)
+                                                        <div class="text-xs text-gray-500">{{ Str::limit($peca->observacoes, 30) }}</div>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                                {{ $peca->quantidade }}
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-gray-100 text-gray-800">
+                                                {{ $peca->codigo_qr }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                                {{ $peca->quantidade }}
+                                                {{ $peca->quantidade }} peça{{ $peca->quantidade > 1 ? 's' : '' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 font-medium">
-                                            {{ number_format($peca->peso, 2, ',', '.') }}
+                                            {{ number_format($peca->peso, 3, ',', '.') }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
-                                            R$ {{ number_format($peca->subtotal, 2, ',', '.') }}
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                {{ $peca->tipo ? $peca->tipo->categoria : 'N/A' }}
+                                            </span>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-gray-50">
                                 <tr>
-                                    <td colspan="3" class="px-6 py-4 text-right text-sm font-bold text-gray-900">Total:</td>
+                                    <td colspan="2" class="px-6 py-4 text-right text-sm font-bold text-gray-900">Total:</td>
                                     <td class="px-6 py-4 text-center text-sm font-bold text-gray-900">
-                                        {{ number_format($empacotamento->coleta->peso_total, 2, ',', '.') }} kg
+                                        {{ $empacotamento->pecasIndividuais->sum('quantidade') }} peças
                                     </td>
-                                    <td class="px-6 py-4 text-right text-sm font-bold text-gray-900">
-                                        R$ {{ number_format($empacotamento->coleta->valor_total, 2, ',', '.') }}
+                                    <td class="px-6 py-4 text-center text-sm font-bold text-gray-900">
+                                        {{ number_format($empacotamento->pecasIndividuais->sum('peso'), 3, ',', '.') }} kg
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-sm font-bold text-gray-900">
+                                        {{ $empacotamento->pecasIndividuais->groupBy('tipo.categoria')->count() }} categorias
                                     </td>
                                 </tr>
                             </tfoot>

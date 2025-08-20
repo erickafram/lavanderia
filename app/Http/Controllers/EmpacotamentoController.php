@@ -259,6 +259,26 @@ class EmpacotamentoController extends Controller
     }
 
     /**
+     * Processar atualizações das peças individuais do empacotamento
+     */
+    private function processarPecasIndividuaisEmpacotamento(Request $request, Empacotamento $empacotamento)
+    {
+        // Verificar se há peças individuais para atualizar
+        if ($request->has('pecas_individuais')) {
+            foreach ($request->pecas_individuais as $pecaId => $dadosPeca) {
+                $pecaIndividual = EmpacotamentoPeca::find($pecaId);
+
+                if ($pecaIndividual && $pecaIndividual->empacotamento_id == $empacotamento->id) {
+                    $pecaIndividual->update([
+                        'quantidade' => $dadosPeca['quantidade'],
+                        'peso' => $dadosPeca['peso'] ?? 0,
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show($id)
@@ -357,6 +377,7 @@ class EmpacotamentoController extends Controller
         $empacotamento = Empacotamento::with([
             'coleta.estabelecimento',
             'coleta.pecas.tipo',
+            'pecasIndividuais.tipo',
             'usuarioEmpacotamento',
             'status'
         ])->findOrFail($id);
@@ -398,8 +419,8 @@ class EmpacotamentoController extends Controller
                 'observacoes_empacotamento' => $request->observacoes_empacotamento
             ]);
 
-            // Processar peças atualizadas
-            $this->processarPecasEmpacotamento($request, $empacotamento);
+            // Processar peças individuais atualizadas
+            $this->processarPecasIndividuaisEmpacotamento($request, $empacotamento);
 
             DB::commit();
 

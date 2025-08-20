@@ -154,61 +154,85 @@ unset($__errorArgs, $__bag); ?>
                     </div>
                 </div>
 
-                <!-- Peças da Coleta -->
+                <!-- Peças Processadas -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
                         <h3 class="text-lg font-bold text-gray-900 flex items-center">
                             <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                             </svg>
-                            Peças da Coleta
+                            Peças Processadas
+                            <span class="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                <?php echo e($empacotamento->pecasIndividuais->count()); ?> peças
+                            </span>
                         </h3>
-                        <p class="text-sm text-gray-600 mt-1">Ajuste as quantidades empacotadas e adicione novas peças se necessário</p>
+                        <p class="text-sm text-gray-600 mt-1">Todas as peças empacotadas (originais, duplicadas e extras)</p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Coletada</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Empacotada</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Código QR</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Peso (kg)</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Origem</th>
                                 </tr>
                             </thead>
                             <tbody id="tabela-pecas-empacotamento" class="bg-white divide-y divide-gray-200">
-                                <?php $__currentLoopData = $empacotamento->coleta->pecas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php $__currentLoopData = $empacotamento->pecasIndividuais; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                                                <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo ? $peca->tipo->nome : 'Tipo não definido'); ?></div>
+                                                <div>
+                                                    <div class="text-sm font-medium text-gray-900"><?php echo e($peca->tipo ? $peca->tipo->nome : 'Tipo não definido'); ?></div>
+                                                    <div class="text-xs text-gray-500"><?php echo e($peca->tipo ? $peca->tipo->categoria : ''); ?></div>
+                                                    <?php if($peca->observacoes): ?>
+                                                        <div class="text-xs text-gray-400"><?php echo e(Str::limit($peca->observacoes, 30)); ?></div>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                                <?php echo e($peca->quantidade); ?>
+                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-gray-100 text-gray-800">
+                                                <?php echo e($peca->codigo_qr); ?>
 
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <input type="number" 
-                                                   name="pecas[<?php echo e($peca->id); ?>][quantidade_empacotada]"
-                                                   value="<?php echo e(old('pecas.'.$peca->id.'.quantidade_empacotada', $peca->quantidade_empacotada ?: $peca->quantidade)); ?>"
-                                                   min="0" 
-                                                   max="<?php echo e($peca->quantidade); ?>"
+                                            <input type="number"
+                                                   name="pecas_individuais[<?php echo e($peca->id); ?>][quantidade]"
+                                                   value="<?php echo e(old('pecas_individuais.'.$peca->id.'.quantidade', $peca->quantidade)); ?>"
+                                                   min="1"
                                                    class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <input type="number" 
-                                                   name="pecas[<?php echo e($peca->id); ?>][peso_empacotado]"
-                                                   value="<?php echo e(old('pecas.'.$peca->id.'.peso_empacotado', $peca->peso_empacotado ?: $peca->peso)); ?>"
-                                                   step="0.01"
+                                            <input type="number"
+                                                   name="pecas_individuais[<?php echo e($peca->id); ?>][peso]"
+                                                   value="<?php echo e(old('pecas_individuais.'.$peca->id.'.peso', number_format($peca->peso, 3, '.', ''))); ?>"
+                                                   step="0.001"
                                                    min="0"
                                                    class="w-20 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="text-gray-400 text-sm">Original</span>
+                                            <?php if(str_contains($peca->observacoes, 'Peça empacotada')): ?>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    Original
+                                                </span>
+                                            <?php elseif(str_contains($peca->observacoes, 'Peça duplicada')): ?>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    📋 Duplicada
+                                                </span>
+                                            <?php elseif(str_contains($peca->observacoes, 'Peça extra')): ?>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                    ✨ Extra
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    Processada
+                                                </span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
