@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Empacotamento;
+use App\Models\EmpacotamentoPeca;
 
 class QRCodeController extends Controller
 {
@@ -22,6 +23,27 @@ class QRCodeController extends Controller
         }
 
         return view('qrcodes.rastrear', compact('empacotamento'));
+    }
+
+    /**
+     * Rastrear peça individual por QR Code
+     */
+    public function rastrearPeca($codigo)
+    {
+        $empacotamentoPeca = EmpacotamentoPeca::where('codigo_qr', $codigo)
+                                           ->with([
+                                               'empacotamento.coleta.estabelecimento',
+                                               'empacotamento.usuarioEmpacotamento',
+                                               'empacotamento.status',
+                                               'tipo'
+                                           ])
+                                           ->first();
+
+        if (!$empacotamentoPeca) {
+            return view('qrcodes.nao-encontrado', compact('codigo'));
+        }
+
+        return view('qrcodes.rastrear-peca', compact('empacotamentoPeca'));
     }
 
     /**

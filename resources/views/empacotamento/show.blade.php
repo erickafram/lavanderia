@@ -305,6 +305,74 @@
                 </div>
             </div>
 
+            <!-- QR Codes Individuais das Peças -->
+            @if($empacotamento->pecasIndividuais->count() > 0)
+                <div id="qr-codes-pecas" class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h3a1 1 0 011 1v2h4a1 1 0 011 1v3a1 1 0 01-1 1h-2v9a1 1 0 01-1 1H8a1 1 0 01-1-1V9H5a1 1 0 01-1-1V5a1 1 0 011-1h2z"></path>
+                            </svg>
+                            QR Codes das Peças
+                            <span class="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                {{ $empacotamento->pecasIndividuais->count() }}
+                            </span>
+                        </h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            @foreach($empacotamento->pecasIndividuais as $peca)
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
+                                    <div class="text-center">
+                                        <div class="mb-3">
+                                            {!! QrCode::size(100)->generate($peca->codigo_qr) !!}
+                                        </div>
+                                        <div class="text-sm font-mono font-bold text-purple-600 mb-2">
+                                            {{ $peca->codigo_qr }}
+                                        </div>
+                                        <div class="text-sm font-semibold text-gray-900">
+                                            {{ $peca->tipo->nome }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 mb-1">
+                                            {{ $peca->tipo->categoria }}
+                                        </div>
+                                        <div class="text-sm text-gray-700">
+                                            <strong>{{ $peca->quantidade }}</strong> peça{{ $peca->quantidade > 1 ? 's' : '' }}
+                                        </div>
+                                        @if($peca->peso > 0)
+                                            <div class="text-xs text-gray-500">
+                                                {{ number_format($peca->peso, 3, ',', '.') }} kg
+                                            </div>
+                                        @endif
+                                        <div class="mt-3">
+                                            <a href="{{ route('qrcodes.rastrear-peca', $peca->codigo_qr) }}" 
+                                               class="inline-flex items-center px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-medium rounded-full transition-colors duration-200"
+                                               target="_blank">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                                </svg>
+                                                Rastrear
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <!-- Ações para imprimir todos os QR codes das peças -->
+                        <div class="mt-4 text-center border-t border-gray-200 pt-4">
+                            <button onclick="imprimirQRCodesPecas()" 
+                                    class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                </svg>
+                                Imprimir QR Codes das Peças
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Informações de Entrega -->
             @if($empacotamento->status->nome === 'Entregue')
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -463,6 +531,74 @@ function concluirEmpacotamento() {
             alert('Erro ao concluir empacotamento');
         });
     }
+}
+
+function imprimirQRCodesPecas() {
+    // Criar uma nova janela para impressão dos QR codes das peças
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    
+    let content = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>QR Codes das Peças - {{ $empacotamento->codigo_qr }}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+                .qr-item { 
+                    border: 1px solid #ddd; 
+                    padding: 15px; 
+                    text-align: center; 
+                    border-radius: 8px; 
+                    page-break-inside: avoid;
+                }
+                .qr-code { margin-bottom: 10px; }
+                .codigo { font-family: monospace; font-weight: bold; margin-bottom: 10px; }
+                .tipo { font-weight: bold; margin-bottom: 5px; }
+                .info { font-size: 14px; color: #666; }
+                @media print {
+                    body { margin: 10px; }
+                    .grid { gap: 15px; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>QR Codes das Peças</h2>
+                <p><strong>Empacotamento:</strong> {{ $empacotamento->codigo_qr }}</p>
+                <p><strong>Estabelecimento:</strong> {{ $empacotamento->coleta->estabelecimento->razao_social }}</p>
+                <p><strong>Data:</strong> {{ $empacotamento->data_empacotamento->format('d/m/Y H:i') }}</p>
+            </div>
+            <div class="grid">`;
+    
+    @foreach($empacotamento->pecasIndividuais as $peca)
+        content += `
+            <div class="qr-item">
+                <div class="qr-code">
+                    {!! addslashes(QrCode::size(120)->generate($peca->codigo_qr)) !!}
+                </div>
+                <div class="codigo">{{ $peca->codigo_qr }}</div>
+                <div class="tipo">{{ $peca->tipo->nome }}</div>
+                <div class="info">{{ $peca->tipo->categoria }}</div>
+                <div class="info">{{ $peca->quantidade }} peça{{ $peca->quantidade > 1 ? 's' : '' }}</div>
+                @if($peca->peso > 0)
+                    <div class="info">{{ number_format($peca->peso, 3, ',', '.') }} kg</div>
+                @endif
+            </div>`;
+    @endforeach
+    
+    content += `
+            </div>
+        </body>
+        </html>`;
+    
+    printWindow.document.write(content);
+    printWindow.document.close();
+    
+    printWindow.onload = function() {
+        printWindow.print();
+    };
 }
 </script>
 @endpush

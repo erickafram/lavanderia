@@ -154,6 +154,7 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
     // QR Codes
     Route::prefix('qrcodes')->name('qrcodes.')->group(function () {
         Route::get('/{codigo}', [QRCodeController::class, 'rastrear'])->name('rastrear');
+        Route::get('/peca/{codigo}', [QRCodeController::class, 'rastrearPeca'])->name('rastrear-peca');
         Route::get('/gerar/{empacotamento_id}', [QRCodeController::class, 'gerar'])->name('gerar');
     });
 

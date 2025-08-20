@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Empacotamento;
+use App\Models\EmpacotamentoPeca;
 use App\Models\Coleta;
 use App\Models\ColetaPeca;
 use App\Models\Usuario;
@@ -20,7 +21,14 @@ class EmpacotamentoController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Empacotamento::with(['coleta.estabelecimento', 'usuarioEmpacotamento', 'motorista', 'status'])
+        $query = Empacotamento::with([
+                                  'coleta.estabelecimento', 
+                                  'coleta.pecas', 
+                                  'pecasIndividuais',
+                                  'usuarioEmpacotamento', 
+                                  'motorista', 
+                                  'status'
+                              ])
                               ->whereHas('coleta'); // Apenas empacotamentos com coleta válida
 
         // Filtros
@@ -169,6 +177,50 @@ class EmpacotamentoController extends Controller
                         'quantidade_empacotada' => $dadosEmpacotamento['quantidade_empacotada'] ?? 0,
                         'peso_empacotado' => $dadosEmpacotamento['peso_empacotado'] ?? 0,
                     ]);
+
+                    // Criar peça individual do empacotamento com QR code
+                    if (($dadosEmpacotamento['quantidade_empacotada'] ?? 0) > 0) {
+                        EmpacotamentoPeca::create([
+                            'empacotamento_id' => $empacotamento->id,
+                            'tipo_id' => $coletaPeca->tipo_id,
+                            'quantidade' => $dadosEmpacotamento['quantidade_empacotada'],
+                            'peso' => $dadosEmpacotamento['peso_empacotado'] ?? 0,
+                            'observacoes' => "Peça empacotada - Qtd. original: {$coletaPeca->quantidade}"
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // Processar peças duplicadas (conferência de quantidade)
+        if ($request->has('pecas_duplicadas')) {
+            foreach ($request->pecas_duplicadas as $dadosDuplicada) {
+                $coletaPecaOriginal = $coleta->pecas->find($dadosDuplicada['peca_original_id']);
+                if ($coletaPecaOriginal && ($dadosDuplicada['quantidade_empacotada'] ?? 0) > 0) {
+                    // Criar peça individual duplicada do empacotamento com QR code
+                    EmpacotamentoPeca::create([
+                        'empacotamento_id' => $empacotamento->id,
+                        'tipo_id' => $coletaPecaOriginal->tipo_id,
+                        'quantidade' => $dadosDuplicada['quantidade_empacotada'],
+                        'peso' => $dadosDuplicada['peso_empacotado'] ?? 0,
+                        'observacoes' => "Peça duplicada - Baseada na peça original ID: {$coletaPecaOriginal->id}"
+                    ]);
+                }
+            }
+        }
+
+        // Processar peças extras (conferência de quantidade)
+        if ($request->has('pecas_extras')) {
+            foreach ($request->pecas_extras as $dadosExtra) {
+                if (!empty($dadosExtra['tipo_id']) && ($dadosExtra['quantidade'] ?? 0) > 0) {
+                    // Criar peça individual extra do empacotamento com QR code
+                    EmpacotamentoPeca::create([
+                        'empacotamento_id' => $empacotamento->id,
+                        'tipo_id' => $dadosExtra['tipo_id'],
+                        'quantidade' => $dadosExtra['quantidade'],
+                        'peso' => $dadosExtra['peso'] ?? 0,
+                        'observacoes' => 'Peça extra - Não estava na coleta original'
+                    ]);
                 }
             }
         }
@@ -182,6 +234,7 @@ class EmpacotamentoController extends Controller
             // Criar novas peças baseadas no empacotamento
             foreach ($request->novas_pecas as $novaPeca) {
                 if (!empty($novaPeca['tipo_id']) && !empty($novaPeca['quantidade'])) {
+                    // Criar peça na coleta
                     ColetaPeca::create([
                         'coleta_id' => $coleta->id,
                         'tipo_id' => $novaPeca['tipo_id'],
@@ -190,6 +243,15 @@ class EmpacotamentoController extends Controller
                         'quantidade_empacotada' => $novaPeca['quantidade'],
                         'peso_empacotado' => 0,
                         'observacoes' => 'Tipos definidos no empacotamento (coleta foi por peso total)'
+                    ]);
+
+                    // Criar peça individual do empacotamento com QR code
+                    EmpacotamentoPeca::create([
+                        'empacotamento_id' => $empacotamento->id,
+                        'tipo_id' => $novaPeca['tipo_id'],
+                        'quantidade' => $novaPeca['quantidade'],
+                        'peso' => $novaPeca['peso'] ?? 0,
+                        'observacoes' => 'Peça empacotada - Coleta por peso total'
                     ]);
                 }
             }
@@ -204,6 +266,7 @@ class EmpacotamentoController extends Controller
         $empacotamento = Empacotamento::with([
             'coleta.estabelecimento',
             'coleta.pecas.tipo',
+            'pecasIndividuais.tipo',
             'usuarioEmpacotamento',
             'motorista',
             'status'

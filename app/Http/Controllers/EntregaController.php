@@ -39,7 +39,7 @@ class EntregaController extends Controller
             ->get();
 
         // Empacotamentos entregues hoje (com este motorista)
-        $empacotamentosEntregues = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
+        $empacotamentosEntregues = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega.motoristaEntrega'])
             ->whereHas('entrega', function($query) use ($motorista) {
                 $query->where('motorista_entrega_id', $motorista->id)
                       ->whereHas('status', function($subQuery) {

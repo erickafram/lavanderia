@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'Dashboard do Motorista'); ?>
 
 <?php $__env->startPush('scripts'); ?>
@@ -8,7 +10,14 @@
     <!-- Header -->
     <div class="mb-4">
         <h1 class="text-2xl font-bold text-gray-900">Dashboard do Motorista</h1>
-        <p class="text-gray-600 text-sm">Gerencie suas entregas</p>
+        <p class="text-gray-600 text-sm">Gerencie as sacolas individuais para entrega</p>
+        <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-blue-800 text-sm">
+                <span class="font-medium">📦 Nova funcionalidade:</span> 
+                Cada empacotamento contém várias sacolas (uma para cada tipo de peça). 
+                Gerencie cada sacola individualmente através dos QR codes.
+            </p>
+        </div>
     </div>
 
     <!-- Cards de Estatísticas - Compactos -->
@@ -21,8 +30,9 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <p class="text-xs font-medium text-gray-600">Prontos</p>
-                    <p class="text-xl font-bold text-gray-900"><?php echo e($prontos); ?></p>
+                    <p class="text-xs font-medium text-gray-600">Sacolas Prontas</p>
+                    <p class="text-xl font-bold text-gray-900"><?php echo e($totalSacolasProntas ?? 0); ?></p>
+                    <p class="text-xs text-gray-500"><?php echo e($prontos); ?> empacotamentos</p>
                 </div>
             </div>
         </div>
@@ -35,8 +45,9 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <p class="text-xs font-medium text-gray-600">Em Trânsito</p>
-                    <p class="text-xl font-bold text-gray-900"><?php echo e($emTransito); ?></p>
+                    <p class="text-xs font-medium text-gray-600">Sacolas em Trânsito</p>
+                    <p class="text-xl font-bold text-gray-900"><?php echo e($totalSacolasTransito ?? 0); ?></p>
+                    <p class="text-xs text-gray-500"><?php echo e($emTransito); ?> empacotamentos</p>
                 </div>
             </div>
         </div>
@@ -78,11 +89,11 @@
             <nav class="-mb-px flex space-x-2 px-4">
                 <button onclick="showMainTab('prontos')" id="tab-prontos"
                         class="main-tab-button py-3 px-4 border-b-2 border-green-500 font-medium text-sm text-green-600">
-                    📦 Prontos (<?php echo e($prontos); ?>)
+                    📦 Sacolas Prontas (<?php echo e($totalSacolasProntas ?? 0); ?>)
                 </button>
                 <button onclick="showMainTab('transito')" id="tab-transito"
                         class="main-tab-button py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
-                    🚚 Em Trânsito (<?php echo e($emTransito); ?>)
+                    🚚 Sacolas em Trânsito (<?php echo e($totalSacolasTransito ?? 0); ?>)
                 </button>
                 <button onclick="showMainTab('entregues')" id="tab-entregues"
                         class="main-tab-button py-3 px-4 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300">
@@ -98,62 +109,230 @@
             <!-- Prontos para Entrega -->
             <div id="content-prontos" class="main-tab-content hidden">
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📦 Empacotamentos Prontos para Entrega</h3>
-                    <p class="text-gray-600 text-sm">Confirme a saída destes empacotamentos para entrega</p>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📦 Sacolas Prontas para Entrega</h3>
+                    <p class="text-gray-600 text-sm">Confirme a saída de cada sacola individualmente - cada sacola contém um tipo específico de peça</p>
                 </div>
                 <?php $__empty_1 = true; $__currentLoopData = $empacotamentosProntos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $empacotamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="border border-gray-200 rounded-lg p-3 mb-3">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h3 class="font-bold text-base"><?php echo e($empacotamento->codigo_qr); ?></h3>
-                                <p class="text-blue-600 font-medium text-sm"><?php echo e($empacotamento->status->nome); ?></p>
-                                <?php if($empacotamento->coleta && $empacotamento->coleta->estabelecimento): ?>
-                                    <p class="text-gray-900 font-medium text-sm"><?php echo e(Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30)); ?></p>
-                                <?php else: ?>
-                                    <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
-                                <?php endif; ?>
-                                <p class="text-gray-600 text-xs"><?php echo e($empacotamento->data_empacotamento->format('d/m/Y H:i')); ?></p>
+                    <?php if($empacotamento->pecasIndividuais && $empacotamento->pecasIndividuais->count() > 0): ?>
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
+                            <!-- Cabeçalho do Empacotamento -->
+                            <div class="flex items-start justify-between mb-3 pb-3 border-b border-gray-300">
+                                <div>
+                                    <h4 class="font-bold text-base text-gray-900">
+                                        🏢 <?php echo e($empacotamento->coleta?->estabelecimento?->nome_fantasia ?? $empacotamento->coleta?->estabelecimento?->razao_social ?? 'Estabelecimento não encontrado'); ?>
+
+                                    </h4>
+                                    <p class="text-gray-600 text-sm">
+                                        <span class="font-medium">Empacotamento:</span> <?php echo e($empacotamento->codigo_qr); ?>
+
+                                    </p>
+                                    <p class="text-gray-500 text-xs"><?php echo e($empacotamento->data_empacotamento->format('d/m/Y H:i')); ?></p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <?php echo e($empacotamento->pecasIndividuais->count()); ?> sacola<?php echo e($empacotamento->pecasIndividuais->count() > 1 ? 's' : ''); ?>
+
+                                    </span>
+                                </div>
                             </div>
-                            <button onclick="confirmarSaida(<?php echo e($empacotamento->id); ?>)"
-                                    class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 ml-2">
-                                Confirmar Saída
-                            </button>
+
+                            <!-- Sacolas (Peças Individuais) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <?php $__currentLoopData = $empacotamento->pecasIndividuais; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-1">
+                                                <h5 class="font-semibold text-sm text-gray-900">
+                                                    🏷️ <?php echo e($peca->tipo->nome); ?>
+
+                                                </h5>
+                                                <p class="text-xs text-gray-500 mb-1"><?php echo e($peca->tipo->categoria); ?></p>
+                                                <p class="text-xs text-gray-600">
+                                                    <span class="font-medium">Qtd:</span> <?php echo e($peca->quantidade); ?> peça<?php echo e($peca->quantidade > 1 ? 's' : ''); ?>
+
+                                                </p>
+                                                <?php if($peca->peso > 0): ?>
+                                                    <p class="text-xs text-gray-600">
+                                                        <span class="font-medium">Peso:</span> <?php echo e(number_format($peca->peso, 3, ',', '.')); ?> kg
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="text-center bg-gray-100 rounded-lg p-2">
+                                                <div class="text-xs font-mono font-bold text-purple-600 mb-1">
+                                                    <?php echo e($peca->codigo_qr); ?>
+
+                                                </div>
+                                                <div class="text-xs text-gray-500">QR Code da Sacola</div>
+                                            </div>
+                                        </div>
+
+                                        <button onclick="confirmarSaidaSacola('<?php echo e($peca->codigo_qr); ?>', '<?php echo e($peca->tipo->nome); ?>', <?php echo e($empacotamento->id); ?>)"
+                                                class="w-full px-3 py-2 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors">
+                                            🚚 Confirmar Saída
+                                        </button>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+
+                            <!-- Ação em lote para o empacotamento completo -->
+                            <div class="mt-3 pt-3 border-t border-gray-300">
+                                <button onclick="confirmarSaidaCompleta(<?php echo e($empacotamento->id); ?>)"
+                                        class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                                    ✅ Confirmar Saída de Todas as Sacolas do Empacotamento
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    <?php else: ?>
+                        <!-- Empacotamento sem peças individuais (sistema legado) -->
+                        <div class="border border-gray-200 rounded-lg p-3 mb-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-base"><?php echo e($empacotamento->codigo_qr); ?></h3>
+                                    <p class="text-blue-600 font-medium text-sm"><?php echo e($empacotamento->status->nome); ?></p>
+                                    <?php if($empacotamento->coleta && $empacotamento->coleta->estabelecimento): ?>
+                                        <p class="text-gray-900 font-medium text-sm"><?php echo e(Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30)); ?></p>
+                                    <?php else: ?>
+                                        <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
+                                    <?php endif; ?>
+                                    <p class="text-gray-600 text-xs"><?php echo e($empacotamento->data_empacotamento->format('d/m/Y H:i')); ?></p>
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            ⚠️ Empacotamento Legado (sem sacolas individuais)
+                                        </span>
+                                    </div>
+                                </div>
+                                <button onclick="confirmarSaida(<?php echo e($empacotamento->id); ?>)"
+                                        class="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 ml-2">
+                                    Confirmar Saída
+                                </button>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <p class="text-gray-500 text-center py-6 text-sm">Nenhum empacotamento pronto para entrega</p>
+                    <div class="text-center py-12">
+                        <div class="text-gray-400 text-6xl mb-4">📦</div>
+                        <p class="text-gray-500 text-lg">Nenhuma sacola pronta para entrega</p>
+                        <p class="text-gray-400 text-sm">As sacolas aparecerão aqui quando os empacotamentos estiverem prontos</p>
+                    </div>
                 <?php endif; ?>
             </div>
 
             <!-- Em Trânsito -->
             <div id="content-transito" class="main-tab-content hidden">
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">🚚 Empacotamentos Em Trânsito</h3>
-                    <p class="text-gray-600 text-sm">Confirme a entrega destes empacotamentos com assinatura</p>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">🚚 Sacolas Em Trânsito</h3>
+                    <p class="text-gray-600 text-sm">Confirme a entrega de cada empacotamento completo com assinatura</p>
                 </div>
                 <?php $__empty_1 = true; $__currentLoopData = $empacotamentosTransito; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $empacotamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <div class="border border-gray-200 rounded-lg p-3 mb-3">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h3 class="font-bold text-base"><?php echo e($empacotamento->codigo_qr); ?></h3>
-                                <p class="text-yellow-600 font-medium text-sm"><?php echo e($empacotamento->status->nome); ?></p>
-                                <?php if($empacotamento->coleta && $empacotamento->coleta->estabelecimento): ?>
-                                    <p class="text-gray-900 font-medium text-sm"><?php echo e(Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30)); ?></p>
-                                <?php else: ?>
-                                    <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
-                                <?php endif; ?>
-                                <?php if($empacotamento->entrega && $empacotamento->entrega->data_saida): ?>
-                                    <p class="text-gray-600 text-xs">Saída: <?php echo e($empacotamento->entrega->data_saida->format('d/m/Y H:i')); ?></p>
-                                <?php endif; ?>
+                    <?php if($empacotamento->pecasIndividuais && $empacotamento->pecasIndividuais->count() > 0): ?>
+                        <div class="border border-yellow-200 rounded-lg p-4 mb-4 bg-yellow-50">
+                            <!-- Cabeçalho do Empacotamento -->
+                            <div class="flex items-start justify-between mb-3 pb-3 border-b border-yellow-300">
+                                <div>
+                                    <h4 class="font-bold text-base text-gray-900">
+                                        🏢 <?php echo e($empacotamento->coleta?->estabelecimento?->nome_fantasia ?? $empacotamento->coleta?->estabelecimento?->razao_social ?? 'Estabelecimento não encontrado'); ?>
+
+                                    </h4>
+                                    <p class="text-gray-600 text-sm">
+                                        <span class="font-medium">Empacotamento:</span> <?php echo e($empacotamento->codigo_qr); ?>
+
+                                    </p>
+                                    <?php if($empacotamento->entrega && $empacotamento->entrega->data_saida): ?>
+                                        <p class="text-gray-500 text-xs">Saída: <?php echo e($empacotamento->entrega->data_saida->format('d/m/Y H:i')); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        🚚 <?php echo e($empacotamento->pecasIndividuais->count()); ?> sacola<?php echo e($empacotamento->pecasIndividuais->count() > 1 ? 's' : ''); ?> em trânsito
+                                    </span>
+                                </div>
                             </div>
-                            <button onclick="abrirModalEntrega(<?php echo e($empacotamento->id); ?>, '<?php echo e($empacotamento->codigo_qr); ?>')"
-                                    class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 ml-2">
-                                Confirmar Entrega
-                            </button>
+
+                            <!-- Sacolas (Peças Individuais) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                                <?php $__currentLoopData = $empacotamento->pecasIndividuais; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $peca): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="bg-white border border-yellow-200 rounded-lg p-3">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-1">
+                                                <h5 class="font-semibold text-sm text-gray-900">
+                                                    🏷️ <?php echo e($peca->tipo->nome); ?>
+
+                                                </h5>
+                                                <p class="text-xs text-gray-500 mb-1"><?php echo e($peca->tipo->categoria); ?></p>
+                                                <p class="text-xs text-gray-600">
+                                                    <span class="font-medium">Qtd:</span> <?php echo e($peca->quantidade); ?> peça<?php echo e($peca->quantidade > 1 ? 's' : ''); ?>
+
+                                                </p>
+                                                <?php if($peca->peso > 0): ?>
+                                                    <p class="text-xs text-gray-600">
+                                                        <span class="font-medium">Peso:</span> <?php echo e(number_format($peca->peso, 3, ',', '.')); ?> kg
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-2">
+                                            <div class="text-center bg-purple-100 rounded-lg p-2">
+                                                <div class="text-xs font-mono font-bold text-purple-600 mb-1">
+                                                    <?php echo e($peca->codigo_qr); ?>
+
+                                                </div>
+                                                <div class="text-xs text-purple-600">
+                                                    <span class="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-purple-200">
+                                                        ✅ Em trânsito
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+
+                            <!-- Ação para confirmar entrega do empacotamento completo -->
+                            <div class="mt-3 pt-3 border-t border-yellow-300">
+                                <button onclick="abrirModalEntrega(<?php echo e($empacotamento->id); ?>, '<?php echo e($empacotamento->codigo_qr); ?>')"
+                                        class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
+                                    ✅ Confirmar Entrega Completa (Todas as Sacolas)
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    <?php else: ?>
+                        <!-- Empacotamento sem peças individuais (sistema legado) -->
+                        <div class="border border-gray-200 rounded-lg p-3 mb-3">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-base"><?php echo e($empacotamento->codigo_qr); ?></h3>
+                                    <p class="text-yellow-600 font-medium text-sm"><?php echo e($empacotamento->status->nome); ?></p>
+                                    <?php if($empacotamento->coleta && $empacotamento->coleta->estabelecimento): ?>
+                                        <p class="text-gray-900 font-medium text-sm"><?php echo e(Str::limit($empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social, 30)); ?></p>
+                                    <?php else: ?>
+                                        <p class="text-red-600 font-medium text-sm">Estabelecimento não encontrado</p>
+                                    <?php endif; ?>
+                                    <?php if($empacotamento->entrega && $empacotamento->entrega->data_saida): ?>
+                                        <p class="text-gray-600 text-xs">Saída: <?php echo e($empacotamento->entrega->data_saida->format('d/m/Y H:i')); ?></p>
+                                    <?php endif; ?>
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            ⚠️ Empacotamento Legado
+                                        </span>
+                                    </div>
+                                </div>
+                                <button onclick="abrirModalEntrega(<?php echo e($empacotamento->id); ?>, '<?php echo e($empacotamento->codigo_qr); ?>')"
+                                        class="px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 ml-2">
+                                    Confirmar Entrega
+                                </button>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                    <p class="text-gray-500 text-center py-6 text-sm">Nenhum empacotamento em trânsito</p>
+                    <div class="text-center py-12">
+                        <div class="text-gray-400 text-6xl mb-4">🚚</div>
+                        <p class="text-gray-500 text-lg">Nenhuma sacola em trânsito</p>
+                        <p class="text-gray-400 text-sm">As sacolas aparecerão aqui após confirmarem a saída</p>
+                    </div>
                 <?php endif; ?>
             </div>
 
@@ -194,20 +373,27 @@
                                 <?php if($empacotamento->entrega): ?>
                                     <div class="space-y-1 text-sm">
                                         <p class="text-gray-600">
-                                            <span class="font-medium">🕐 Data/Hora:</span> 
+                                            <span class="font-medium">🕐 Data/Hora:</span>
                                             <?php echo e($empacotamento->entrega->data_entrega->format('d/m/Y H:i')); ?>
 
                                         </p>
+                                        <?php if($empacotamento->entrega->motoristaEntrega): ?>
+                                            <p class="text-gray-600">
+                                                <span class="font-medium">🚚 Motorista:</span>
+                                                <?php echo e($empacotamento->entrega->motoristaEntrega->nome); ?>
+
+                                            </p>
+                                        <?php endif; ?>
                                         <?php if($empacotamento->entrega->nome_recebedor): ?>
                                             <p class="text-gray-600">
-                                                <span class="font-medium">👤 Recebido por:</span> 
+                                                <span class="font-medium">👤 Recebido por:</span>
                                                 <?php echo e($empacotamento->entrega->nome_recebedor); ?>
 
                                             </p>
                                         <?php endif; ?>
                                         <?php if($empacotamento->entrega->observacoes): ?>
                                             <p class="text-gray-600">
-                                                <span class="font-medium">📝 Observações:</span> 
+                                                <span class="font-medium">📝 Observações:</span>
                                                 <?php echo e(Str::limit($empacotamento->entrega->observacoes, 100)); ?>
 
                                             </p>
@@ -422,6 +608,43 @@ function showMainTab(tabName) {
 
 
 
+// Função para confirmar saída de sacola individual
+function confirmarSaidaSacola(codigoQR, tipoPeca, empacotamentoId) {
+    if (!confirm(`Confirmar saída da sacola:\n🏷️ ${tipoPeca}\n📦 QR: ${codigoQR}\n\nEsta ação irá marcar apenas esta sacola como "em trânsito".`)) return;
+    
+    // Por enquanto, vamos confirmar a saída do empacotamento inteiro
+    // TODO: Implementar lógica individual por sacola no futuro se necessário
+    confirmarSaidaCompleta(empacotamentoId);
+}
+
+// Função para confirmar saída de todas as sacolas do empacotamento
+function confirmarSaidaCompleta(empacotamentoId) {
+    if (!confirm('Confirmar saída de TODAS as sacolas deste empacotamento para entrega?')) return;
+    
+    fetch('<?php echo e(route("motorista.confirmar-saida")); ?>', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ empacotamento_id: empacotamentoId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message + '\n\n🚚 Todas as sacolas do empacotamento estão agora em trânsito.');
+            location.reload();
+        } else {
+            alert('❌ Erro ao confirmar saída');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('❌ Erro ao confirmar saída');
+    });
+}
+
+// Função para confirmar saída (sistema legado)
 function confirmarSaida(empacotamentoId) {
     if (!confirm('Confirmar saída para entrega?')) return;
     

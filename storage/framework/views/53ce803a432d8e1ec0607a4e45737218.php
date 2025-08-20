@@ -114,16 +114,16 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código QR</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coleta</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estabelecimento</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peças</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motorista</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <?php $__currentLoopData = $empacotamentos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $empacotamento): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <tr class="hover:bg-gray-50 cursor-pointer transition-colors duration-200" 
-                                onclick="window.location.href='<?php echo e(route('empacotamento.show', $empacotamento->id)); ?>'"
-                                title="Clique para ver detalhes">
+                            <tr class="hover:bg-gray-50 transition-colors duration-200">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="text-sm font-medium text-gray-900"><?php echo e($empacotamento->codigo_qr); ?></div>
@@ -147,6 +147,30 @@
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center space-x-2">
+                                        <?php if($empacotamento->coleta && $empacotamento->coleta->pecas): ?>
+                                            <?php
+                                                $totalPecas = $empacotamento->coleta->pecas->sum(function($p) { 
+                                                    return $p->quantidade_empacotada > 0 ? $p->quantidade_empacotada : $p->quantidade; 
+                                                });
+                                                $tiposPecas = $empacotamento->coleta->pecas->count();
+                                                $pecasIndividuais = $empacotamento->pecasIndividuais ? $empacotamento->pecasIndividuais->count() : 0;
+                                            ?>
+                                            <div class="text-sm text-gray-900">
+                                                <div class="font-medium"><?php echo e($totalPecas); ?> peças</div>
+                                                <div class="text-xs text-gray-500"><?php echo e($tiposPecas); ?> tipos</div>
+                                            </div>
+                                            <?php if($pecasIndividuais > 0): ?>
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                    <?php echo e($pecasIndividuais); ?> QR
+                                                </span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <div class="text-sm text-gray-500">-</div>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
                                           style="background-color: <?php echo e($empacotamento->status->cor); ?>20; color: <?php echo e($empacotamento->status->cor); ?>;">
                                         <?php echo e($empacotamento->status->nome); ?>
@@ -162,6 +186,38 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900"><?php echo e($empacotamento->data_empacotamento->format('d/m/Y')); ?></div>
                                     <div class="text-xs text-gray-500"><?php echo e($empacotamento->data_empacotamento->format('H:i')); ?></div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center space-x-2">
+                                        <a href="<?php echo e(route('empacotamento.show', $empacotamento->id)); ?>" 
+                                           class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
+                                           title="Ver detalhes">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            Ver
+                                        </a>
+                                        <a href="<?php echo e(route('qrcodes.rastrear', $empacotamento->codigo_qr)); ?>" 
+                                           class="inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors duration-200"
+                                           target="_blank"
+                                           title="Abrir rastreamento">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                            QR
+                                        </a>
+                                        <?php if($empacotamento->pecasIndividuais && $empacotamento->pecasIndividuais->count() > 0): ?>
+                                            <button onclick="mostrarQRCodesPecas(<?php echo e($empacotamento->id); ?>)" 
+                                                    class="inline-flex items-center px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-medium rounded transition-colors duration-200"
+                                                    title="Ver QR codes das peças">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h3a1 1 0 011 1v2h4a1 1 0 011 1v3a1 1 0 01-1 1h-2v9a1 1 0 01-1 1H8a1 1 0 01-1-1V9H5a1 1 0 01-1-1V5a1 1 0 011-1h2z"></path>
+                                                </svg>
+                                                Peças
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -194,6 +250,16 @@
         <?php endif; ?>
     </div>
 </div>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+function mostrarQRCodesPecas(empacotamentoId) {
+    // Redirecionar para a página de detalhes do empacotamento
+    // onde os QR codes das peças são exibidos
+    window.open(`<?php echo e(url('empacotamento')); ?>/${empacotamentoId}#qr-codes-pecas`, '_blank');
+}
+</script>
+<?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\wamp64\www\lavanderia\resources\views/empacotamento/index.blade.php ENDPATH**/ ?>

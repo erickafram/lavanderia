@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'Detalhes da Coleta - Sistema de Gestão de Lavanderia'); ?>
 
 <?php $__env->startSection('content'); ?>

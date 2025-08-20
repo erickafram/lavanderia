@@ -95,6 +95,14 @@ class Empacotamento extends Model
     }
 
     /**
+     * Relacionamento com peças individuais do empacotamento
+     */
+    public function pecasIndividuais()
+    {
+        return $this->hasMany(EmpacotamentoPeca::class);
+    }
+
+    /**
      * Boot method para gerar código QR automaticamente
      */
     protected static function boot()

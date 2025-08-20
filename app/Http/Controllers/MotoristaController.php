@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Empacotamento;
+use App\Models\EmpacotamentoPeca;
 use App\Models\Entrega;
 use App\Models\Status;
 use Illuminate\Http\Request;
@@ -29,15 +30,30 @@ class MotoristaController extends Controller
             ->count();
         $total = Empacotamento::count();
         
-        // Buscar empacotamentos prontos para entrega
-        $empacotamentosProntos = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
+        // Buscar empacotamentos prontos para entrega com suas peças individuais
+        $empacotamentosProntos = Empacotamento::with([
+                'coleta.estabelecimento', 
+                'pecasIndividuais.tipo', 
+                'status', 
+                'entrega'
+            ])
             ->whereHas('coleta')
             ->where('status_id', $statusPronto?->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Buscar empacotamentos em trânsito (pode estar no empacotamento OU na entrega)
-        $empacotamentosTransito = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
+        // Contar total de sacolas prontas
+        $totalSacolasProntas = $empacotamentosProntos->sum(function($emp) {
+            return $emp->pecasIndividuais->count();
+        });
+
+        // Buscar empacotamentos em trânsito com suas peças individuais
+        $empacotamentosTransito = Empacotamento::with([
+                'coleta.estabelecimento', 
+                'pecasIndividuais.tipo', 
+                'status', 
+                'entrega'
+            ])
             ->whereHas('coleta')
             ->where(function($query) use ($statusTransito) {
                 // Empacotamento com status "Em Trânsito"
@@ -49,9 +65,14 @@ class MotoristaController extends Controller
             })
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Contar total de sacolas em trânsito
+        $totalSacolasTransito = $empacotamentosTransito->sum(function($emp) {
+            return $emp->pecasIndividuais->count();
+        });
             
         // Buscar entregas realizadas hoje
-        $empacotamentosEntregues = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
+        $empacotamentosEntregues = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega.motoristaEntrega'])
             ->whereHas('coleta')
             ->whereHas('entrega', function($query) use ($statusEntregue, $statusConfirmado) {
                 $query->whereIn('status_id', [$statusEntregue?->id, $statusConfirmado?->id])
@@ -62,7 +83,8 @@ class MotoristaController extends Controller
         
         return view('motorista.dashboard', compact(
             'prontos', 'emTransito', 'entreguesHoje', 'total',
-            'empacotamentosProntos', 'empacotamentosTransito', 'empacotamentosEntregues'
+            'empacotamentosProntos', 'empacotamentosTransito', 'empacotamentosEntregues',
+            'totalSacolasProntas', 'totalSacolasTransito'
         ));
     }
     

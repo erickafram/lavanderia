@@ -213,6 +213,9 @@
                                         @if($empacotamento->entrega && $empacotamento->entrega->data_entrega)
                                             <p class="text-sm text-gray-500">Entregue: {{ $empacotamento->entrega->data_entrega->format('d/m/Y H:i') }}</p>
                                         @endif
+                                        @if($empacotamento->entrega && $empacotamento->entrega->motoristaEntrega)
+                                            <p class="text-sm text-gray-500">Motorista: {{ $empacotamento->entrega->motoristaEntrega->nome }}</p>
+                                        @endif
                                     </div>
                                     <div class="text-right">
                                         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
