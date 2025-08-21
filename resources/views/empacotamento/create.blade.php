@@ -30,6 +30,31 @@
     .btn-duplicate:hover {
         transform: scale(1.05);
     }
+
+    .tipo-peca-container {
+        transition: all 0.3s ease;
+    }
+
+    .tipo-peca-header:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .tipo-peca-content {
+        transition: all 0.3s ease;
+    }
+
+    .linha-empacotamento {
+        transition: all 0.3s ease;
+    }
+
+    .linha-empacotamento:hover {
+        background-color: #f8fafc;
+        border-color: #e2e8f0;
+    }
+
+    .quantidade-linha:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
 </style>
 @endpush
 
@@ -112,36 +137,30 @@
                             @enderror
                         </div>
 
-                        <!-- Seção de Peças da Coleta -->
+                        <!-- Seção de Peças da Coleta - Nova Estrutura Hierárquica -->
                         <div id="secao-pecas-empacotamento" style="display: none;">
                             <div class="border-t border-gray-200 pt-4 mt-4">
                                 <h4 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h5.586a1 1 0 00.707-.293l5.414-5.414a1 1 0 00.293-.707V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                                     </svg>
-                                    <span id="titulo-secao-pecas">Peças da Coleta</span>
+                                    <span id="titulo-secao-pecas">Conferência de Quantidade de Peças</span>
                                 </h4>
-                                <p id="descricao-secao-pecas" class="text-sm text-gray-600 mb-4"></p>
+                                <p id="descricao-secao-pecas" class="text-sm text-gray-600 mb-4">Confira se a quantidade empacotada confere com a quantidade coletada</p>
 
-                                <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200">
-                                        <thead id="cabecalho-tabela-empacotamento" class="bg-gray-50">
-                                            <!-- Cabeçalho será definido via JavaScript -->
-                                        </thead>
-                                        <tbody id="tabela-pecas-empacotamento" class="bg-white divide-y divide-gray-200">
-                                            <!-- Peças serão carregadas via JavaScript -->
-                                        </tbody>
-                                    </table>
+                                <!-- Container dos Tipos de Peças -->
+                                <div id="container-tipos-pecas" class="space-y-4">
+                                    <!-- Os tipos de peças serão carregados via JavaScript -->
                                 </div>
 
-                                <!-- Botão Adicionar (só aparece para coletas por peso) -->
-                                <div id="botao-adicionar-peca" style="display: none;" class="mt-4 text-center">
-                                    <button type="button" onclick="adicionarLinhaPeca()"
-                                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                <!-- Botão Adicionar Peça Extra -->
+                                <div class="mt-6 text-center">
+                                    <button type="button" onclick="adicionarPecaExtra()"
+                                            class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                         </svg>
-                                        Adicionar Tipo de Peça
+                                        Adicionar Peça Extra
                                     </button>
                                 </div>
                             </div>
@@ -292,116 +311,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listener para mudança de coleta
     coletaSelect.addEventListener('change', carregarDadosColeta);
 
-    // Função para carregar tabela de peças do empacotamento
+    // Função para carregar estrutura hierárquica de peças
     function carregarTabelaPecasEmpacotamento(pecas) {
-        // Separar peças por quantidade e por peso
+        const containerTipos = document.getElementById('container-tipos-pecas');
         const pecasPorQuantidade = pecas.filter(peca => peca.quantidade > 0);
-        const temPesoSemTipo = pecas.length === 0; // Coleta só tem peso total, sem tipos
-
-        let html = '';
-        let cabecalho = '';
 
         if (pecasPorQuantidade.length > 0) {
-            // CONFERÊNCIA DE QUANTIDADE (coleta foi por quantidade)
-            tituloSecao.textContent = 'Conferência de Quantidade de Peças';
-            descricaoSecao.textContent = 'Confira se a quantidade empacotada confere com a quantidade coletada';
+            // Limpar container
+            containerTipos.innerHTML = '';
 
-            cabecalho = `
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. da Coleta</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd. Empacotada</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diferença</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                </tr>
-            `;
-
-            pecasPorQuantidade.forEach(function(peca) {
-                html += `
-                    <tr class="peca-row" data-peca-id="${peca.id}">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">${peca.tipo.nome}</div>
-                            <div class="text-sm text-gray-500">${peca.tipo.categoria}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">
-                                <strong>${peca.quantidade}</strong> peças
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
-                                <input type="number" min="0"
-                                       name="pecas[${peca.id}][quantidade_empacotada]"
-                                       value="${peca.quantidade}"
-                                       class="quantidade-empacotada w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       data-original="${peca.quantidade}"
-                                       required>
-                                <input type="hidden" name="pecas[${peca.id}][peso_empacotado]" value="0">
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="diferenca-display text-sm">
-                                <div class="text-green-600 font-medium">✓ Confere</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex space-x-2">
-                                <button type="button" onclick="duplicarPeca(${peca.id})"
-                                        class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
-                                        title="Duplicar esta peça">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                    </svg>
-                                    Duplicar
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-        } else {
-            // CADASTRO DE TIPOS (coleta foi por peso)
-            tituloSecao.textContent = 'Cadastro de Tipos de Peças';
-            descricaoSecao.textContent = 'Informe os tipos, pesos e quantidades das peças empacotadas (coleta foi por peso total)';
-
-            cabecalho = `
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Peça</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                </tr>
-            `;
-
-            // Linha inicial para adicionar Itens
-            html = criarLinhaNovaPeca(0);
-        }
-
-        cabecalhoTabela.innerHTML = cabecalho;
-        tabelaPecasEmpacotamento.innerHTML = html;
-
-        // Mostrar/esconder botão adicionar conforme o tipo de coleta
-        if (pecasPorQuantidade.length > 0) {
-            // Coleta por quantidade - mostrar botão para adicionar peças extras
-            botaoAdicionarPeca.style.display = 'block';
-            const botaoElement = document.querySelector('#botao-adicionar-peca button');
-            if (botaoElement) {
-                botaoElement.textContent = 'Adicionar Peça Extra';
-                botaoElement.onclick = function() { adicionarPecaExtra(); };
-            }
-            // Adicionar event listeners para calcular diferenças
-            document.querySelectorAll('.quantidade-empacotada').forEach(function(input) {
-                input.addEventListener('input', calcularDiferencasQuantidade);
+            // Criar estrutura hierárquica para cada tipo de peça
+            pecasPorQuantidade.forEach(function(peca, index) {
+                const tipoContainer = criarContainerTipoPeca(peca, index);
+                containerTipos.appendChild(tipoContainer);
             });
         } else {
-            // Coleta por peso - mostrar botão normal
-            botaoAdicionarPeca.style.display = 'block';
-            const botaoElement = document.querySelector('#botao-adicionar-peca button');
-            if (botaoElement) {
-                botaoElement.textContent = 'Adicionar Tipo de Peça';
-                botaoElement.onclick = function() { adicionarLinhaPeca(); };
-            }
+            // Para coletas por peso total (sem tipos definidos)
+            containerTipos.innerHTML = `
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="text-sm font-medium text-yellow-800">Coleta por Peso Total</h4>
+                            <p class="text-xs text-yellow-700 mt-1">Esta coleta foi feita por peso total. Defina os tipos e quantidades das peças empacotadas.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
     }
 

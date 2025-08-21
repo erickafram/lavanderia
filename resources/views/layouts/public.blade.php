@@ -52,17 +52,17 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <div class="hidden md:flex items-center space-x-2 bg-green-50 rounded-full px-4 py-2 border border-green-100">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm font-medium text-green-700">Online</span>
+                    <div class="hidden md:flex items-center space-x-2 bg-green-50 rounded-full px-3 py-1 border border-green-100">
+                        <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-medium text-green-700">Ativo</span>
                     </div>
                     <a href="{{ route('login') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-300 font-medium shadow-lg hover:shadow-xl">
-                        <span class="flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-md text-xs">
+                        <span class="flex items-center space-x-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                             </svg>
-                            <span>Acessar Sistema</span>
+                            <span>Sistema</span>
                         </span>
                     </a>
                 </div>
@@ -87,14 +87,14 @@
                         </div>
                         <h3 class="text-xl font-bold">212lavanderia</h3>
                     </div>
-                    <p class="text-gray-300 text-sm leading-relaxed max-w-md">
-                        Sistema inteligente de acompanhamento de coletas em tempo real. 
+                    <p class="text-gray-300 text-xs leading-relaxed max-w-md">
+                        Sistema inteligente de acompanhamento de coletas. 
                         Transparência e qualidade em cada etapa do processo.
                     </p>
                     <div class="flex space-x-4 mt-6">
-                        <div class="flex items-center space-x-2 bg-green-500/20 rounded-full px-3 py-1">
-                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <span class="text-xs font-medium text-green-300">Sistema Online</span>
+                        <div class="flex items-center space-x-2 bg-green-500/20 rounded-full px-2 py-1">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-xs font-medium text-green-300">Sistema Ativo</span>
                         </div>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                         </li>
                         <li class="flex items-center space-x-2">
                             <span class="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                            <span>Acompanhe o status em tempo real</span>
+                            <span>Acompanhe o status</span>
                         </li>
                         <li class="flex items-center space-x-2">
                             <span class="w-1.5 h-1.5 bg-cyan-400 rounded-full"></span>

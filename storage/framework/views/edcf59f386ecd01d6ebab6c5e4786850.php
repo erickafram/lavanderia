@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Dashboard do Motorista'); ?>
 
 <?php $__env->startPush('scripts'); ?>

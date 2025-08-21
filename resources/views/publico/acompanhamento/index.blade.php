@@ -1,107 +1,109 @@
 @extends('layouts.public')
 
-@section('title', 'Acompanhe sua Coleta')
+@section('title', 'Consulte sua Coleta')
 
 @section('content')
-<div class="min-h-screen bg-gray-50">
-    <!-- Hero Section - Sobre a 212lavanderia -->
-    <div class="bg-gradient-to-br from-blue-50 to-white py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-gray-900">
-                    212<span class="text-blue-600">lavanderia</span>
-                </h1>
-                <p class="text-xl md:text-2xl text-gray-700 max-w-4xl mx-auto leading-relaxed mb-8">
-                    Cuidamos das suas roupas com a qualidade e atenção que elas merecem
-                </p>
-                <p class="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                    Há anos oferecendo serviços de lavanderia profissional com tecnologia avançada, 
-                    processos sustentáveis e acompanhamento em tempo real.
-                </p>
-            </div>
-            
-            <!-- Vantagens -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Qualidade Garantida</h3>
-                    <p class="text-gray-600">Tratamento especializado para cada tipo de tecido</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Agilidade</h3>
-                    <p class="text-gray-600">Prazos rápidos e pontualidade na entrega</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Transparência</h3>
-                    <p class="text-gray-600">Acompanhe sua coleta em tempo real</p>
-                </div>
-            </div>
-        </div>
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+    <!-- Background Animation Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div class="absolute top-1/3 left-1/4 w-32 h-32 bg-green-300/20 rounded-full blur-2xl animate-bounce"></div>
     </div>
 
-    <!-- Seção de Consulta - Design Simples -->
-    <div class="bg-white py-16">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Consulte sua Coleta
-                </h2>
-                <p class="text-lg text-gray-600">
-                    Acompanhe o status da sua coleta em tempo real
-                </p>
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen flex flex-col justify-center px-4 sm:px-6 lg:px-8">
+        <div class="max-w-lg mx-auto w-full">
+            <!-- Logo and Title -->
+            <div class="text-center mb-8 animate-fade-in">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                    212<span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">lavanderia</span>
+                </h1>
+                <p class="text-gray-600 text-sm">Consulte o status da sua coleta</p>
             </div>
-            
-            <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+
+            <!-- Estabelecimento Info -->
+            <div class="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-lg rounded-2xl p-4 border border-blue-200/30 animate-fade-in-delay">
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 mb-1">🏢 Para Estabelecimentos</h3>
+                        <p class="text-xs text-gray-700 leading-relaxed">
+                            Digite seu <strong>CNPJ</strong> para ver todas as coletas do seu estabelecimento
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Form -->
+            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-slide-up">
                 <form method="POST" action="{{ route('acompanhamento.buscar') }}" class="space-y-6">
                     @csrf
 
-                    <!-- Mensagens de erro -->
+                    <!-- Messages -->
                     @if(session('error'))
-                        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl">
-                            {{ session('error') }}
+                        <div class="bg-red-50/80 backdrop-blur-sm border border-red-200 text-red-700 px-4 py-3 rounded-2xl animate-shake">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ session('error') }}
+                            </div>
                         </div>
                     @endif
 
                     @if(session('success'))
-                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl">
-                            {{ session('success') }}
+                        <div class="bg-green-50/80 backdrop-blur-sm border border-green-200 text-green-700 px-4 py-3 rounded-2xl animate-bounce">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ session('success') }}
+                            </div>
                         </div>
                     @endif
 
-                    <div class="space-y-4">
-                        <label for="busca" class="block text-lg font-medium text-gray-900">
-                            CNPJ ou Número da Coleta
+                    <!-- Input Field -->
+                    <div class="space-y-3">
+                        <label for="busca" class="block text-sm font-semibold text-gray-900">
+                            <span class="flex items-center">
+                                <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2m5 0h2a2 2 0 002-2V7a2 2 0 00-2-2h-2m-5 4h2.5m0 0L11 9m1.5 2L11 13"></path>
+                                </svg>
+                                CNPJ ou Número da Coleta
+                            </span>
                         </label>
-                        <div class="relative">
+                        <div class="relative group">
                             <input type="text" 
                                    id="busca" 
                                    name="busca" 
                                    value="{{ old('busca') }}"
-                                   class="w-full px-6 py-5 text-lg border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-gray-50 hover:bg-white @error('busca') border-red-500 @enderror"
-                                   placeholder="Digite seu CNPJ ou número da coleta..."
+                                   class="w-full px-4 py-4 text-sm border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-gray-50/50 hover:bg-white group-hover:shadow-lg @error('busca') border-red-500 @enderror placeholder-gray-400"
+                                   placeholder="Digite aqui para consultar..."
                                    required>
-                            <div class="absolute inset-y-0 right-0 pr-6 flex items-center">
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+                                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                         @error('busca')
-                            <div class="flex items-center space-x-2 mt-3 text-red-600">
+                            <div class="flex items-center space-x-2 text-red-600 animate-shake">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
@@ -110,10 +112,11 @@
                         @enderror
                     </div>
 
+                    <!-- Submit Button -->
                     <button type="submit" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl text-lg">
-                        <span class="flex items-center justify-center space-x-3">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-95">
+                        <span class="flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                             <span>Consultar Agora</span>
@@ -121,151 +124,113 @@
                     </button>
                 </form>
                 
-                <!-- Informações adicionais -->
-                <div class="mt-8 pt-8 border-t border-gray-100 text-center">
-                    <p class="text-gray-600 mb-4">Exemplo de formatos aceitos:</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="font-medium text-gray-900">CNPJ</p>
-                            <p class="text-sm text-gray-600">12.345.678/0001-90</p>
+                <!-- Quick Info -->
+                <div class="mt-6 pt-6 border-t border-gray-200/50">
+                    <p class="text-center text-xs text-gray-500 mb-3">Formatos aceitos:</p>
+                    <div class="flex justify-center space-x-4">
+                        <div class="flex items-center space-x-2 bg-gray-100/60 rounded-full px-3 py-1">
+                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span class="text-xs text-gray-700">CNPJ: 12.345.678/0001-90</span>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <p class="font-medium text-gray-900">Número da Coleta</p>
-                            <p class="text-sm text-gray-600">COL-2024-001</p>
+                        <div class="flex items-center space-x-2 bg-gray-100/60 rounded-full px-3 py-1">
+                            <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
+                            <span class="text-xs text-gray-700">Coleta: COL-2024-001</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Como Funciona -->
-    <div class="bg-gray-50 py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                    Como Funciona nosso Serviço
-                </h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Um processo simples, eficiente e totalmente transparente
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="text-center">
-                    <div class="relative mb-8">
-                        <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
-                            </svg>
-                        </div>
-                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <span class="bg-white text-blue-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">1</span>
-                        </div>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Coleta Agendada</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">
-                        Agendamos a coleta das suas peças no horário mais conveniente para você
-                    </p>
-                </div>
-
-                <div class="text-center">
-                    <div class="relative mb-8">
-                        <div class="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                            </svg>
-                        </div>
-                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <span class="bg-white text-green-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">2</span>
-                        </div>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Processamento</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">
-                        Suas peças passam por lavagem profissional, pesagem e empacotamento cuidadoso
-                    </p>
-                </div>
-
-                <div class="text-center">
-                    <div class="relative mb-8">
-                        <div class="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                        </div>
-                        <div class="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <span class="bg-white text-purple-600 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-md">3</span>
-                        </div>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Entrega</h3>
-                    <p class="text-gray-600 leading-relaxed text-lg">
-                        Devolvemos suas peças limpas, organizadas e no prazo combinado
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Nossos Diferenciais -->
-    <div class="bg-white py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                    Por que escolher a 212lavanderia?
-                </h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Comprometidos com a excelência e satisfação dos nossos clientes
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center p-6">
-                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Quick Stats -->
+            <div class="mt-8 grid grid-cols-3 gap-4 animate-fade-in-delay">
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Tecnologia Avançada</h3>
-                    <p class="text-gray-600">Equipamentos modernos para melhor resultado</p>
+                    <p class="text-xs font-semibold text-gray-900">Rápido</p>
+                    <p class="text-xs text-gray-600">Consulta instantânea</p>
                 </div>
                 
-                <div class="text-center p-6">
-                    <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Cuidado Especial</h3>
-                    <p class="text-gray-600">Tratamento personalizado para cada peça</p>
+                    <p class="text-xs font-semibold text-gray-900">Seguro</p>
+                    <p class="text-xs text-gray-600">Dados protegidos</p>
                 </div>
                 
-                <div class="text-center p-6">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Pontualidade</h3>
-                    <p class="text-gray-600">Cumprimos rigorosamente os prazos</p>
-                </div>
-                
-                <div class="text-center p-6">
-                    <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Segurança</h3>
-                    <p class="text-gray-600">Suas peças estão sempre protegidas</p>
+                    <p class="text-xs font-semibold text-gray-900">24/7</p>
+                    <p class="text-xs text-gray-600">Sempre disponível</p>
                 </div>
             </div>
+
+
         </div>
     </div>
 </div>
 
 @push('scripts')
+<style>
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slide-up {
+        from { opacity: 0; transform: translateY(40px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .animate-fade-in {
+        animation: fade-in 0.8s ease-out;
+    }
+    
+    .animate-fade-in-delay {
+        animation: fade-in 0.8s ease-out 0.3s both;
+    }
+    
+    .animate-slide-up {
+        animation: slide-up 0.6s ease-out 0.2s both;
+    }
+    
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    /* Floating animation for background elements */
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    /* Pulse glow effect */
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+    }
+    
+    .group:hover .bg-gradient-to-r {
+        animation: pulse-glow 2s infinite;
+    }
+</style>
+
 <script>
-    // Auto format CNPJ
+    // Enhanced auto format CNPJ with visual feedback
     document.getElementById('busca').addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         
@@ -281,14 +246,56 @@
                 e.target.value = value;
             }
         }
+        
+        // Add visual feedback
+        if (value.length > 0) {
+            e.target.classList.add('border-blue-400');
+            e.target.classList.remove('border-gray-200');
+        } else {
+            e.target.classList.remove('border-blue-400');
+            e.target.classList.add('border-gray-200');
+        }
     });
 
-    // Permitir apenas números, letras, pontos, barras e hífens
+    // Enhanced keypress validation
     document.getElementById('busca').addEventListener('keypress', function(e) {
         const allowedChars = /[0-9A-Za-z.\-\/]/;
         if (!allowedChars.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete') {
             e.preventDefault();
+            // Add shake animation for invalid input
+            e.target.classList.add('animate-shake');
+            setTimeout(() => {
+                e.target.classList.remove('animate-shake');
+            }, 500);
         }
+    });
+    
+    // Focus and blur effects
+    document.getElementById('busca').addEventListener('focus', function(e) {
+        e.target.parentElement.classList.add('ring-4', 'ring-blue-500/20');
+    });
+    
+    document.getElementById('busca').addEventListener('blur', function(e) {
+        e.target.parentElement.classList.remove('ring-4', 'ring-blue-500/20');
+    });
+    
+    // Form submission with loading state
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const button = e.target.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = `
+            <span class="flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Consultando...</span>
+            </span>
+        `;
+        
+        button.disabled = true;
+        button.classList.add('opacity-75');
     });
 </script>
 @endpush

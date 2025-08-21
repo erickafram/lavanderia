@@ -141,7 +141,13 @@ class EmpacotamentoController extends Controller
             ]);
 
             // Processar peças do empacotamento
-            $this->processarPecasEmpacotamento($request, $empacotamento);
+            if ($request->has('pecas') || $request->has('pecas_extras') || $request->has('pecas_duplicadas')) {
+                // Empacotamento com dados de peças (vindo do formulário)
+                $this->processarPecasEmpacotamento($request, $empacotamento);
+            } else {
+                // Empacotamento inicial - criar peças baseadas na coleta
+                $this->criarPecasIniciaisEmpacotamento($empacotamento);
+            }
 
             // Atualizar status da coleta para "Empacotada"
             $statusEmpacotada = Status::where('nome', 'Empacotada')->first();
@@ -150,6 +156,12 @@ class EmpacotamentoController extends Controller
             }
 
             DB::commit();
+
+            // Se foi criação inicial (sem dados de peças), redirecionar para edição
+            if (!$request->has('pecas') && !$request->has('pecas_extras') && !$request->has('pecas_duplicadas')) {
+                return redirect()->route('empacotamento.edit', $empacotamento->id)
+                               ->with('success', 'Empacotamento criado! Agora você pode ajustar as quantidades e dividir as peças conforme necessário.');
+            }
 
             return redirect()->route('empacotamento.show', $empacotamento->id)
                            ->with('success', 'Empacotamento criado com sucesso!');
@@ -263,6 +275,16 @@ class EmpacotamentoController extends Controller
      */
     private function processarPecasIndividuaisEmpacotamento(Request $request, Empacotamento $empacotamento)
     {
+        // Processar lotes removidos
+        if ($request->has('lotes_removidos')) {
+            foreach ($request->lotes_removidos as $pecaId) {
+                $pecaIndividual = EmpacotamentoPeca::find($pecaId);
+                if ($pecaIndividual && $pecaIndividual->empacotamento_id == $empacotamento->id) {
+                    $pecaIndividual->delete();
+                }
+            }
+        }
+
         // Verificar se há peças individuais para atualizar
         if ($request->has('pecas_individuais')) {
             foreach ($request->pecas_individuais as $pecaId => $dadosPeca) {
@@ -274,6 +296,67 @@ class EmpacotamentoController extends Controller
                         'peso' => $dadosPeca['peso'] ?? 0,
                     ]);
                 }
+            }
+        }
+
+        // Processar novos lotes
+        if ($request->has('novos_lotes')) {
+            foreach ($request->novos_lotes as $dadosLote) {
+                EmpacotamentoPeca::create([
+                    'empacotamento_id' => $empacotamento->id,
+                    'tipo_id' => $dadosLote['tipo_id'],
+                    'quantidade' => $dadosLote['quantidade'],
+                    'peso' => $dadosLote['peso'] ?? 0,
+                    'observacoes' => "Lote adicional - Tipo: {$dadosLote['tipo_nome']}"
+                ]);
+            }
+        }
+
+        // Processar peças extras
+        if ($request->has('pecas_extras')) {
+            // Debug: vamos ver o que está chegando
+            \Log::info('Peças extras recebidas:', $request->pecas_extras);
+
+            foreach ($request->pecas_extras as $dadosExtra) {
+                $pecaExtra = EmpacotamentoPeca::create([
+                    'empacotamento_id' => $empacotamento->id,
+                    'tipo_id' => $dadosExtra['tipo_id'],
+                    'quantidade' => $dadosExtra['quantidade'],
+                    'peso' => $dadosExtra['peso'] ?? 0,
+                    'observacoes' => $dadosExtra['observacoes'] ?? "Peça extra - Tipo: {$dadosExtra['tipo_nome']}"
+                ]);
+
+                \Log::info('Peça extra criada:', $pecaExtra->toArray());
+            }
+        } else {
+            \Log::info('Nenhuma peça extra recebida no request');
+        }
+    }
+
+    /**
+     * Criar peças iniciais do empacotamento baseadas na coleta
+     */
+    private function criarPecasIniciaisEmpacotamento(Empacotamento $empacotamento)
+    {
+        $coleta = $empacotamento->coleta;
+
+        // Para cada peça da coleta, criar uma peça individual no empacotamento com quantidade 0
+        foreach ($coleta->pecas as $coletaPeca) {
+            if ($coletaPeca->quantidade > 0) {
+                // Criar peça individual com quantidade 0 (usuário vai preencher)
+                EmpacotamentoPeca::create([
+                    'empacotamento_id' => $empacotamento->id,
+                    'tipo_id' => $coletaPeca->tipo_id,
+                    'quantidade' => 0, // Quantidade 0 por padrão
+                    'peso' => $coletaPeca->peso ?? 0,
+                    'observacoes' => "Lote inicial - Qtd. original da coleta: {$coletaPeca->quantidade} peças"
+                ]);
+
+                // Inicializar quantidade_empacotada como 0 (não empacotou nada ainda)
+                $coletaPeca->update([
+                    'quantidade_empacotada' => 0,
+                    'peso_empacotado' => 0,
+                ]);
             }
         }
     }

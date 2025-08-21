@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Empacotamentos'); ?>
 
 <?php $__env->startSection('content'); ?>

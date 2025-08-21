@@ -203,12 +203,22 @@
                                     {{ $pesagem->data_pesagem->format('d/m/Y H:i') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $pesagem->coleta->numero_coleta }}
-                                    </span>
+                                    @if($pesagem->coleta)
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ $pesagem->coleta->numero_coleta }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Sem Coleta
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {{ Str::limit($pesagem->coleta->estabelecimento->razao_social, 30) }}
+                                    @if($pesagem->coleta && $pesagem->coleta->estabelecimento)
+                                        {{ Str::limit($pesagem->coleta->estabelecimento->razao_social, 30) }}
+                                    @else
+                                        <span class="text-red-500">Estabelecimento não encontrado</span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($pesagem->tipo)

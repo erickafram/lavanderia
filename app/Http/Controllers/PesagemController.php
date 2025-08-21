@@ -21,6 +21,7 @@ class PesagemController extends Controller
     public function index(Request $request)
     {
         $query = Pesagem::with(['coleta.estabelecimento', 'usuario', 'tipo'])
+                        ->whereHas('coleta') // Só pesagens que têm coleta associada
                         ->orderBy('data_pesagem', 'desc');
 
         // Filtros
