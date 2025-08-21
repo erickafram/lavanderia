@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Tempo de geração: 21/08/2025 às 03:29
+-- Tempo de geração: 21/08/2025 às 14:36
 -- Versão do servidor: 9.1.0
 -- Versão do PHP: 8.3.14
 
@@ -31,14 +31,14 @@ DROP TABLE IF EXISTS `anotacoes`;
 CREATE TABLE IF NOT EXISTS `anotacoes` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `usuario_id` bigint UNSIGNED NOT NULL,
-  `modulo` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `pagina` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `pagina_nome` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `categoria` enum('melhorias','alteracoes','exclusoes') COLLATE utf8mb4_unicode_ci NOT NULL,
-  `texto` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `modulo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pagina` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pagina_nome` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `categoria` enum('melhorias','alteracoes','exclusoes') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `texto` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `resolvida` tinyint(1) NOT NULL DEFAULT '0',
   `data_resolucao` timestamp NULL DEFAULT NULL,
-  `observacao_resolucao` text COLLATE utf8mb4_unicode_ci,
+  `observacao_resolucao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -62,11 +62,11 @@ CREATE TABLE IF NOT EXISTS `coletas` (
   `data_agendamento` datetime NOT NULL,
   `data_coleta` datetime DEFAULT NULL,
   `data_conclusao` datetime DEFAULT NULL,
-  `observacoes` text COLLATE utf8mb4_unicode_ci,
-  `acompanhante` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `motivo_cancelamento` text COLLATE utf8mb4_unicode_ci,
+  `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `acompanhante` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `motivo_cancelamento` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `peso_total` decimal(8,2) NOT NULL DEFAULT '0.00',
-  `numero_coleta` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero_coleta` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `coleta_pecas` (
   `peso` decimal(8,2) NOT NULL,
   `quantidade_empacotada` int NOT NULL DEFAULT '0',
   `peso_empacotado` decimal(8,2) NOT NULL DEFAULT '0.00',
-  `observacoes` text COLLATE utf8mb4_unicode_ci,
+  `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -127,16 +127,16 @@ CREATE TABLE IF NOT EXISTS `empacotamento` (
   `usuario_empacotamento_id` bigint UNSIGNED NOT NULL,
   `motorista_id` bigint UNSIGNED DEFAULT NULL,
   `status_id` bigint UNSIGNED NOT NULL,
-  `codigo_qr` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo_qr` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `data_empacotamento` datetime NOT NULL,
   `data_saida` datetime DEFAULT NULL,
   `data_entrega` datetime DEFAULT NULL,
   `data_confirmacao_recebimento` datetime DEFAULT NULL,
-  `assinatura_recebimento` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `nome_recebedor` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `assinatura_recebedor` text COLLATE utf8mb4_unicode_ci,
-  `observacoes_empacotamento` text COLLATE utf8mb4_unicode_ci,
-  `observacoes_entrega` text COLLATE utf8mb4_unicode_ci,
+  `assinatura_recebimento` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nome_recebedor` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `assinatura_recebedor` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `observacoes_empacotamento` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `observacoes_entrega` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `motorista_saida_id` bigint UNSIGNED DEFAULT NULL,
@@ -149,14 +149,7 @@ CREATE TABLE IF NOT EXISTS `empacotamento` (
   KEY `empacotamento_status_id_foreign` (`status_id`),
   KEY `empacotamento_motorista_saida_id_foreign` (`motorista_saida_id`),
   KEY `empacotamento_motorista_entrega_id_foreign` (`motorista_entrega_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=40 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Despejando dados para a tabela `empacotamento`
---
-
-INSERT INTO `empacotamento` (`id`, `coleta_id`, `usuario_empacotamento_id`, `motorista_id`, `status_id`, `codigo_qr`, `data_empacotamento`, `data_saida`, `data_entrega`, `data_confirmacao_recebimento`, `assinatura_recebimento`, `nome_recebedor`, `assinatura_recebedor`, `observacoes_empacotamento`, `observacoes_entrega`, `created_at`, `updated_at`, `motorista_saida_id`, `motorista_entrega_id`) VALUES
-(39, 25, 1, NULL, 7, 'EMPNT9MEHVD', '2025-08-21 00:27:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-08-21 03:27:53', '2025-08-21 03:27:53', NULL, NULL);
+) ENGINE=MyISAM AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -169,10 +162,10 @@ CREATE TABLE IF NOT EXISTS `empacotamento_pecas` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
   `empacotamento_id` bigint UNSIGNED NOT NULL,
   `tipo_id` bigint UNSIGNED NOT NULL,
-  `codigo_qr` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo_qr` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantidade` int NOT NULL,
   `peso` decimal(8,3) NOT NULL DEFAULT '0.000',
-  `observacoes` text COLLATE utf8mb4_unicode_ci,
+  `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -180,21 +173,7 @@ CREATE TABLE IF NOT EXISTS `empacotamento_pecas` (
   KEY `empacotamento_pecas_tipo_id_foreign` (`tipo_id`),
   KEY `empacotamento_pecas_empacotamento_id_tipo_id_index` (`empacotamento_id`,`tipo_id`),
   KEY `empacotamento_pecas_codigo_qr_index` (`codigo_qr`)
-) ENGINE=MyISAM AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Despejando dados para a tabela `empacotamento_pecas`
---
-
-INSERT INTO `empacotamento_pecas` (`id`, `empacotamento_id`, `tipo_id`, `codigo_qr`, `quantidade`, `peso`, `observacoes`, `created_at`, `updated_at`) VALUES
-(52, 39, 11, 'PCHZMBQNCX', 10, 0.000, 'Peça extra:', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(51, 39, 13, 'PCTKVCVDU1', 5, 0.000, 'Lote adicional - Tipo: Toalha de Mesa', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(50, 39, 13, 'PCSWZ64PQ4', 10, 0.000, 'Lote adicional - Tipo: Toalha de Mesa', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(49, 39, 3, 'PCYCJD9HID', 3, 0.000, 'Lote adicional - Tipo: Fronha', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(48, 39, 3, 'PCBK1DDR2P', 5, 0.000, 'Lote adicional - Tipo: Fronha', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(47, 39, 3, 'PCYGSXBKEG', 5, 0.000, 'Lote adicional - Tipo: Fronha', '2025-08-21 03:28:37', '2025-08-21 03:28:37'),
-(46, 39, 13, 'PCHMTVRFLB', 10, 0.000, 'Lote inicial - Qtd. original da coleta: 25 peças', '2025-08-21 03:27:53', '2025-08-21 03:28:37'),
-(45, 39, 3, 'PCXLZMUU0B', 5, 0.000, 'Lote inicial - Qtd. original da coleta: 18 peças', '2025-08-21 03:27:53', '2025-08-21 03:28:37');
+) ENGINE=MyISAM AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -214,10 +193,10 @@ CREATE TABLE IF NOT EXISTS `entregas` (
   `data_saida` datetime DEFAULT NULL,
   `data_entrega` datetime DEFAULT NULL,
   `data_confirmacao_recebimento` datetime DEFAULT NULL,
-  `nome_recebedor` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `assinatura_recebedor` text COLLATE utf8mb4_unicode_ci,
-  `assinatura_cliente` text COLLATE utf8mb4_unicode_ci,
-  `observacoes_entrega` text COLLATE utf8mb4_unicode_ci,
+  `nome_recebedor` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `assinatura_recebedor` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `assinatura_cliente` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `observacoes_entrega` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`id`),
   KEY `entregas_empacotamento_id_foreign` (`empacotamento_id`),
   KEY `entregas_motorista_saida_id_foreign` (`motorista_saida_id`),
@@ -234,20 +213,20 @@ CREATE TABLE IF NOT EXISTS `entregas` (
 DROP TABLE IF EXISTS `estabelecimentos`;
 CREATE TABLE IF NOT EXISTS `estabelecimentos` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `cnpj` varchar(18) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `razao_social` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `nome_fantasia` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `endereco` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `numero` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `complemento` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `bairro` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cidade` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `estado` varchar(2) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cep` varchar(9) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `telefone` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email_old` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `contato_responsavel_old` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `observacoes` text COLLATE utf8mb4_unicode_ci,
+  `cnpj` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `razao_social` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nome_fantasia` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `endereco` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `complemento` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `bairro` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cidade` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cep` varchar(9) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_old` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contato_responsavel_old` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -278,7 +257,7 @@ INSERT INTO `estabelecimentos` (`id`, `cnpj`, `razao_social`, `nome_fantasia`, `
 DROP TABLE IF EXISTS `migrations`;
 CREATE TABLE IF NOT EXISTS `migrations` (
   `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
-  `migration` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `migration` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -326,8 +305,8 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 DROP TABLE IF EXISTS `niveis_acesso`;
 CREATE TABLE IF NOT EXISTS `niveis_acesso` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `nome` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `descricao` text COLLATE utf8mb4_unicode_ci,
+  `nome` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `permissoes` json DEFAULT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
@@ -355,11 +334,11 @@ INSERT INTO `niveis_acesso` (`id`, `nome`, `descricao`, `permissoes`, `ativo`, `
 DROP TABLE IF EXISTS `personal_access_tokens`;
 CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `tokenable_type` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_type` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `tokenable_id` bigint UNSIGNED NOT NULL,
-  `name` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `token` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `abilities` text COLLATE utf8mb4_unicode_ci,
+  `name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `last_used_at` timestamp NULL DEFAULT NULL,
   `expires_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -385,9 +364,9 @@ CREATE TABLE IF NOT EXISTS `pesagens` (
   `quantidade` int NOT NULL DEFAULT '1',
   `peso_unitario` decimal(8,2) DEFAULT NULL,
   `data_pesagem` datetime NOT NULL,
-  `observacoes` text COLLATE utf8mb4_unicode_ci,
-  `local_pesagem` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `status` enum('rascunho','concluida') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'concluida',
+  `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `local_pesagem` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` enum('rascunho','concluida') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'concluida',
   `conferido` tinyint(1) NOT NULL DEFAULT '0',
   `usuario_conferencia_id` bigint UNSIGNED DEFAULT NULL,
   `data_conferencia` datetime DEFAULT NULL,
@@ -418,11 +397,11 @@ INSERT INTO `pesagens` (`id`, `coleta_id`, `usuario_id`, `tipo_id`, `peso`, `qua
 
 DROP TABLE IF EXISTS `sessions`;
 CREATE TABLE IF NOT EXISTS `sessions` (
-  `id` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint UNSIGNED DEFAULT NULL,
-  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `user_agent` text COLLATE utf8mb4_unicode_ci,
-  `payload` longtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `last_activity` int NOT NULL,
   PRIMARY KEY (`id`),
   KEY `sessions_user_id_index` (`user_id`),
@@ -438,10 +417,10 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 DROP TABLE IF EXISTS `status`;
 CREATE TABLE IF NOT EXISTS `status` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `nome` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `descricao` text COLLATE utf8mb4_unicode_ci,
-  `tipo` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `cor` varchar(7) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#6c757d',
+  `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `tipo` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cor` varchar(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '#6c757d',
   `ordem` int NOT NULL DEFAULT '0',
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
@@ -483,9 +462,9 @@ INSERT INTO `status` (`id`, `nome`, `descricao`, `tipo`, `cor`, `ordem`, `ativo`
 DROP TABLE IF EXISTS `tipos`;
 CREATE TABLE IF NOT EXISTS `tipos` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `nome` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `descricao` text COLLATE utf8mb4_unicode_ci,
-  `categoria` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `categoria` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -523,16 +502,16 @@ INSERT INTO `tipos` (`id`, `nome`, `descricao`, `categoria`, `ativo`, `created_a
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `nome` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `telefone` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `cpf` varchar(14) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `password` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cpf` varchar(14) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `nivel_acesso_id` bigint UNSIGNED NOT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `ultimo_login` timestamp NULL DEFAULT NULL,
-  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -546,7 +525,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `email_verified_at`, `password`, `telefone`, `cpf`, `nivel_acesso_id`, `ativo`, `ultimo_login`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Administrador do Sistema', 'admin@lavanderia.com', '2025-07-28 17:48:07', '$2y$12$VHgBPMyhGQkw8AD9XfZ37.IkatcvncObGguDCmWq1tFGtY1bFbMrS', '(11) 99999-9999', '000.000.000-00', 1, 1, '2025-08-21 02:41:11', NULL, '2025-07-28 17:48:07', '2025-08-21 02:41:11'),
+(1, 'Administrador do Sistema', 'admin@lavanderia.com', '2025-07-28 17:48:07', '$2y$12$VHgBPMyhGQkw8AD9XfZ37.IkatcvncObGguDCmWq1tFGtY1bFbMrS', '(11) 99999-9999', '000.000.000-00', 1, 1, '2025-08-21 12:56:30', NULL, '2025-07-28 17:48:07', '2025-08-21 12:56:30'),
 (2, 'João Silva', 'joao.motorista@lavanderia.com', NULL, '$2y$12$7QsK2TuwwLkq6vAdHegA8.spqCLHiZdUEyf8dLkRaKdhwZTb3ZWJu', '(11) 99999-1111', '12345678901', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
 (3, 'Maria Santos', 'maria.motorista@lavanderia.com', NULL, '$2y$12$X/9QtU.8HmV9ZYPluEMZ..3CdlbzIwWQvBzVRtBjzSAf2DYKGbQ8m', '(11) 99999-2222', '12345678902', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
 (4, 'Carlos Oliveira', 'carlos.motorista@lavanderia.com', NULL, '$2y$12$KnsIrYHmiEJISkQnd26SlO41zopIMgcYnaQZ/lQssXH9NCA4tr6ya', '(11) 99999-3333', '12345678903', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
