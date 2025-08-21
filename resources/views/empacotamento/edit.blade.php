@@ -149,6 +149,92 @@
                             </span>
                         </h3>
                         <p class="text-sm text-gray-600 mt-1">Divida as peças em lotes menores. Cada lote terá seu próprio QR Code para rastreamento</p>
+
+                        <!-- Opções de Empacotamento -->
+                        <div class="mt-4 p-3 bg-white rounded border border-gray-200">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3">Modo de Empacotamento:</h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="modo_empacotamento" value="todos" class="mr-2" checked onchange="alterarModoEmpacotamento()">
+                                    <span class="text-sm text-gray-700">Empacotar todos os lotes de uma vez</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="modo_empacotamento" value="selecionados" class="mr-2" onchange="alterarModoEmpacotamento()">
+                                    <span class="text-sm text-gray-700">Empacotar apenas lotes selecionados</span>
+                                </label>
+                            </div>
+                            <div id="instrucoes-modo" class="mt-2 text-xs text-gray-500">
+                                Todos os lotes serão processados e receberão QR codes.
+                            </div>
+                            <div id="contador-selecionados" class="mt-1 text-xs font-medium text-blue-600 hidden">
+                                0 tipos selecionados
+                            </div>
+                            <div id="acoes-selecao" class="mt-2 space-x-2 hidden">
+                                <button type="button" onclick="selecionarTodosTipos()" class="text-xs text-blue-600 hover:text-blue-800 underline">
+                                    Selecionar todos
+                                </button>
+                                <button type="button" onclick="deselecionarTodosTipos()" class="text-xs text-gray-600 hover:text-gray-800 underline">
+                                    Desselecionar todos
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Resumo de Status dos Lotes -->
+                        @php
+                            $totalLotes = $empacotamento->pecasIndividuais->count();
+                            $lotesProcessados = $empacotamento->pecasIndividuais->where('quantidade', '>', 0)->count();
+                            $lotesPendentes = $totalLotes - $lotesProcessados;
+                        @endphp
+                        @if($totalLotes > 0)
+
+                            <!-- Resumo dos Lotes com Barra de Progresso -->
+                            <div class="mt-4 p-3 bg-gray-50 rounded border border-gray-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-sm font-semibold text-gray-700">Progresso dos Lotes:</h4>
+                                    <span class="text-xs text-gray-600">{{ $lotesProcessados }}/{{ $totalLotes }} concluídos</span>
+                                </div>
+
+                                <!-- Barra de Progresso -->
+                                <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+                                    <div class="bg-green-600 h-2 rounded-full transition-all duration-300"
+                                         style="width: {{ $totalLotes > 0 ? ($lotesProcessados / $totalLotes) * 100 : 0 }}%"
+                                         id="barra-progresso"></div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-4 text-center">
+                                    <div class="bg-white p-2 rounded border">
+                                        <div class="text-lg font-bold text-gray-900" id="contador-total">{{ $totalLotes }}</div>
+                                        <div class="text-xs text-gray-600">Total</div>
+                                    </div>
+                                    <div class="bg-white p-2 rounded border">
+                                        <div class="text-lg font-bold text-green-600" id="contador-processados">{{ $lotesProcessados }}</div>
+                                        <div class="text-xs text-gray-600">Processados</div>
+                                    </div>
+                                    <div class="bg-white p-2 rounded border">
+                                        <div class="text-lg font-bold {{ $lotesPendentes > 0 ? 'text-orange-600' : 'text-gray-400' }}" id="contador-pendentes">{{ $lotesPendentes }}</div>
+                                        <div class="text-xs text-gray-600">Pendentes</div>
+                                    </div>
+                                </div>
+
+                                @if($lotesProcessados > 0)
+                                    <div class="mt-2 text-xs text-green-600 text-center">
+                                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        Alguns lotes já foram processados e possuem QR codes gerados
+                                    </div>
+                                @endif
+
+                                @if($lotesPendentes == 0)
+                                    <div class="mt-2 text-xs text-green-600 text-center font-medium">
+                                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        Todos os lotes foram processados!
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                     <!-- Container dos Tipos de Peças Agrupadas -->
                     <div class="p-4">
@@ -203,9 +289,33 @@
                                      data-quantidade-coletada="{{ $quantidadeColetada }}">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center space-x-3">
-                                            <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                            <!-- Checkbox para seleção do tipo (visível apenas no modo selecionados) -->
+                                            <div class="checkbox-selecao-tipo hidden">
+                                                <label for="tipo_{{ $tipoId }}" class="flex items-center cursor-pointer" onclick="event.stopPropagation()">
+                                                    <input type="checkbox"
+                                                           name="tipos_selecionados[]"
+                                                           value="{{ $tipoId }}"
+                                                           id="tipo_{{ $tipoId }}"
+                                                           class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                                                    <span class="ml-1 text-xs text-gray-600">Selecionar</span>
+                                                </label>
+                                            </div>
+                                            <div class="w-3 h-3 bg-blue-500 rounded-full indicador-tipo"></div>
                                             <div>
-                                                <h5 class="text-sm font-semibold text-gray-900">{{ $primeiraP->tipo->nome }}</h5>
+                                                <div class="flex items-center">
+                                                    <h5 class="text-sm font-semibold text-gray-900">{{ $primeiraP->tipo->nome }}</h5>
+                                                    @php
+                                                        $lotesPendentesTipo = $pecasDoTipo->where('quantidade', '=', 0)->count();
+                                                    @endphp
+                                                    @if($lotesPendentesTipo > 0)
+                                                        <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                            <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                                <circle cx="4" cy="4" r="3"/>
+                                                            </svg>
+                                                            {{ $lotesPendentesTipo }} pendente{{ $lotesPendentesTipo > 1 ? 's' : '' }}
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 <p class="text-xs text-gray-500">{{ $primeiraP->tipo->categoria }}</p>
                                             </div>
                                         </div>
@@ -234,8 +344,29 @@
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-xs text-gray-500">Lotes</div>
-                                                <div class="text-sm font-medium text-blue-600">{{ $pecasDoTipo->count() }} lotes</div>
+                                                <div class="text-sm font-medium text-blue-600">
+                                                    {{ $pecasDoTipo->count() }} lotes
+                                                    @php
+                                                        $lotesProcessados = $pecasDoTipo->where('quantidade', '>', 0)->count();
+                                                    @endphp
+                                                    @if($lotesProcessados > 0)
+                                                        <div class="text-xs text-green-600 font-medium">
+                                                            {{ $lotesProcessados }} processado{{ $lotesProcessados > 1 ? 's' : '' }}
+                                                        </div>
+                                                    @endif
+                                                </div>
                                             </div>
+                                            @if($lotesPendentesTipo > 0)
+                                                <button type="button"
+                                                        onclick="event.stopPropagation(); preencherLotesTipo('{{ $tipoId }}', {{ $lotesPendentesTipo }})"
+                                                        class="mr-2 inline-flex items-center px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded transition-colors"
+                                                        title="Preencher lotes pendentes deste tipo com quantidade 1">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                                    </svg>
+                                                    Preencher
+                                                </button>
+                                            @endif
                                             <svg id="chevron-{{ $tipoId }}" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                             </svg>
@@ -247,31 +378,81 @@
                                 <div id="content-{{ $tipoId }}" class="tipo-peca-content hidden bg-white">
                                     <div class="p-4">
                                         <div class="mb-4">
-                                            <span class="text-sm font-medium text-gray-700">Lotes de empacotamento:</span>
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm font-medium text-gray-700">Lotes de empacotamento:</span>
+                                                @php
+                                                    $lotesProcessados = $pecasDoTipo->where('quantidade', '>', 0)->count();
+                                                    $totalLotes = $pecasDoTipo->count();
+                                                @endphp
+                                                @if($lotesProcessados > 0)
+                                                    <div class="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        {{ $lotesProcessados }} de {{ $totalLotes }} lotes já processados
+                                                    </div>
+                                                @endif
+                                            </div>
                                         </div>
 
                                         <div class="space-y-3">
                                             @foreach($pecasDoTipo as $index => $peca)
-                                                <div class="lote-empacotamento flex items-center space-x-3 p-3 bg-gray-50 rounded border">
+                                                <div class="lote-empacotamento flex items-center space-x-3 p-3 rounded border {{ $peca->quantidade > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200' }}">
+                                                    <!-- Badge de Status -->
+                                                    @if($peca->quantidade > 0)
+                                                        <div class="flex-shrink-0">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                                                </svg>
+                                                                Processado
+                                                            </span>
+                                                        </div>
+                                                    @else
+                                                        <div class="flex-shrink-0">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                </svg>
+                                                                Pendente
+                                                            </span>
+                                                        </div>
+                                                    @endif
+
                                                     <div class="flex-1 grid grid-cols-2 gap-4">
                                                         <div>
                                                             <label class="block text-xs font-medium text-gray-700 mb-1">Código QR</label>
-                                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-gray-100 text-gray-800">
+                                                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium {{ $peca->quantidade > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
                                                                 {{ $peca->codigo_qr }}
                                                             </span>
                                                         </div>
                                                         <div>
-                                                            <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade</label>
+                                                            <label class="block text-xs font-medium text-gray-700 mb-1">
+                                                                Quantidade
+                                                                @if($peca->quantidade > 0)
+                                                                    <span class="ml-1 text-xs text-green-600 font-medium">(já processado)</span>
+                                                                @endif
+                                                            </label>
                                                             <input type="number"
                                                                    name="pecas_individuais[{{ $peca->id }}][quantidade]"
-                                                                   value="0"
+                                                                   value="{{ $peca->quantidade }}"
                                                                    min="0"
                                                                    data-tipo-id="{{ $tipoId }}"
+                                                                   data-quantidade-original="{{ $peca->quantidade }}"
                                                                    onchange="atualizarStatusTipo('{{ $tipoId }}')"
                                                                    oninput="atualizarStatusTipo('{{ $tipoId }}')"
-                                                                   class="quantidade-lote w-full px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                                                                   class="quantidade-lote w-full px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 {{ $peca->quantidade > 0 ? 'bg-green-50 border-green-300 font-semibold text-green-800' : '' }}">
                                                             <!-- Campo hidden para peso (mantém valor original) -->
                                                             <input type="hidden" name="pecas_individuais[{{ $peca->id }}][peso]" value="{{ $peca->peso }}">
+
+                                                            @if($peca->quantidade > 0)
+                                                                <div class="mt-1 text-xs text-green-600">
+                                                                    <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                                                    </svg>
+                                                                    Este lote já foi empacotado com {{ $peca->quantidade }} peça{{ $peca->quantidade > 1 ? 's' : '' }}
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                     @if($pecasDoTipo->count() > 1)
@@ -376,7 +557,7 @@
                class="inline-flex items-center justify-center px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-xl transition-colors duration-200">
                 Cancelar
             </a>
-            <button type="submit" 
+            <button type="submit" onclick="return validarFormulario()"
                     class="inline-flex items-center justify-center px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -444,6 +625,159 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Função para alterar modo de empacotamento
+    window.alterarModoEmpacotamento = function() {
+        const modoSelecionado = document.querySelector('input[name="modo_empacotamento"]:checked').value;
+        const checkboxes = document.querySelectorAll('.checkbox-selecao-tipo');
+        const instrucoes = document.getElementById('instrucoes-modo');
+        const contador = document.getElementById('contador-selecionados');
+        const acoes = document.getElementById('acoes-selecao');
+
+        if (modoSelecionado === 'selecionados') {
+            // Mostrar checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.classList.remove('hidden');
+                // Adicionar listener para destacar tipos selecionados
+                const input = checkbox.querySelector('input[type="checkbox"]');
+                if (input) {
+                    input.addEventListener('change', destacarTipoSelecionado);
+                }
+            });
+            instrucoes.textContent = 'Selecione os tipos de peças que deseja empacotar. Apenas os selecionados receberão QR codes.';
+            contador.classList.remove('hidden');
+            acoes.classList.remove('hidden');
+            atualizarContadorSelecionados();
+        } else {
+            // Esconder checkboxes
+            checkboxes.forEach(checkbox => {
+                checkbox.classList.add('hidden');
+                // Desmarcar todos os checkboxes
+                const input = checkbox.querySelector('input[type="checkbox"]');
+                if (input) {
+                    input.checked = false;
+                    input.removeEventListener('change', destacarTipoSelecionado);
+                }
+                // Remover destaque
+                const container = checkbox.closest('.tipo-peca-container');
+                if (container) {
+                    container.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+                }
+            });
+            instrucoes.textContent = 'Todos os lotes serão processados e receberão QR codes.';
+            contador.classList.add('hidden');
+            acoes.classList.add('hidden');
+        }
+    };
+
+    // Função para validar formulário antes do envio
+    window.validarFormulario = function() {
+        const modoSelecionado = document.querySelector('input[name="modo_empacotamento"]:checked').value;
+
+        if (modoSelecionado === 'selecionados') {
+            const tiposSelecionados = document.querySelectorAll('input[name="tipos_selecionados[]"]:checked');
+
+            if (tiposSelecionados.length === 0) {
+                alert('Por favor, selecione pelo menos um tipo de peça para empacotar.');
+                return false;
+            }
+
+            // Verificar se os tipos selecionados têm quantidades válidas
+            let temQuantidadeValida = false;
+            tiposSelecionados.forEach(checkbox => {
+                const tipoId = checkbox.value;
+                const inputs = document.querySelectorAll(`input[data-tipo-id="${tipoId}"]`);
+                inputs.forEach(input => {
+                    if (parseInt(input.value) > 0) {
+                        temQuantidadeValida = true;
+                    }
+                });
+            });
+
+            if (!temQuantidadeValida) {
+                alert('Os tipos selecionados devem ter pelo menos uma quantidade maior que zero.');
+                return false;
+            }
+        }
+
+        // Verificar se há lotes pendentes e alertar o usuário
+        const lotesPendentes = [];
+        document.querySelectorAll('.lote-empacotamento input[type="number"]').forEach(input => {
+            if ((parseInt(input.value) || 0) === 0) {
+                lotesPendentes.push(input);
+            }
+        });
+
+        if (lotesPendentes.length > 0) {
+            const resposta = confirm(
+                `Atenção: Você tem ${lotesPendentes.length} lote${lotesPendentes.length > 1 ? 's' : ''} pendente${lotesPendentes.length > 1 ? 's' : ''} (sem quantidade preenchida).\n\n` +
+                `Estes lotes não receberão QR codes e permanecerão disponíveis para processamento posterior.\n\n` +
+                `Deseja continuar mesmo assim?\n\n` +
+                `• Clique "OK" para salvar apenas os lotes preenchidos\n` +
+                `• Clique "Cancelar" para voltar e preencher os lotes pendentes`
+            );
+
+            if (!resposta) {
+                // Destacar lotes pendentes para ajudar o usuário
+                destacarLotesPendentes();
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    // Função para destacar tipos selecionados
+    window.destacarTipoSelecionado = function(event) {
+        const checkbox = event.target;
+        const container = checkbox.closest('.tipo-peca-container');
+
+        if (container) {
+            if (checkbox.checked) {
+                container.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+            } else {
+                container.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+            }
+        }
+        atualizarContadorSelecionados();
+    };
+
+    // Função para atualizar contador de tipos selecionados
+    window.atualizarContadorSelecionados = function() {
+        const tiposSelecionados = document.querySelectorAll('input[name="tipos_selecionados[]"]:checked');
+        const contador = document.getElementById('contador-selecionados');
+        const quantidade = tiposSelecionados.length;
+
+        if (contador) {
+            contador.textContent = `${quantidade} tipo${quantidade !== 1 ? 's' : ''} selecionado${quantidade !== 1 ? 's' : ''}`;
+
+            // Mudar cor baseado na quantidade
+            contador.className = 'mt-1 text-xs font-medium ' +
+                (quantidade > 0 ? 'text-green-600' : 'text-blue-600');
+        }
+    };
+
+    // Função para selecionar todos os tipos
+    window.selecionarTodosTipos = function() {
+        const checkboxes = document.querySelectorAll('input[name="tipos_selecionados[]"]');
+        checkboxes.forEach(checkbox => {
+            if (!checkbox.checked) {
+                checkbox.checked = true;
+                destacarTipoSelecionado({ target: checkbox });
+            }
+        });
+    };
+
+    // Função para desselecionar todos os tipos
+    window.deselecionarTodosTipos = function() {
+        const checkboxes = document.querySelectorAll('input[name="tipos_selecionados[]"]');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                checkbox.checked = false;
+                destacarTipoSelecionado({ target: checkbox });
+            }
+        });
+    };
+
     // Função para toggle do tipo de peça (expandir/recolher)
     window.toggleTipoEdicao = function(tipoId) {
         const content = document.getElementById(`content-${tipoId}`);
@@ -616,6 +950,309 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Atualizar número de lotes
         lotesDisplay.textContent = `${totalLotes} lotes`;
+
+        // Atualizar status visual dos lotes individuais
+        atualizarStatusLotesIndividuais(tipoId);
+
+        // Atualizar contadores globais
+        atualizarContadoresGlobais();
+    };
+
+    // Função para atualizar status visual dos lotes individuais
+    window.atualizarStatusLotesIndividuais = function(tipoId) {
+        const tipoContainer = document.querySelector(`[onclick*="'${tipoId}'"]`).closest('.tipo-peca-container');
+        const lotes = tipoContainer.querySelectorAll('.lote-empacotamento');
+
+        lotes.forEach(lote => {
+            const input = lote.querySelector('input[type="number"]');
+            if (!input) return;
+
+            const quantidade = parseInt(input.value) || 0;
+            const quantidadeOriginal = parseInt(input.dataset.quantidadeOriginal) || 0;
+
+            // Atualizar badge de status
+            const badge = lote.querySelector('.inline-flex.items-center.px-2.py-1.rounded-full');
+            const qrCode = lote.querySelector('.inline-flex.items-center.px-2.py-1.rounded:not(.rounded-full)');
+
+            if (quantidade > 0) {
+                // Lote processado
+                lote.className = 'lote-empacotamento flex items-center space-x-3 p-3 rounded border bg-green-50 border-green-200';
+
+                if (badge) {
+                    badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800';
+                    badge.innerHTML = `
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        Processado
+                    `;
+                }
+
+                if (qrCode) {
+                    qrCode.className = 'inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-green-100 text-green-800';
+                }
+
+                // Atualizar classe do input
+                input.className = 'quantidade-lote w-full px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 bg-green-50 border-green-300 font-semibold text-green-800';
+
+            } else {
+                // Lote pendente
+                lote.className = 'lote-empacotamento flex items-center space-x-3 p-3 rounded border bg-gray-50 border-gray-200';
+
+                if (badge) {
+                    badge.className = 'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600';
+                    badge.innerHTML = `
+                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Pendente
+                    `;
+                }
+
+                if (qrCode) {
+                    qrCode.className = 'inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-gray-100 text-gray-800';
+                }
+
+                // Atualizar classe do input
+                input.className = 'quantidade-lote w-full px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500';
+            }
+
+            // Atualizar/criar aviso de lote processado
+            const avisoExistente = lote.querySelector('.mt-1.text-xs.text-green-600');
+            const labelQuantidade = lote.querySelector('label');
+
+            if (quantidade > 0) {
+                // Atualizar label
+                if (labelQuantidade && !labelQuantidade.innerHTML.includes('(já processado)')) {
+                    labelQuantidade.innerHTML = `
+                        Quantidade
+                        <span class="ml-1 text-xs text-green-600 font-medium">(já processado)</span>
+                    `;
+                }
+
+                // Criar/atualizar aviso se não existir
+                if (!avisoExistente) {
+                    const avisoDiv = document.createElement('div');
+                    avisoDiv.className = 'mt-1 text-xs text-green-600';
+                    avisoDiv.innerHTML = `
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Este lote já foi empacotado com ${quantidade} peça${quantidade > 1 ? 's' : ''}
+                    `;
+                    input.parentNode.appendChild(avisoDiv);
+                } else {
+                    avisoExistente.innerHTML = `
+                        <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Este lote já foi empacotado com ${quantidade} peça${quantidade > 1 ? 's' : ''}
+                    `;
+                }
+            } else {
+                // Remover aviso se quantidade for 0
+                if (avisoExistente) {
+                    avisoExistente.remove();
+                }
+
+                // Restaurar label original
+                if (labelQuantidade && labelQuantidade.innerHTML.includes('(já processado)')) {
+                    labelQuantidade.innerHTML = 'Quantidade';
+                }
+            }
+        });
+    };
+
+    // Função para destacar lotes pendentes
+    window.destacarLotesPendentes = function() {
+        // Remover destaque anterior
+        document.querySelectorAll('.lote-empacotamento').forEach(lote => {
+            lote.classList.remove('ring-4', 'ring-yellow-400', 'ring-opacity-75');
+        });
+
+        // Encontrar e destacar lotes pendentes
+        const lotesPendentes = [];
+        document.querySelectorAll('.lote-empacotamento').forEach(lote => {
+            const input = lote.querySelector('input[type="number"]');
+            if (input && (parseInt(input.value) || 0) === 0) {
+                lote.classList.add('ring-4', 'ring-yellow-400', 'ring-opacity-75');
+                lotesPendentes.push(lote);
+            }
+        });
+
+        if (lotesPendentes.length > 0) {
+            // Expandir tipos que contêm lotes pendentes
+            lotesPendentes.forEach(lote => {
+                const tipoContainer = lote.closest('.tipo-peca-container');
+                const content = tipoContainer.querySelector('.tipo-peca-content');
+                const chevron = tipoContainer.querySelector('[id^="chevron-"]');
+
+                if (content && content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                }
+            });
+
+            // Scroll para o primeiro lote pendente
+            setTimeout(() => {
+                lotesPendentes[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300);
+
+            // Remover destaque após 5 segundos
+            setTimeout(() => {
+                lotesPendentes.forEach(lote => {
+                    lote.classList.remove('ring-4', 'ring-yellow-400', 'ring-opacity-75');
+                });
+            }, 5000);
+        }
+    };
+
+    // Função para preencher todos os lotes pendentes com 1
+    window.preencherTodosComUm = function() {
+        if (!confirm('Deseja preencher todos os lotes pendentes com quantidade 1?')) {
+            return;
+        }
+
+        let lotesPreenchidos = 0;
+        document.querySelectorAll('.lote-empacotamento').forEach(lote => {
+            const input = lote.querySelector('input[type="number"]');
+            if (input && (parseInt(input.value) || 0) === 0) {
+                input.value = 1;
+                // Disparar evento de mudança para atualizar status
+                const tipoId = input.dataset.tipoId;
+                if (tipoId) {
+                    atualizarStatusTipo(tipoId);
+                }
+                lotesPreenchidos++;
+            }
+        });
+
+        if (lotesPreenchidos > 0) {
+            // Atualizar contadores globais
+            atualizarContadoresGlobais();
+
+            // Mostrar mensagem de sucesso
+            mostrarMensagemTemporaria(`${lotesPreenchidos} lote${lotesPreenchidos > 1 ? 's' : ''} preenchido${lotesPreenchidos > 1 ? 's' : ''} com quantidade 1`, 'success');
+        }
+    };
+
+    // Função para preencher lotes pendentes de um tipo específico
+    window.preencherLotesTipo = function(tipoId, quantidadePendentes) {
+        if (!confirm(`Deseja preencher os ${quantidadePendentes} lote${quantidadePendentes > 1 ? 's' : ''} pendente${quantidadePendentes > 1 ? 's' : ''} deste tipo com quantidade 1?`)) {
+            return;
+        }
+
+        let lotesPreenchidos = 0;
+        const tipoContainer = document.querySelector(`[onclick*="'${tipoId}'"]`).closest('.tipo-peca-container');
+
+        if (tipoContainer) {
+            const inputs = tipoContainer.querySelectorAll('.lote-empacotamento input[type="number"]');
+            inputs.forEach(input => {
+                if ((parseInt(input.value) || 0) === 0) {
+                    input.value = 1;
+                    lotesPreenchidos++;
+                }
+            });
+
+            // Atualizar status do tipo
+            atualizarStatusTipo(tipoId);
+
+            if (lotesPreenchidos > 0) {
+                mostrarMensagemTemporaria(`${lotesPreenchidos} lote${lotesPreenchidos > 1 ? 's' : ''} preenchido${lotesPreenchidos > 1 ? 's' : ''} neste tipo`, 'success');
+            }
+        }
+    };
+
+    // Função para fechar alerta de pendentes
+    window.fecharAlertaPendentes = function() {
+        const alerta = document.getElementById('alerta-lotes-pendentes');
+        if (alerta) {
+            alerta.style.display = 'none';
+        }
+    };
+
+    // Função para atualizar contadores globais
+    window.atualizarContadoresGlobais = function() {
+        let totalLotes = 0;
+        let lotesProcessados = 0;
+
+        document.querySelectorAll('.lote-empacotamento input[type="number"]').forEach(input => {
+            totalLotes++;
+            if (parseInt(input.value) > 0) {
+                lotesProcessados++;
+            }
+        });
+
+        const lotesPendentes = totalLotes - lotesProcessados;
+
+        // Atualizar contadores
+        const contadorTotal = document.getElementById('contador-total');
+        const contadorProcessados = document.getElementById('contador-processados');
+        const contadorPendentes = document.getElementById('contador-pendentes');
+        const barraProgresso = document.getElementById('barra-progresso');
+
+        if (contadorTotal) contadorTotal.textContent = totalLotes;
+        if (contadorProcessados) contadorProcessados.textContent = lotesProcessados;
+        if (contadorPendentes) {
+            contadorPendentes.textContent = lotesPendentes;
+            contadorPendentes.className = `text-lg font-bold ${lotesPendentes > 0 ? 'text-orange-600' : 'text-gray-400'}`;
+        }
+
+        // Atualizar barra de progresso
+        if (barraProgresso) {
+            const porcentagem = totalLotes > 0 ? (lotesProcessados / totalLotes) * 100 : 0;
+            barraProgresso.style.width = `${porcentagem}%`;
+        }
+
+        // Mostrar/esconder alerta de pendentes
+        const alertaPendentes = document.getElementById('alerta-lotes-pendentes');
+        if (alertaPendentes) {
+            if (lotesPendentes > 0) {
+                alertaPendentes.style.display = 'block';
+                // Atualizar texto do alerta
+                const titulo = alertaPendentes.querySelector('h3');
+                if (titulo) {
+                    titulo.textContent = `Atenção: ${lotesPendentes} lote${lotesPendentes > 1 ? 's' : ''} pendente${lotesPendentes > 1 ? 's' : ''}`;
+                }
+            } else {
+                alertaPendentes.style.display = 'none';
+            }
+        }
+    };
+
+    // Função para mostrar mensagem temporária
+    window.mostrarMensagemTemporaria = function(mensagem, tipo = 'info') {
+        const cores = {
+            success: 'bg-green-100 border-green-200 text-green-800',
+            warning: 'bg-yellow-100 border-yellow-200 text-yellow-800',
+            error: 'bg-red-100 border-red-200 text-red-800',
+            info: 'bg-blue-100 border-blue-200 text-blue-800'
+        };
+
+        const div = document.createElement('div');
+        div.className = `fixed top-4 right-4 p-3 rounded border ${cores[tipo]} z-50 shadow-lg`;
+        div.innerHTML = `
+            <div class="flex items-center">
+                <span class="text-sm font-medium">${mensagem}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-current opacity-70 hover:opacity-100">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(div);
+
+        // Remover após 3 segundos
+        setTimeout(() => {
+            if (div.parentElement) {
+                div.remove();
+            }
+        }, 3000);
     };
 
     // Função para abrir modal de peça extra
@@ -922,6 +1559,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Executar inicialização
     inicializarStatus();
+
+    // Inicializar contadores globais
+    atualizarContadoresGlobais();
+
+    // Adicionar atalho de teclado (Ctrl+P para destacar pendentes)
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'p') {
+            e.preventDefault();
+            destacarLotesPendentes();
+        }
+    });
 });
 </script>
 @endpush

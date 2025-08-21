@@ -22,11 +22,11 @@ class EmpacotamentoController extends Controller
     public function index(Request $request)
     {
         $query = Empacotamento::with([
-                                  'coleta.estabelecimento', 
-                                  'coleta.pecas', 
+                                  'coleta.estabelecimento',
+                                  'coleta.pecas',
                                   'pecasIndividuais',
-                                  'usuarioEmpacotamento', 
-                                  'motorista', 
+                                  'usuarioEmpacotamento',
+                                  'motorista',
                                   'status'
                               ])
                               ->whereHas('coleta'); // Apenas empacotamentos com coleta válida
@@ -58,6 +58,13 @@ class EmpacotamentoController extends Controller
                                $estQ->where('razao_social', 'like', "%{$busca}%");
                            });
                   });
+            });
+        }
+
+        // Filtro para lotes pendentes
+        if ($request->filled('lotes_pendentes') && $request->lotes_pendentes == '1') {
+            $query->whereHas('pecasIndividuais', function($q) {
+                $q->where('quantidade', '=', 0);
             });
         }
 
@@ -275,6 +282,23 @@ class EmpacotamentoController extends Controller
      */
     private function processarPecasIndividuaisEmpacotamento(Request $request, Empacotamento $empacotamento)
     {
+        // Verificar modo de empacotamento
+        $modoEmpacotamento = $request->input('modo_empacotamento', 'todos');
+        $tiposSelecionados = [];
+
+        \Log::info('Modo de empacotamento:', ['modo' => $modoEmpacotamento]);
+
+        if ($modoEmpacotamento === 'selecionados') {
+            $tiposSelecionados = $request->input('tipos_selecionados', []);
+            \Log::info('Tipos selecionados:', $tiposSelecionados);
+
+            // Se nenhum tipo foi selecionado, não processar nada
+            if (empty($tiposSelecionados)) {
+                \Log::info('Nenhum tipo selecionado, não processando nada');
+                return;
+            }
+        }
+
         // Processar lotes removidos
         if ($request->has('lotes_removidos')) {
             foreach ($request->lotes_removidos as $pecaId) {
@@ -291,6 +315,11 @@ class EmpacotamentoController extends Controller
                 $pecaIndividual = EmpacotamentoPeca::find($pecaId);
 
                 if ($pecaIndividual && $pecaIndividual->empacotamento_id == $empacotamento->id) {
+                    // Se modo selecionados, só processar se o tipo estiver selecionado
+                    if ($modoEmpacotamento === 'selecionados' && !in_array($pecaIndividual->tipo_id, $tiposSelecionados)) {
+                        continue;
+                    }
+
                     $pecaIndividual->update([
                         'quantidade' => $dadosPeca['quantidade'],
                         'peso' => $dadosPeca['peso'] ?? 0,
@@ -302,6 +331,11 @@ class EmpacotamentoController extends Controller
         // Processar novos lotes
         if ($request->has('novos_lotes')) {
             foreach ($request->novos_lotes as $dadosLote) {
+                // Se modo selecionados, só processar se o tipo estiver selecionado
+                if ($modoEmpacotamento === 'selecionados' && !in_array($dadosLote['tipo_id'], $tiposSelecionados)) {
+                    continue;
+                }
+
                 EmpacotamentoPeca::create([
                     'empacotamento_id' => $empacotamento->id,
                     'tipo_id' => $dadosLote['tipo_id'],
@@ -318,6 +352,11 @@ class EmpacotamentoController extends Controller
             \Log::info('Peças extras recebidas:', $request->pecas_extras);
 
             foreach ($request->pecas_extras as $dadosExtra) {
+                // Se modo selecionados, só processar se o tipo estiver selecionado
+                if ($modoEmpacotamento === 'selecionados' && !in_array($dadosExtra['tipo_id'], $tiposSelecionados)) {
+                    continue;
+                }
+
                 $pecaExtra = EmpacotamentoPeca::create([
                     'empacotamento_id' => $empacotamento->id,
                     'tipo_id' => $dadosExtra['tipo_id'],
@@ -491,7 +530,10 @@ class EmpacotamentoController extends Controller
 
         $request->validate([
             'data_empacotamento' => 'required|date',
-            'observacoes_empacotamento' => 'nullable|string|max:1000'
+            'observacoes_empacotamento' => 'nullable|string|max:1000',
+            'modo_empacotamento' => 'required|in:todos,selecionados',
+            'tipos_selecionados' => 'required_if:modo_empacotamento,selecionados|array',
+            'tipos_selecionados.*' => 'exists:tipos,id'
         ]);
 
         DB::beginTransaction();
@@ -507,8 +549,16 @@ class EmpacotamentoController extends Controller
 
             DB::commit();
 
+            // Personalizar mensagem baseada no modo de empacotamento
+            $mensagem = 'Empacotamento atualizado com sucesso!';
+            if ($request->input('modo_empacotamento') === 'selecionados') {
+                $tiposSelecionados = $request->input('tipos_selecionados', []);
+                $quantidadeTipos = count($tiposSelecionados);
+                $mensagem = "Empacotamento atualizado! {$quantidadeTipos} tipo(s) de peça(s) foram processados e receberam QR codes.";
+            }
+
             return redirect()->route('empacotamento.show', $empacotamento->id)
-                           ->with('success', 'Empacotamento atualizado com sucesso!');
+                           ->with('success', $mensagem);
 
         } catch (\Exception $e) {
             DB::rollback();

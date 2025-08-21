@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'Empacotamentos'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -24,6 +26,61 @@
         </div>
     </div>
 
+    <!-- Alerta para Empacotamentos com Lotes Pendentes -->
+    <?php
+        $empacotamentosComPendentes = $empacotamentos->filter(function($emp) {
+            return $emp->pecasIndividuais && $emp->pecasIndividuais->where('quantidade', 0)->count() > 0;
+        });
+        $totalComPendentes = $empacotamentosComPendentes->count();
+    ?>
+
+    <?php if($totalComPendentes > 0 && !request('lotes_pendentes')): ?>
+        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg" id="alerta-empacotamentos-pendentes">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-semibold text-yellow-800">
+                        Atenção: <?php echo e($totalComPendentes); ?> empacotamento<?php echo e($totalComPendentes > 1 ? 's' : ''); ?> com lotes pendentes
+                    </h3>
+                    <p class="mt-1 text-sm text-yellow-700">
+                        Você tem empacotamentos com lotes que não foram preenchidos. Estes lotes não receberão QR codes até serem processados.
+                    </p>
+                    <p class="mt-1 text-xs text-yellow-600">
+                        💡 Dica: Use o filtro "Com lotes pendentes" ou clique no botão "Preencher" para completar os lotes
+                    </p>
+                    <div class="mt-3 flex space-x-3">
+                        <a href="<?php echo e(route('empacotamento.index', ['lotes_pendentes' => '1'])); ?>"
+                           class="inline-flex items-center px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-medium rounded transition-colors">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                            </svg>
+                            Filtrar Pendentes
+                        </a>
+                        <button type="button" onclick="expandirTodosPendentes()"
+                                class="inline-flex items-center px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-xs font-medium rounded transition-colors">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Destacar na Lista
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    <button type="button" onclick="fecharAlertaEmpacotamentos()" class="text-yellow-600 hover:text-yellow-800">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Filtros -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
         <div class="p-4 border-b border-gray-100">
@@ -31,10 +88,10 @@
         </div>
         <div class="p-4">
             <form method="GET" action="<?php echo e(route('empacotamento.index')); ?>" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div>
                         <label for="status_id" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select name="status_id" id="status_id" 
+                        <select name="status_id" id="status_id"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                             <option value="">Todos os status</option>
                             <?php $__currentLoopData = $status; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $st): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -47,7 +104,7 @@
                     </div>
                     <div>
                         <label for="motorista_id" class="block text-sm font-medium text-gray-700 mb-2">Motorista</label>
-                        <select name="motorista_id" id="motorista_id" 
+                        <select name="motorista_id" id="motorista_id"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
                             <option value="">Todos os motoristas</option>
                             <?php $__currentLoopData = $motoristas; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $motorista): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -56,6 +113,16 @@
 
                                 </option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="lotes_pendentes" class="block text-sm font-medium text-gray-700 mb-2">Lotes</label>
+                        <select name="lotes_pendentes" id="lotes_pendentes"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm">
+                            <option value="">Todos os lotes</option>
+                            <option value="1" <?php echo e(request('lotes_pendentes') == '1' ? 'selected' : ''); ?>>
+                                ⚠️ Com lotes pendentes
+                            </option>
                         </select>
                     </div>
                     <div>
@@ -98,9 +165,19 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100">
         <div class="p-4 border-b border-gray-100">
             <div class="flex justify-between items-center">
-                <h3 class="text-lg font-semibold text-gray-900">
-                    Empacotamentos (<?php echo e($empacotamentos->total()); ?>)
-                </h3>
+                <div class="flex items-center space-x-3">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        Empacotamentos (<?php echo e($empacotamentos->total()); ?>)
+                    </h3>
+                    <?php if($totalComPendentes > 0): ?>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <?php echo e($totalComPendentes); ?> com lotes pendentes
+                        </span>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -148,21 +225,39 @@
                                     <div class="flex items-center space-x-2">
                                         <?php if($empacotamento->coleta && $empacotamento->coleta->pecas): ?>
                                             <?php
-                                                $totalPecas = $empacotamento->coleta->pecas->sum(function($p) { 
-                                                    return $p->quantidade_empacotada > 0 ? $p->quantidade_empacotada : $p->quantidade; 
+                                                $totalPecas = $empacotamento->coleta->pecas->sum(function($p) {
+                                                    return $p->quantidade_empacotada > 0 ? $p->quantidade_empacotada : $p->quantidade;
                                                 });
                                                 $tiposPecas = $empacotamento->coleta->pecas->count();
                                                 $pecasIndividuais = $empacotamento->pecasIndividuais ? $empacotamento->pecasIndividuais->count() : 0;
+                                                $lotesPendentes = $empacotamento->pecasIndividuais ? $empacotamento->pecasIndividuais->where('quantidade', 0)->count() : 0;
+                                                $lotesProcessados = $pecasIndividuais - $lotesPendentes;
                                             ?>
                                             <div class="text-sm text-gray-900">
                                                 <div class="font-medium"><?php echo e($totalPecas); ?> peças</div>
                                                 <div class="text-xs text-gray-500"><?php echo e($tiposPecas); ?> tipos</div>
+                                                <?php if($pecasIndividuais > 0): ?>
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        <?php echo e($lotesProcessados); ?>/<?php echo e($pecasIndividuais); ?> lotes
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
-                                            <?php if($pecasIndividuais > 0): ?>
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                                    <?php echo e($pecasIndividuais); ?> QR
-                                                </span>
-                                            <?php endif; ?>
+                                            <div class="flex flex-col space-y-1">
+                                                <?php if($pecasIndividuais > 0): ?>
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                                        <?php echo e($pecasIndividuais); ?> QR
+                                                    </span>
+                                                <?php endif; ?>
+                                                <?php if($lotesPendentes > 0): ?>
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        <?php echo e($lotesPendentes); ?> pendente<?php echo e($lotesPendentes > 1 ? 's' : ''); ?>
+
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
                                         <?php else: ?>
                                             <div class="text-sm text-gray-500">-</div>
                                         <?php endif; ?>
@@ -187,7 +282,22 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center space-x-2">
-                                        <a href="<?php echo e(route('empacotamento.show', $empacotamento->id)); ?>" 
+                                        <?php
+                                            $lotesPendentes = $empacotamento->pecasIndividuais ? $empacotamento->pecasIndividuais->where('quantidade', 0)->count() : 0;
+                                        ?>
+
+                                        <?php if($lotesPendentes > 0): ?>
+                                            <a href="<?php echo e(route('empacotamento.edit', $empacotamento->id)); ?>"
+                                               class="inline-flex items-center px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded transition-colors duration-200"
+                                               title="Preencher <?php echo e($lotesPendentes); ?> lote<?php echo e($lotesPendentes > 1 ? 's' : ''); ?> pendente<?php echo e($lotesPendentes > 1 ? 's' : ''); ?>">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Preencher
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <a href="<?php echo e(route('empacotamento.show', $empacotamento->id)); ?>"
                                            class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
                                            title="Ver detalhes">
                                             <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +306,7 @@
                                             </svg>
                                             Ver
                                         </a>
-                                        <a href="<?php echo e(route('qrcodes.rastrear', $empacotamento->codigo_qr)); ?>" 
+                                        <a href="<?php echo e(route('qrcodes.rastrear', $empacotamento->codigo_qr)); ?>"
                                            class="inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors duration-200"
                                            target="_blank"
                                            title="Abrir rastreamento">
@@ -206,7 +316,7 @@
                                             QR
                                         </a>
                                         <?php if($empacotamento->pecasIndividuais && $empacotamento->pecasIndividuais->count() > 0): ?>
-                                            <button onclick="mostrarQRCodesPecas(<?php echo e($empacotamento->id); ?>)" 
+                                            <button onclick="mostrarQRCodesPecas(<?php echo e($empacotamento->id); ?>)"
                                                     class="inline-flex items-center px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-medium rounded transition-colors duration-200"
                                                     title="Ver QR codes das peças">
                                                 <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,6 +366,103 @@ function mostrarQRCodesPecas(empacotamentoId) {
     // onde os QR codes das peças são exibidos
     window.open(`<?php echo e(url('empacotamento')); ?>/${empacotamentoId}#qr-codes-pecas`, '_blank');
 }
+
+// Função para fechar alerta de empacotamentos pendentes
+function fecharAlertaEmpacotamentos() {
+    const alerta = document.getElementById('alerta-empacotamentos-pendentes');
+    if (alerta) {
+        alerta.style.display = 'none';
+    }
+}
+
+// Função para destacar empacotamentos com lotes pendentes na lista
+function expandirTodosPendentes() {
+    // Encontrar todas as linhas com lotes pendentes
+    const linhasComPendentes = [];
+    document.querySelectorAll('tbody tr').forEach(linha => {
+        const badgePendente = linha.querySelector('.bg-orange-100');
+        if (badgePendente) {
+            linhasComPendentes.push(linha);
+        }
+    });
+
+    if (linhasComPendentes.length > 0) {
+        // Remover destaque anterior
+        document.querySelectorAll('tbody tr').forEach(linha => {
+            linha.classList.remove('ring-4', 'ring-orange-400', 'ring-opacity-75', 'bg-orange-50');
+        });
+
+        // Destacar linhas com pendentes
+        linhasComPendentes.forEach(linha => {
+            linha.classList.add('ring-4', 'ring-orange-400', 'ring-opacity-75', 'bg-orange-50');
+        });
+
+        // Scroll para a primeira linha destacada
+        if (linhasComPendentes[0]) {
+            setTimeout(() => {
+                linhasComPendentes[0].scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }, 300);
+        }
+
+        // Mostrar mensagem temporária
+        mostrarMensagemTemporaria(`${linhasComPendentes.length} empacotamento${linhasComPendentes.length > 1 ? 's' : ''} com lotes pendentes destacado${linhasComPendentes.length > 1 ? 's' : ''}`, 'warning');
+
+        // Remover destaque após 5 segundos
+        setTimeout(() => {
+            linhasComPendentes.forEach(linha => {
+                linha.classList.remove('ring-4', 'ring-orange-400', 'ring-opacity-75', 'bg-orange-50');
+            });
+        }, 5000);
+    } else {
+        mostrarMensagemTemporaria('Nenhum empacotamento com lotes pendentes encontrado nesta página', 'info');
+    }
+}
+
+// Função para mostrar mensagem temporária
+function mostrarMensagemTemporaria(mensagem, tipo = 'info') {
+    const cores = {
+        success: 'bg-green-100 border-green-200 text-green-800',
+        warning: 'bg-yellow-100 border-yellow-200 text-yellow-800',
+        error: 'bg-red-100 border-red-200 text-red-800',
+        info: 'bg-blue-100 border-blue-200 text-blue-800'
+    };
+
+    const div = document.createElement('div');
+    div.className = `fixed top-4 right-4 p-3 rounded border ${cores[tipo]} z-50 shadow-lg`;
+    div.innerHTML = `
+        <div class="flex items-center">
+            <span class="text-sm font-medium">${mensagem}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-current opacity-70 hover:opacity-100">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(div);
+
+    // Remover após 3 segundos
+    setTimeout(() => {
+        if (div.parentElement) {
+            div.remove();
+        }
+    }, 3000);
+}
+
+// Auto-aplicar filtro se vier da URL
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('lotes_pendentes') === '1') {
+        // Destacar automaticamente os empacotamentos com lotes pendentes
+        setTimeout(() => {
+            expandirTodosPendentes();
+        }, 500);
+    }
+});
 </script>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
