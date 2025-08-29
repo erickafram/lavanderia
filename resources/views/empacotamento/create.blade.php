@@ -256,11 +256,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const coletaSelect = document.getElementById('coleta_id');
     const infoColeta = document.getElementById('infoColeta');
     const secaoPecasEmpacotamento = document.getElementById('secao-pecas-empacotamento');
-    const tabelaPecasEmpacotamento = document.getElementById('tabela-pecas-empacotamento');
-    const cabecalhoTabela = document.getElementById('cabecalho-tabela-empacotamento');
+    // const tabelaPecasEmpacotamento = document.getElementById('tabela-pecas-empacotamento'); // Não usado no sistema hierárquico
+    // const cabecalhoTabela = document.getElementById('cabecalho-tabela-empacotamento'); // Não usado no sistema hierárquico
     const tituloSecao = document.getElementById('titulo-secao-pecas');
     const descricaoSecao = document.getElementById('descricao-secao-pecas');
-    const botaoAdicionarPeca = document.getElementById('botao-adicionar-peca');
+    // const botaoAdicionarPeca = document.getElementById('botao-adicionar-peca'); // Não usado no sistema hierárquico
 
     // URL base para as requisições
     const baseUrl = '{{ url("coletas") }}';
@@ -446,23 +446,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para remover linha de peça
     window.removerLinhaPeca = function(botao) {
-        const linha = botao.closest('tr');
-        const tabela = tabelaPecasEmpacotamento;
-
-        // Para linhas de novas peças, verificar se não é a única
-        if (linha.classList.contains('linha-nova-peca')) {
-            if (tabela.querySelectorAll('.linha-nova-peca').length > 1) {
-                linha.remove();
+        const container = botao.closest('.tipo-peca-container');
+        
+        if (container) {
+            // Para peças extras, pode remover sempre
+            if (container.classList.contains('peca-extra-duplicada') || container.querySelector('.text-purple-600')) {
+                container.remove();
             } else {
-                alert('Deve haver pelo menos uma linha de peça.');
+                // Para outros tipos, verificar se não é o único
+                const containerTipos = document.getElementById('container-tipos-pecas');
+                const totalContainers = containerTipos.querySelectorAll('.tipo-peca-container').length;
+                
+                if (totalContainers > 1) {
+                    container.remove();
+                } else {
+                    alert('Deve haver pelo menos um tipo de peça.');
+                }
             }
-        } else {
-            // Para linhas duplicadas, pode remover sempre
-            linha.remove();
         }
     };
 
-    // Função para duplicar peça existente (conferência de quantidade)
+    // Função para duplicar peça existente (conferência de quantidade) - NÃO USADA NO SISTEMA HIERÁRQUICO
+    /*
     window.duplicarPeca = function(pecaId) {
         const linhaOriginal = document.querySelector(`tr[data-peca-id="${pecaId}"]`);
         const tabela = tabelaPecasEmpacotamento;
@@ -484,32 +489,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="text-sm font-medium text-gray-900">${tipo}</div>
                     <div class="text-sm text-gray-500">${categoria}</div>
                     <div class="text-xs text-blue-600 font-medium">📋 Duplicada</div>
+                    <input type="hidden" name="pecas_duplicadas[${novoIndex}][tipo_id]" value="${pecaId}">
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="text-sm text-gray-900">
-                        <strong>-</strong> peças
+                        <strong>${quantidadeOriginal}</strong> peças
+                        <div class="text-xs text-gray-500">Quantidade original</div>
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
                         <input type="number" min="0"
-                               name="pecas_duplicadas[${novoIndex}][peca_original_id]"
-                               value="${pecaId}"
-                               style="display: none;">
-                        <input type="number" min="1"
-                               name="pecas_duplicadas[${novoIndex}][quantidade_empacotada]"
-                               value="1"
+                               name="pecas_duplicadas[${novoIndex}][quantidade]"
+                               value="${quantidadeOriginal}"
                                class="quantidade-empacotada w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               data-original="${quantidadeOriginal}"
+                               onchange="calcularDiferencasQuantidade()"
                                required>
-                        <input type="hidden" name="pecas_duplicadas[${novoIndex}][peso_empacotado]" value="0">
+                        <input type="hidden" name="pecas_duplicadas[${novoIndex}][peso]" value="0">
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-blue-600 font-medium">+ Duplicada</div>
+                    <div class="diferenca-display">
+                        <div class="text-green-600 font-medium text-sm">✓ Confere</div>
+                    </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex space-x-2">
+                        <button type="button" onclick="duplicarPeca('${pecaId}')"
+                                class="btn-duplicate inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
+                                title="Duplicar novamente esta peça">
+                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            Duplicar
+                        </button>
                         <button type="button" onclick="removerLinhaPeca(this)"
                                 class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors duration-200"
                                 title="Remover peça duplicada">
@@ -522,14 +537,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             `;
             
-            // Inserir após a linha original
+            // Inserir a nova linha após a linha original
             linhaOriginal.parentNode.insertBefore(novaLinha, linhaOriginal.nextSibling);
+            
+            // Scroll suave para a nova linha
+            setTimeout(() => {
+                novaLinha.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+                
+                // Adicionar animação de destaque
+                novaLinha.classList.add('highlight-new');
+                
+                // Focar no campo de quantidade
+                const inputQuantidade = novaLinha.querySelector('.quantidade-empacotada');
+                if (inputQuantidade) {
+                    inputQuantidade.focus();
+                    inputQuantidade.select();
+                }
+            }, 100);
         }
     };
+    */
 
     // Função para adicionar peça extra (conferência de quantidade)
     window.adicionarPecaExtra = function() {
-        const tabela = tabelaPecasEmpacotamento;
+        const containerTipos = document.getElementById('container-tipos-pecas');
+        
+        if (!containerTipos) {
+            console.error('Container de tipos de peças não encontrado');
+            alert('Erro: não foi possível encontrar o container de peças. Recarregue a página e tente novamente.');
+            return;
+        }
+
         const novoIndex = Date.now();
         
         // Criar opções do select
@@ -538,47 +579,27 @@ document.addEventListener('DOMContentLoaded', function() {
             opcoesSelect += `<option value="${tipo.id}">${tipo.nome} (${tipo.categoria})</option>`;
         });
         
-        // Criar nova linha
-        const novaLinha = document.createElement('tr');
-        novaLinha.className = 'peca-row peca-extra';
-        novaLinha.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">
-                <select name="pecas_extras[${novoIndex}][tipo_id]" class="tipo-select w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    ${opcoesSelect}
-                </select>
-                <div class="text-xs text-green-600 font-medium mt-1">✨ Peça Extra</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">
-                    <strong>-</strong> peças
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
-                    <input type="number" min="1"
-                           name="pecas_extras[${novoIndex}][quantidade]"
-                           value="1"
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           required>
-                    <input type="hidden" name="pecas_extras[${novoIndex}][peso]" value="0">
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-green-600 font-medium">+ Extra</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex space-x-2">
-                    <button type="button" onclick="duplicarPecaExtra(this)"
-                            class="btn-duplicate inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
-                            title="Duplicar esta peça extra">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+        // Criar novo container de tipo de peça extra
+        const novoTipoContainer = document.createElement('div');
+        novoTipoContainer.className = 'tipo-peca-container bg-purple-50 border border-purple-200 rounded-lg';
+        novoTipoContainer.innerHTML = `
+            <div class="tipo-peca-header p-4 border-b border-purple-200 bg-purple-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
-                        Duplicar
-                    </button>
-                    <button type="button" onclick="removerLinhaPeca(this)"
-                            class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors duration-200"
+                        <div>
+                            <select name="pecas_extras[${novoIndex}][tipo_id]" 
+                                    class="tipo-select bg-white border border-purple-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
+                                    required onchange="atualizarNomeTipoExtra(this, ${novoIndex})">
+                                ${opcoesSelect}
+                            </select>
+                            <div class="text-xs text-purple-600 font-medium mt-1">✨ Peça Extra</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removerTipoExtra(this)"
+                            class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors"
                             title="Remover peça extra">
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -586,75 +607,103 @@ document.addEventListener('DOMContentLoaded', function() {
                         Remover
                     </button>
                 </div>
-            </td>
+            </div>
+            <div class="tipo-peca-content p-4">
+                <div class="space-y-3">
+                    <div class="linha-empacotamento bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
+                                <input type="number" min="1"
+                                       name="pecas_extras[${novoIndex}][quantidade]"
+                                       value="1"
+                                       class="quantidade-empacotada w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                                       required>
+                                <input type="hidden" name="pecas_extras[${novoIndex}][peso]" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                                <div class="text-sm text-purple-600 font-medium pt-2">+ Extra</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Ações</label>
+                                <button type="button" onclick="duplicarPecaExtra(this)"
+                                        class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                        title="Duplicar esta peça extra">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Duplicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
         
-        tabela.appendChild(novaLinha);
+        containerTipos.appendChild(novoTipoContainer);
+        
+        // Scroll para o novo item
+        setTimeout(() => {
+            novoTipoContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    };
+
+    // Função para remover tipo de peça extra
+    window.removerTipoExtra = function(botao) {
+        const container = botao.closest('.tipo-peca-container');
+        if (container) {
+            container.remove();
+        }
+    };
+
+    // Função para atualizar o nome do tipo de peça extra
+    window.atualizarNomeTipoExtra = function(selectElement, index) {
+        const nomeTipo = selectElement.options[selectElement.selectedIndex].text;
+        const container = selectElement.closest('.tipo-peca-container');
+        if (container) {
+            container.querySelector('.tipo-peca-header .text-sm.font-medium').textContent = nomeTipo;
+        }
     };
 
     // Função para duplicar peça extra
     window.duplicarPecaExtra = function(botao) {
-        const linhaOriginal = botao.closest('tr');
-        const tabela = tabelaPecasEmpacotamento;
+        const containerOriginal = botao.closest('.tipo-peca-container');
+        const containerTipos = document.getElementById('container-tipos-pecas');
         const novoIndex = Date.now();
 
-        // Obter dados da linha original
-        const selectOriginal = linhaOriginal.querySelector('.tipo-select');
-        const quantidadeOriginal = linhaOriginal.querySelector('input[type="number"]');
-
-        if (!selectOriginal.value) {
-            alert('Selecione um tipo de peça antes de duplicar.');
-            return;
-        }
+        // Pegar dados do container original
+        const tipoSelect = containerOriginal.querySelector('.tipo-select');
+        const quantidadeOriginal = containerOriginal.querySelector('.quantidade-empacotada');
 
         // Criar opções do select
         let opcoesSelect = '<option value="">Selecione um tipo</option>';
         tiposDisponiveis.forEach(function(tipo) {
-            const selected = tipo.id == selectOriginal.value ? 'selected' : '';
-            opcoesSelect += `<option value="${tipo.id}" ${selected}>${tipo.nome} (${tipo.categoria})</option>`;
+            opcoesSelect += `<option value="${tipo.id}"${tipo.id == tipoSelect.value ? ' selected' : ''}>${tipo.nome} (${tipo.categoria})</option>`;
         });
 
         // Criar nova linha duplicada
-        const novaLinha = document.createElement('tr');
-        novaLinha.className = 'peca-row peca-extra peca-extra-duplicada';
-        novaLinha.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap">
-                <select name="pecas_extras[${novoIndex}][tipo_id]" class="tipo-select w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-                    ${opcoesSelect}
-                </select>
-                <div class="text-xs text-blue-600 font-medium mt-1">📋 Extra Duplicada</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">
-                    <strong>-</strong> peças
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
-                    <input type="number" min="1"
-                           name="pecas_extras[${novoIndex}][quantidade]"
-                           value="${quantidadeOriginal.value}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                           required>
-                    <input type="hidden" name="pecas_extras[${novoIndex}][peso]" value="0">
-                </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-blue-600 font-medium">+ Duplicada</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex space-x-2">
-                    <button type="button" onclick="duplicarPecaExtra(this)"
-                            class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors duration-200"
-                            title="Duplicar esta peça extra">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        const novoContainer = document.createElement('div');
+        novoContainer.className = 'tipo-peca-container bg-purple-50 border border-purple-200 rounded-lg peca-extra-duplicada';
+        novoContainer.innerHTML = `
+            <div class="tipo-peca-header p-4 border-b border-purple-200 bg-purple-100">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
-                        Duplicar
-                    </button>
-                    <button type="button" onclick="removerLinhaPeca(this)"
-                            class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors duration-200"
+                        <div>
+                            <select name="pecas_extras[${novoIndex}][tipo_id]" 
+                                    class="tipo-select bg-white border border-purple-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                    required onchange="atualizarNomeTipoExtra(this, ${novoIndex})">
+                                ${opcoesSelect}
+                            </select>
+                            <div class="text-xs text-blue-600 font-medium mt-1">📋 Extra Duplicada</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removerTipoExtra(this)"
+                            class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors"
                             title="Remover peça extra">
                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -662,28 +711,53 @@ document.addEventListener('DOMContentLoaded', function() {
                         Remover
                     </button>
                 </div>
-            </td>
+            </div>
+            <div class="tipo-peca-content p-4">
+                <div class="space-y-3">
+                    <div class="linha-empacotamento bg-white border border-gray-200 rounded-lg p-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade Empacotada</label>
+                                <input type="number" min="1"
+                                       name="pecas_extras[${novoIndex}][quantidade]"
+                                       value="${quantidadeOriginal.value}"
+                                       class="quantidade-empacotada w-full px-3 py-2 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       required>
+                                <input type="hidden" name="pecas_extras[${novoIndex}][peso]" value="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                                <div class="text-sm text-blue-600 font-medium pt-2">+ Duplicada</div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 mb-1">Ações</label>
+                                <button type="button" onclick="duplicarPecaExtra(this)"
+                                        class="inline-flex items-center px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium rounded transition-colors"
+                                        title="Duplicar esta peça extra">
+                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Duplicar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
 
-        // Inserir a nova linha após a linha original
-        linhaOriginal.parentNode.insertBefore(novaLinha, linhaOriginal.nextSibling);
+        // Inserir depois do container original
+        containerOriginal.insertAdjacentElement('afterend', novoContainer);
 
-        // Scroll suave para a nova linha
+        // Adicionar classe de highlight
+        novoContainer.classList.add('highlight-new');
         setTimeout(() => {
-            novaLinha.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+            novoContainer.classList.remove('highlight-new');
+        }, 2000);
 
-            // Adicionar animação de destaque
-            novaLinha.classList.add('highlight-new');
-
-            // Focar no campo de quantidade
-            const inputQuantidade = novaLinha.querySelector('input[type="number"]');
-            if (inputQuantidade) {
-                inputQuantidade.focus();
-                inputQuantidade.select();
-            }
+        // Scroll para o novo item
+        setTimeout(() => {
+            novoContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
     };
 
