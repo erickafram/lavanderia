@@ -644,14 +644,18 @@
                 </div>
                 
                 <div class="text-center space-y-2">
-                    <div class="flex gap-2 justify-center">
+                    <div class="flex gap-2 justify-center flex-wrap">
                         <button onclick="fecharScannerQR()" 
-                                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                                class="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm">
                             Cancelar
                         </button>
+                        <button onclick="solicitarPermissaoCamera()" 
+                                class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
+                            🔓 Permitir Câmera
+                        </button>
                         <button onclick="testarQRCodeManual()" 
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            Testar Manual
+                                class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                            ✏️ Testar Manual
                         </button>
                     </div>
                     <p class="text-xs text-gray-500">Use "Testar Manual" se a câmera não funcionar</p>
@@ -1001,89 +1005,192 @@ function fecharScannerQR() {
 }
 
 function iniciarScanner() {
-    console.log("🚀 Iniciando scanner ZXing...");
+    console.log("🚀 Iniciando scanner com getUserMedia nativo...");
     
     try {
         // Parar scanner anterior se existir
-        if (codeReader) {
-            pararScanner();
-        }
+        pararScanner();
         
-        // Criar novo code reader
-        codeReader = new ZXing.BrowserQRCodeReader();
-        console.log("✅ ZXing Code Reader criado");
+        // Verificar se getUserMedia está disponível
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            throw new Error('getUserMedia não suportado neste navegador');
+        }
         
         // Limpar área do scanner
         const previewElement = document.getElementById('qr-reader');
-        previewElement.innerHTML = '';
+        previewElement.innerHTML = '<video id="qr-video" autoplay playsinline></video>';
         
-        // Listar câmeras disponíveis
-        codeReader.listVideoInputDevices()
-            .then((videoInputDevices) => {
-                console.log("📱 Câmeras encontradas:", videoInputDevices.length);
+        const video = document.getElementById('qr-video');
+        video.style.width = '100%';
+        video.style.height = '100%';
+        video.style.objectFit = 'cover';
+        
+        // Configurações da câmera - tentar traseira primeiro
+        const constraints = {
+            video: {
+                facingMode: { ideal: 'environment' },
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+        
+        console.log("📱 Solicitando acesso à câmera...");
+        
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(stream => {
+                console.log("✅ Acesso à câmera concedido");
                 
-                if (videoInputDevices.length === 0) {
-                    throw new Error('Nenhuma câmera encontrada');
-                }
+                video.srcObject = stream;
+                window.currentStream = stream;
                 
-                // Tentar encontrar câmera traseira primeiro
-                selectedDeviceId = videoInputDevices.find(device => 
-                    device.label.toLowerCase().includes('back') || 
-                    device.label.toLowerCase().includes('rear') ||
-                    device.label.toLowerCase().includes('traseira')
-                )?.deviceId || videoInputDevices[0].deviceId;
+                // Criar code reader ZXing
+                codeReader = new ZXing.BrowserQRCodeReader();
                 
-                console.log("📹 Usando câmera:", selectedDeviceId);
-                
-                // Iniciar decodificação
-                return codeReader.decodeFromVideoDevice(selectedDeviceId, 'qr-reader', (result, err) => {
-                    if (result) {
-                        console.log("✅ QR Code detectado:", result.text);
-                        onScanSuccess(result.text, result);
-                    }
+                video.addEventListener('loadedmetadata', () => {
+                    console.log("📹 Vídeo carregado, iniciando detecção...");
+                    atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
                     
-                    if (err && !(err instanceof ZXing.NotFoundException)) {
-                        console.warn("⚠️ Erro de decodificação:", err);
-                        onScanFailure(err.message);
-                    }
+                    // Iniciar loop de detecção
+                    iniciarLoopDeteccao(video);
                 });
-            })
-            .then(() => {
-                console.log("✅ Scanner ZXing iniciado com sucesso!");
-                atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
+                
             })
             .catch(err => {
-                console.error("❌ Erro ao iniciar ZXing:", err);
-                atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
-                alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Recarregue a página\n• Use 'Testar Manual'");
-                fecharScannerQR();
+                console.error("❌ Erro ao acessar câmera traseira:", err);
+                
+                // Fallback para câmera frontal
+                console.log("🔄 Tentando câmera frontal...");
+                const constraintsFrontal = {
+                    video: {
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                navigator.mediaDevices.getUserMedia(constraintsFrontal)
+                    .then(stream => {
+                        console.log("✅ Câmera frontal funcionando");
+                        
+                        video.srcObject = stream;
+                        window.currentStream = stream;
+                        codeReader = new ZXing.BrowserQRCodeReader();
+                        
+                        video.addEventListener('loadedmetadata', () => {
+                            atualizarStatusCamera("warning", "📱 Câmera frontal ativa");
+                            iniciarLoopDeteccao(video);
+                        });
+                    })
+                    .catch(err2 => {
+                        console.error("❌ Erro também na câmera frontal:", err2);
+                        atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
+                        
+                        // Mostrar mensagem específica baseada no erro
+                        let mensagem = "❌ Erro ao acessar câmera.\n\n";
+                        
+                        if (err2.name === 'NotAllowedError') {
+                            mensagem += "🔒 Acesso negado.\n• Clique no ícone da câmera na barra de endereços\n• Permita o acesso à câmera\n• Recarregue a página";
+                        } else if (err2.name === 'NotFoundError') {
+                            mensagem += "📱 Nenhuma câmera encontrada.\n• Verifique se seu dispositivo tem câmera\n• Use 'Testar Manual'";
+                        } else {
+                            mensagem += "Possíveis soluções:\n• Permita acesso à câmera\n• Feche outros apps que usam câmera\n• Recarregue a página\n• Use 'Testar Manual'";
+                        }
+                        
+                        alert(mensagem);
+                        fecharScannerQR();
+                    });
             });
             
     } catch (error) {
-        console.error("❌ Erro ao criar ZXing scanner:", error);
-        alert("❌ Erro ao inicializar scanner. Recarregue a página.");
+        console.error("❌ Erro ao inicializar scanner:", error);
+        atualizarStatusCamera("error", "❌ Erro de inicialização");
+        alert("❌ Erro ao inicializar scanner.\n\nSeu navegador pode não suportar esta funcionalidade.\nUse 'Testar Manual'.");
         fecharScannerQR();
     }
 }
 
-function pararScanner() {
-    console.log("🛑 Parando scanner ZXing...");
+function iniciarLoopDeteccao(video) {
+    if (!codeReader || !video) return;
     
-    try {
-        if (codeReader) {
-            codeReader.reset();
-            console.log("✅ Scanner ZXing parado");
+    // Criar canvas para capturar frames
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    
+    let isScanning = true;
+    window.scanningActive = true;
+    
+    function detectarFrame() {
+        if (!isScanning || !window.scanningActive) return;
+        
+        try {
+            // Capturar frame atual do vídeo
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Tentar decodificar
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            codeReader.decodeFromImageData(imageData)
+                .then(result => {
+                    if (result && result.text) {
+                        console.log("✅ QR Code detectado:", result.text);
+                        isScanning = false;
+                        window.scanningActive = false;
+                        onScanSuccess(result.text, result);
+                    }
+                })
+                .catch(err => {
+                    // Erro normal quando não encontra QR code
+                    if (!(err instanceof ZXing.NotFoundException)) {
+                        console.warn("⚠️ Erro de decodificação:", err);
+                    }
+                });
+                
+        } catch (error) {
+            console.error("❌ Erro no loop de detecção:", error);
         }
         
-        // Limpar variáveis
-        codeReader = null;
-        selectedDeviceId = null;
+        // Continuar o loop se ainda estiver escaneando
+        if (isScanning && window.scanningActive) {
+            requestAnimationFrame(detectarFrame);
+        }
+    }
+    
+    // Iniciar loop de detecção
+    console.log("🔄 Iniciando loop de detecção...");
+    detectarFrame();
+}
+
+function pararScanner() {
+    console.log("🛑 Parando scanner...");
+    
+    try {
+        // Parar loop de detecção
+        window.scanningActive = false;
+        
+        // Parar stream de vídeo
+        if (window.currentStream) {
+            window.currentStream.getTracks().forEach(track => {
+                track.stop();
+                console.log("📹 Track parado:", track.kind);
+            });
+            window.currentStream = null;
+        }
+        
+        // Limpar code reader
+        if (codeReader) {
+            codeReader = null;
+        }
         
         // Limpar elemento de vídeo
         const previewElement = document.getElementById('qr-reader');
         if (previewElement) {
             previewElement.innerHTML = '';
         }
+        
+        console.log("✅ Scanner parado completamente");
         
     } catch (error) {
         console.error("❌ Erro ao parar scanner:", error);
@@ -1445,6 +1552,55 @@ function atualizarStatusCamera(tipo, mensagem) {
             ${mensagem}
         </div>
     `;
+}
+
+// ============ FUNÇÃO PARA SOLICITAR PERMISSÃO ============
+
+function solicitarPermissaoCamera() {
+    console.log("🔓 Solicitando permissão da câmera...");
+    atualizarStatusCamera("loading", "🔓 Solicitando permissão...");
+    
+    // Tentar solicitar permissão explicitamente
+    navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+        } 
+    })
+    .then(stream => {
+        console.log("✅ Permissão concedida!");
+        atualizarStatusCamera("success", "✅ Permissão concedida! Reiniciando...");
+        
+        // Parar o stream temporário
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Reiniciar scanner
+        setTimeout(() => {
+            iniciarScanner();
+        }, 1000);
+    })
+    .catch(err => {
+        console.error("❌ Permissão negada:", err);
+        
+        let mensagem = "❌ Não foi possível obter permissão.\n\n";
+        
+        if (err.name === 'NotAllowedError') {
+            mensagem += "🔒 Acesso negado pelo usuário.\n\n";
+            mensagem += "Para permitir:\n";
+            mensagem += "1. Clique no ícone 🔒 ou 📹 na barra de endereços\n";
+            mensagem += "2. Selecione 'Permitir' para câmera\n";
+            mensagem += "3. Recarregue a página\n\n";
+            mensagem += "Ou use 'Testar Manual' como alternativa.";
+        } else if (err.name === 'NotFoundError') {
+            mensagem += "📱 Nenhuma câmera encontrada no dispositivo.";
+        } else {
+            mensagem += "Erro: " + err.message;
+        }
+        
+        atualizarStatusCamera("error", "❌ Permissão negada");
+        alert(mensagem);
+    });
 }
 
 // ============ FUNÇÃO PARA TESTE MANUAL ============
