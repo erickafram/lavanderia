@@ -1060,50 +1060,79 @@ function onScanFailure(error) {
 }
 
 function processarQRCode(codigo) {
-    // Mostrar loading
-    const loadingMsg = mostrarMensagemCarregando("🔍 Identificando QR Code...");
+    console.log("🔍 PROCESSANDO QR CODE:", codigo);
     
-    // Detectar tipo de QR code baseado no padrão
-    if (codigo.startsWith('EMP')) {
-        // É um QR code de empacotamento
-        buscarEmpacotamento(codigo, loadingMsg);
-    } else if (codigo.startsWith('PC')) {
-        // É um QR code de sacola individual
-        buscarSacola(codigo, loadingMsg);
-    } else {
-        // Tentar identificar automaticamente
-        tentarIdentificarQRCode(codigo, loadingMsg);
+    try {
+        // Mostrar loading
+        const loadingMsg = mostrarMensagemCarregando("🔍 Identificando QR Code...");
+        console.log("Loading message criado:", loadingMsg);
+        
+        // Detectar tipo de QR code baseado no padrão
+        if (codigo.startsWith('EMP')) {
+            console.log("✅ QR Code identificado como EMPACOTAMENTO");
+            console.log("Chamando buscarEmpacotamento...");
+            buscarEmpacotamento(codigo, loadingMsg);
+        } else if (codigo.startsWith('PC')) {
+            console.log("✅ QR Code identificado como SACOLA INDIVIDUAL");
+            console.log("Chamando buscarSacola...");
+            buscarSacola(codigo, loadingMsg);
+        } else {
+            console.log("⚠️ Tipo de QR Code não reconhecido:", codigo);
+            console.log("Tentando identificar automaticamente...");
+            tentarIdentificarQRCode(codigo, loadingMsg);
+        }
+    } catch (error) {
+        console.error("❌ ERRO ao processar QR Code:", error);
+        alert("Erro ao processar QR Code: " + error.message);
     }
 }
 
 function buscarEmpacotamento(codigo, loadingMsg) {
-    // Atualizar mensagem de loading
-    loadingMsg.querySelector('svg').nextSibling.textContent = '📦 Buscando empacotamento...';
+    console.log("📦 BUSCANDO EMPACOTAMENTO:", codigo);
     
-    fetch('{{ route("motorista.buscar-empacotamento") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ codigo: codigo })
+    try {
+        // Atualizar mensagem de loading
+        if (loadingMsg && loadingMsg.querySelector('svg') && loadingMsg.querySelector('svg').nextSibling) {
+            loadingMsg.querySelector('svg').nextSibling.textContent = '📦 Buscando empacotamento...';
+        }
+        
+        console.log("Fazendo requisição para:", '{{ route("buscar-empacotamento") }}');
+        
+        fetch('{{ route("buscar-empacotamento") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ codigo: codigo })
+        })
+    .then(response => {
+        console.log("📡 Resposta recebida:", response);
+        return response.json();
     })
-    .then(response => response.json())
     .then(data => {
+        console.log("📊 Dados recebidos:", data);
         ocultarMensagemCarregando(loadingMsg);
         
         if (data.success) {
-            // Empacotamento encontrado, mostrar modal de confirmação
+            console.log("✅ Empacotamento encontrado, abrindo modal...");
             abrirModalSaidaEmpacotamento(data.empacotamento);
         } else {
+            console.log("❌ Erro na resposta:", data.message);
             alert(data.message || '❌ Empacotamento não encontrado');
         }
     })
     .catch(error => {
+        console.error('❌ ERRO na requisição:', error);
         ocultarMensagemCarregando(loadingMsg);
-        console.error('Erro:', error);
         alert('❌ Erro ao buscar empacotamento. Tente novamente.');
     });
+    
+    } catch (error) {
+        console.error("❌ ERRO em buscarEmpacotamento:", error);
+        ocultarMensagemCarregando(loadingMsg);
+        alert("Erro interno: " + error.message);
+    }
 }
 
 function buscarSacola(codigo, loadingMsg) {
@@ -1191,8 +1220,17 @@ function tentarIdentificarQRCode(codigo, loadingMsg) {
 // ============ FUNÇÕES SAÍDA POR EMPACOTAMENTO ============
 
 function abrirModalSaidaEmpacotamento(empacotamento) {
-    // Usar o modal existente de saída, mas adaptado para empacotamento completo
-    document.getElementById('codigoSaida').textContent = empacotamento.codigo_qr;
+    console.log("🎯 ABRINDO MODAL DE SAÍDA EMPACOTAMENTO:", empacotamento);
+    
+    try {
+        // Usar o modal existente de saída, mas adaptado para empacotamento completo
+        const codigoElement = document.getElementById('codigoSaida');
+        if (codigoElement) {
+            codigoElement.textContent = empacotamento.codigo_qr;
+            console.log("✅ Código definido:", empacotamento.codigo_qr);
+        } else {
+            console.error("❌ Elemento 'codigoSaida' não encontrado!");
+        }
 
     // Mostrar informações do estabelecimento
     if (empacotamento.coleta && empacotamento.coleta.estabelecimento) {
@@ -1210,7 +1248,19 @@ function abrirModalSaidaEmpacotamento(empacotamento) {
     // Guardar referência para confirmação
     empacotamentoParaSaida = empacotamento;
     
-    document.getElementById('modalSaida').classList.remove('hidden');
+    console.log("🎯 Tentando abrir modal 'modalSaida'...");
+    const modal = document.getElementById('modalSaida');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log("✅ Modal aberto com sucesso!");
+    } else {
+        console.error("❌ Modal 'modalSaida' não encontrado!");
+    }
+    
+    } catch (error) {
+        console.error("❌ ERRO em abrirModalSaidaEmpacotamento:", error);
+        alert("Erro ao abrir modal: " + error.message);
+    }
 }
 
 // ============ FUNÇÕES SAÍDA POR SACOLA ============
