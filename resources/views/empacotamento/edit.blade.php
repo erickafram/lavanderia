@@ -149,35 +149,7 @@
                             </span>
                         </h3>
                         <p class="text-sm text-gray-600 mt-1">Divida as peças em lotes menores. Cada lote terá seu próprio QR Code para rastreamento</p>
-
-                        <!-- Opções de Empacotamento -->
-                        <div class="mt-4 p-3 bg-white rounded border border-gray-200">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-3">Modo de Empacotamento:</h4>
-                            <div class="space-y-2">
-                                <label class="flex items-center">
-                                    <input type="radio" name="modo_empacotamento" value="todos" class="mr-2" checked onchange="alterarModoEmpacotamento()">
-                                    <span class="text-sm text-gray-700">Empacotar todos os lotes de uma vez</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="modo_empacotamento" value="selecionados" class="mr-2" onchange="alterarModoEmpacotamento()">
-                                    <span class="text-sm text-gray-700">Empacotar apenas lotes selecionados</span>
-                                </label>
-                            </div>
-                            <div id="instrucoes-modo" class="mt-2 text-xs text-gray-500">
-                                Todos os lotes serão processados e receberão QR codes.
-                            </div>
-                            <div id="contador-selecionados" class="mt-1 text-xs font-medium text-blue-600 hidden">
-                                0 tipos selecionados
-                            </div>
-                            <div id="acoes-selecao" class="mt-2 space-x-2 hidden">
-                                <button type="button" onclick="selecionarTodosTipos()" class="text-xs text-blue-600 hover:text-blue-800 underline">
-                                    Selecionar todos
-                                </button>
-                                <button type="button" onclick="deselecionarTodosTipos()" class="text-xs text-gray-600 hover:text-gray-800 underline">
-                                    Desselecionar todos
-                                </button>
-                            </div>
-                        </div>
+                    </div>
 
                         <!-- Resumo de Status dos Lotes -->
                         @php
@@ -248,27 +220,54 @@
                             
                             // Criar lista combinada de tipos (da coleta + empacotadas)
                             $todosTipos = collect();
+                            $tiposEmTransito = collect();
                             
                             // Adicionar tipos da coleta
                             foreach ($coletaPecas as $tipoId => $coletaPeca) {
-                                $todosTipos->put($tipoId, [
+                                $pecasEmpacotadasTipo = $pecasIndividuais->get($tipoId, collect());
+                                
+                                // Verificar se todas as peças deste tipo estão em trânsito
+                                $pecasDisponiveis = $pecasEmpacotadasTipo->where('status_saida', '!=', 'em_transito');
+                                $pecasEmTransito = $pecasEmpacotadasTipo->where('status_saida', 'em_transito');
+                                
+                                $dados = [
                                     'tipo_id' => $tipoId,
                                     'tipo' => $coletaPeca->tipo,
                                     'quantidade_coletada' => $coletaPeca->quantidade,
-                                    'pecas_empacotadas' => $pecasIndividuais->get($tipoId, collect())
-                                ]);
+                                    'pecas_empacotadas' => $pecasEmpacotadasTipo,
+                                    'tem_pecas_em_transito' => $pecasEmTransito->count() > 0,
+                                    'todas_em_transito' => $pecasDisponiveis->count() === 0 && $pecasEmTransito->count() > 0
+                                ];
+                                
+                                if ($dados['todas_em_transito']) {
+                                    $tiposEmTransito->put($tipoId, $dados);
+                                } else {
+                                    $todosTipos->put($tipoId, $dados);
+                                }
                             }
                             
                             // Adicionar tipos que só existem no empacotamento (peças extras)
                             foreach ($pecasIndividuais as $tipoId => $pecasEmpacotadasTipo) {
-                                if (!$todosTipos->has($tipoId)) {
+                                if (!$todosTipos->has($tipoId) && !$tiposEmTransito->has($tipoId)) {
                                     $primeiraP = $pecasEmpacotadasTipo->first();
-                                    $todosTipos->put($tipoId, [
+                                    
+                                    $pecasDisponiveis = $pecasEmpacotadasTipo->where('status_saida', '!=', 'em_transito');
+                                    $pecasEmTransito = $pecasEmpacotadasTipo->where('status_saida', 'em_transito');
+                                    
+                                    $dados = [
                                         'tipo_id' => $tipoId,
                                         'tipo' => $primeiraP->tipo,
                                         'quantidade_coletada' => 0,
-                                        'pecas_empacotadas' => $pecasEmpacotadasTipo
-                                    ]);
+                                        'pecas_empacotadas' => $pecasEmpacotadasTipo,
+                                        'tem_pecas_em_transito' => $pecasEmTransito->count() > 0,
+                                        'todas_em_transito' => $pecasDisponiveis->count() === 0 && $pecasEmTransito->count() > 0
+                                    ];
+                                    
+                                    if ($dados['todas_em_transito']) {
+                                        $tiposEmTransito->put($tipoId, $dados);
+                                    } else {
+                                        $todosTipos->put($tipoId, $dados);
+                                    }
                                 }
                             }
                         @endphp
@@ -506,6 +505,78 @@
                                 </div>
                             </div>
                         @endforeach
+                        
+                        <!-- Seção de Tipos em Trânsito -->
+                        @if($tiposEmTransito->count() > 0)
+                            <div class="mt-6 border-t border-gray-300 pt-4">
+                                <h4 class="text-lg font-semibold text-gray-700 mb-3 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Peças em Trânsito
+                                    <span class="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                        {{ $tiposEmTransito->count() }} tipos
+                                    </span>
+                                </h4>
+                                <p class="text-sm text-gray-600 mb-4">🚚 Estas peças já saíram com o motorista</p>
+                                
+                                @foreach($tiposEmTransito as $tipoId => $dadosTipo)
+                                    @php
+                                        $tipo = $dadosTipo['tipo'];
+                                        $quantidadeColetada = $dadosTipo['quantidade_coletada'];
+                                        $pecasEmpacotadas = $dadosTipo['pecas_empacotadas'];
+                                        $totalEmpacotado = $pecasEmpacotadas->sum('quantidade');
+                                        $pecasEmTransito = $pecasEmpacotadas->where('status_saida', 'em_transito');
+                                    @endphp
+                                    
+                                    <div class="tipo-peca-container border border-green-200 rounded-lg overflow-hidden mb-4 bg-green-50">
+                                        <!-- Cabeçalho do Tipo em Trânsito -->
+                                        <div class="bg-gradient-to-r from-green-100 to-emerald-100 border-b border-green-200 p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
+                                                    <h4 class="text-base font-semibold text-gray-800">{{ $tipo->nome }}</h4>
+                                                    <span class="ml-2 text-xs text-gray-600 bg-white px-2 py-1 rounded">{{ $tipo->categoria }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <div class="text-xs text-green-600 font-semibold bg-green-200 px-2 py-1 rounded">
+                                                        🚚 Em Trânsito
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-3 gap-4 mt-3 text-sm">
+                                                <div class="text-center">
+                                                    <div class="text-xs text-gray-600">Coletado</div>
+                                                    <div class="font-semibold">{{ $quantidadeColetada }} peças</div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div class="text-xs text-gray-600">Empacotado</div>
+                                                    <div class="font-semibold">{{ $totalEmpacotado }} peças</div>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div class="text-xs text-gray-600">Status</div>
+                                                    <div class="font-semibold text-green-600">✓ Em Trânsito</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mt-3 text-xs text-gray-700">
+                                                📦 <strong>{{ $pecasEmTransito->count() }} sacola(s)</strong> confirmada(s) para entrega
+                                                @if($pecasEmTransito->first() && $pecasEmTransito->first()->data_saida)
+                                                    • Saída: {{ $pecasEmTransito->first()->data_saida->format('d/m/Y H:i') }}
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                                                ⚠️ <strong>Importante:</strong> Se você editar este tipo, será necessário gerar novos QR codes para impressão
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                     
                     <!-- Botão Adicionar Peça Extra -->
