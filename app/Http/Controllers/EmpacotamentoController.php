@@ -282,22 +282,8 @@ class EmpacotamentoController extends Controller
      */
     private function processarPecasIndividuaisEmpacotamento(Request $request, Empacotamento $empacotamento)
     {
-        // Verificar modo de empacotamento
-        $modoEmpacotamento = $request->input('modo_empacotamento', 'todos');
-        $tiposSelecionados = [];
-
-        \Log::info('Modo de empacotamento:', ['modo' => $modoEmpacotamento]);
-
-        if ($modoEmpacotamento === 'selecionados') {
-            $tiposSelecionados = $request->input('tipos_selecionados', []);
-            \Log::info('Tipos selecionados:', $tiposSelecionados);
-
-            // Se nenhum tipo foi selecionado, não processar nada
-            if (empty($tiposSelecionados)) {
-                \Log::info('Nenhum tipo selecionado, não processando nada');
-                return;
-            }
-        }
+        // Sempre processar todos os tipos (modo simplificado)
+        \Log::info('Processando todos os tipos de peças');
 
         // Processar lotes removidos
         if ($request->has('lotes_removidos')) {
@@ -315,11 +301,6 @@ class EmpacotamentoController extends Controller
                 $pecaIndividual = EmpacotamentoPeca::find($pecaId);
 
                 if ($pecaIndividual && $pecaIndividual->empacotamento_id == $empacotamento->id) {
-                    // Se modo selecionados, só processar se o tipo estiver selecionado
-                    if ($modoEmpacotamento === 'selecionados' && !in_array($pecaIndividual->tipo_id, $tiposSelecionados)) {
-                        continue;
-                    }
-
                     $pecaIndividual->update([
                         'quantidade' => $dadosPeca['quantidade'],
                         'peso' => $dadosPeca['peso'] ?? 0,
@@ -331,11 +312,6 @@ class EmpacotamentoController extends Controller
         // Processar novos lotes
         if ($request->has('novos_lotes')) {
             foreach ($request->novos_lotes as $dadosLote) {
-                // Se modo selecionados, só processar se o tipo estiver selecionado
-                if ($modoEmpacotamento === 'selecionados' && !in_array($dadosLote['tipo_id'], $tiposSelecionados)) {
-                    continue;
-                }
-
                 // Só criar o registro se a quantidade for maior que 0
                 if (($dadosLote['quantidade'] ?? 0) > 0) {
                     EmpacotamentoPeca::create([
@@ -355,11 +331,6 @@ class EmpacotamentoController extends Controller
             \Log::info('Peças extras recebidas:', $request->pecas_extras);
 
             foreach ($request->pecas_extras as $dadosExtra) {
-                // Se modo selecionados, só processar se o tipo estiver selecionado
-                if ($modoEmpacotamento === 'selecionados' && !in_array($dadosExtra['tipo_id'], $tiposSelecionados)) {
-                    continue;
-                }
-
                 // Só criar o registro se a quantidade for maior que 0
                 if (($dadosExtra['quantidade'] ?? 0) > 0) {
                     $pecaExtra = EmpacotamentoPeca::create([
@@ -529,10 +500,7 @@ class EmpacotamentoController extends Controller
 
         $request->validate([
             'data_empacotamento' => 'required|date',
-            'observacoes_empacotamento' => 'nullable|string|max:1000',
-            'modo_empacotamento' => 'required|in:todos,selecionados',
-            'tipos_selecionados' => 'required_if:modo_empacotamento,selecionados|array',
-            'tipos_selecionados.*' => 'exists:tipos,id'
+            'observacoes_empacotamento' => 'nullable|string|max:1000'
         ]);
 
         DB::beginTransaction();
@@ -548,16 +516,8 @@ class EmpacotamentoController extends Controller
 
             DB::commit();
 
-            // Personalizar mensagem baseada no modo de empacotamento
-            $mensagem = 'Empacotamento atualizado com sucesso!';
-            if ($request->input('modo_empacotamento') === 'selecionados') {
-                $tiposSelecionados = $request->input('tipos_selecionados', []);
-                $quantidadeTipos = count($tiposSelecionados);
-                $mensagem = "Empacotamento atualizado! {$quantidadeTipos} tipo(s) de peça(s) foram processados e receberam QR codes.";
-            }
-
             return redirect()->route('empacotamento.show', $empacotamento->id)
-                           ->with('success', $mensagem);
+                           ->with('success', 'Empacotamento atualizado com sucesso!');
 
         } catch (\Exception $e) {
             DB::rollback();
