@@ -141,11 +141,12 @@ class MotoristaController extends Controller
         try {
             $empacotamento = Empacotamento::findOrFail($request->empacotamento_id);
 
-            // Verificar se está pronto para entrega
-            if ($empacotamento->status->nome !== 'Pronto para motorista') {
+            // Verificar se está disponível para entrega
+            $statusPermitidos = ['Pronto para motorista', 'Em Trânsito'];
+            if (!in_array($empacotamento->status->nome, $statusPermitidos)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Este empacotamento não está pronto para entrega. Status atual: ' . $empacotamento->status->nome
+                    'message' => 'Este empacotamento não está disponível para entrega. Status atual: ' . $empacotamento->status->nome
                 ]);
             }
 
@@ -305,11 +306,27 @@ class MotoristaController extends Controller
             ]);
         }
 
-        // Verificar se está pronta para saída
-        if ($sacola->empacotamento->status->nome !== 'Pronto para motorista') {
+        // Verificar se a sacola individual está disponível para saída
+        if ($sacola->status_saida === 'em_transito') {
             return response()->json([
                 'success' => false,
-                'message' => '❌ Esta sacola ainda não está pronta para saída!\nStatus atual: ' . $sacola->empacotamento->status->nome
+                'message' => '❌ Esta sacola já está em trânsito!'
+            ]);
+        }
+
+        if ($sacola->status_saida === 'entregue') {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Esta sacola já foi entregue!'
+            ]);
+        }
+
+        // Verificar se empacotamento permite saída
+        $statusPermitidos = ['Pronto para motorista', 'Em Trânsito'];
+        if (!in_array($sacola->empacotamento->status->nome, $statusPermitidos)) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Este empacotamento não está disponível para saída!\nStatus atual: ' . $sacola->empacotamento->status->nome
             ]);
         }
 
@@ -352,14 +369,39 @@ class MotoristaController extends Controller
             'empacotamento_status' => $sacola->empacotamento->status->nome
         ]);
 
-        // Verificar se pode dar saída
-        if ($sacola->empacotamento->status->nome !== 'Pronto para motorista') {
-            \Log::warning('⚠️ Empacotamento não está pronto para motorista', [
-                'status_atual' => $sacola->empacotamento->status->nome
+        // Verificar se a sacola individual pode dar saída
+        if ($sacola->status_saida === 'em_transito') {
+            \Log::warning('⚠️ Sacola já está em trânsito', [
+                'status_sacola' => $sacola->status_saida,
+                'codigo_qr' => $sacola->codigo_qr
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Esta sacola não está pronta para saída!'
+                'message' => 'Esta sacola já está em trânsito!'
+            ]);
+        }
+
+        if ($sacola->status_saida === 'entregue') {
+            \Log::warning('⚠️ Sacola já foi entregue', [
+                'status_sacola' => $sacola->status_saida,
+                'codigo_qr' => $sacola->codigo_qr
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta sacola já foi entregue!'
+            ]);
+        }
+
+        // Verificar se empacotamento permite saída (deve estar pelo menos "Pronto" ou "Em Trânsito")
+        $statusPermitidos = ['Pronto para motorista', 'Em Trânsito'];
+        if (!in_array($sacola->empacotamento->status->nome, $statusPermitidos)) {
+            \Log::warning('⚠️ Empacotamento não permite saída', [
+                'status_empacotamento' => $sacola->empacotamento->status->nome,
+                'status_permitidos' => $statusPermitidos
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não está disponível para saída!'
             ]);
         }
 
