@@ -992,10 +992,42 @@ function onScanFailure(error) {
 
 function processarQRCode(codigo) {
     // Mostrar loading
-    const loadingMsg = mostrarMensagemCarregando("🔍 Buscando sacola...");
+    const loadingMsg = mostrarMensagemCarregando("🔍 Identificando QR Code...");
     
-    // Buscar sacola pelo código
+    // Primeiro, tentar buscar como sacola individual
     fetch('{{ route("motorista.buscar-sacola") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ codigo: codigo })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Sacola individual encontrada
+            ocultarMensagemCarregando(loadingMsg);
+            abrirModalSaidaSacola(data.sacola);
+        } else {
+            // Não é sacola, tentar como empacotamento
+            return buscarEmpacotamento(codigo, loadingMsg);
+        }
+    })
+    .catch(error => {
+        // Erro na busca de sacola, tentar empacotamento
+        buscarEmpacotamento(codigo, loadingMsg);
+    });
+}
+
+function buscarEmpacotamento(codigo, loadingMsg) {
+    // Atualizar mensagem de loading
+    if (loadingMsg && loadingMsg.querySelector) {
+        const span = loadingMsg.querySelector('span') || loadingMsg.lastChild;
+        if (span) span.textContent = '🔍 Buscando empacotamento...';
+    }
+    
+    fetch('{{ route("motorista.buscar-empacotamento") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -1008,17 +1040,34 @@ function processarQRCode(codigo) {
         ocultarMensagemCarregando(loadingMsg);
         
         if (data.success) {
-            // Sacola encontrada, mostrar modal de confirmação
-            abrirModalSaidaSacola(data.sacola);
+            // Empacotamento encontrado, mostrar opções
+            mostrarOpcoesEmpacotamento(data.empacotamento);
         } else {
-            alert(data.message || '❌ Erro ao buscar sacola');
+            alert('❌ QR Code não reconhecido!\n\nTentei buscar como:\n• Sacola individual\n• Empacotamento\n\nVerifique se o código está correto.');
         }
     })
     .catch(error => {
         ocultarMensagemCarregando(loadingMsg);
         console.error('Erro:', error);
-        alert('❌ Erro ao buscar sacola. Tente novamente.');
+        alert('❌ Erro ao processar QR Code. Tente novamente.');
     });
+}
+
+function mostrarOpcoesEmpacotamento(empacotamento) {
+    const estabelecimento = empacotamento.coleta?.estabelecimento?.nome_fantasia || 
+                          empacotamento.coleta?.estabelecimento?.razao_social || 
+                          'Estabelecimento não encontrado';
+    
+    const mensagem = `📦 QR Code de EMPACOTAMENTO detectado!\n\n` +
+                    `🏢 ${estabelecimento}\n` +
+                    `📦 Código: ${empacotamento.codigo_qr}\n` +
+                    `📊 Status: ${empacotamento.status.nome}\n\n` +
+                    `💡 Para saída individual, escaneie o QR code das SACOLAS (etiquetas menores).\n\n` +
+                    `Deseja confirmar saída de TODAS as sacolas deste empacotamento?`;
+    
+    if (confirm(mensagem)) {
+        confirmarSaidaCompleta(empacotamento.id);
+    }
 }
 
 // ============ FUNÇÕES SAÍDA POR SACOLA ============
