@@ -18,7 +18,19 @@ class EmpacotamentoPeca extends Model
         'codigo_qr',
         'quantidade',
         'peso',
-        'observacoes'
+        'observacoes',
+        'status_saida',
+        'data_saida',
+        'motorista_saida_id',
+        'data_entrega',
+        'motorista_entrega_id',
+        'nome_recebedor',
+        'assinatura_recebedor'
+    ];
+
+    protected $casts = [
+        'data_saida' => 'datetime',
+        'data_entrega' => 'datetime',
     ];
 
     /**
