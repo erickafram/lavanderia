@@ -594,9 +594,12 @@
                 </div>
                 
                 <div class="mb-4 text-center">
-                    <p class="text-gray-600 text-sm mb-2">Posicione o QR Code na câmera</p>
-                    <div class="text-xs text-gray-500 mb-3">
+                    <p class="text-gray-600 text-sm mb-2">📱 Posicione o QR Code dentro da área destacada</p>
+                    <div class="text-xs text-gray-500 mb-2">
                         ✅ <strong>Empacotamento</strong> (EMP...) ou <strong>Sacola</strong> (PC...)
+                    </div>
+                    <div class="text-xs text-blue-600 mb-3">
+                        💡 <strong>Dicas:</strong> Mantenha estável por 2-3 segundos • Use boa iluminação • Evite reflexos
                     </div>
                     
                     <!-- Status da câmera -->
@@ -955,6 +958,9 @@ function fecharModalAssinatura() {
 // ============ FUNÇÕES SCANNER QR CODE ============
 
 function abrirScannerQR() {
+    // Reset contador de tentativas
+    window.scanAttempts = 0;
+    
     document.getElementById('modalScannerQR').classList.remove('hidden');
     atualizarStatusCamera('loading', 'Iniciando câmera...');
     iniciarScanner();
@@ -978,11 +984,15 @@ function iniciarScanner() {
         console.log("Scanner criado com sucesso");
 
         const config = {
-            fps: 10,
-            qrbox: { width: 200, height: 200 },
+            fps: 15,
+            qrbox: { width: 280, height: 280 },
             aspectRatio: 1.0,
             disableFlip: false,
-            rememberLastUsedCamera: true
+            rememberLastUsedCamera: true,
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            },
+            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
         };
 
         console.log("Tentando iniciar câmera...");
@@ -1001,8 +1011,13 @@ function iniciarScanner() {
             // Tentar com configurações mais permissivas
             console.log("Tentando com configurações alternativas...");
             const configFallback = {
-                fps: 5,
-                qrbox: { width: 150, height: 150 }
+                fps: 20,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0,
+                disableFlip: false,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
             };
             
             html5QrcodeScanner.start(
@@ -1015,9 +1030,34 @@ function iniciarScanner() {
                 atualizarStatusCamera("warning", "📱 Câmera frontal ativa - Posicione o QR Code");
             }).catch(err2 => {
                 console.error("Erro na segunda tentativa:", err2);
-                atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
-                alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Tente recarregar a página");
-                fecharScannerQR();
+                
+                // Terceira tentativa - configurações muito agressivas
+                console.log("Terceira tentativa com configurações máximas...");
+                const configMaximo = {
+                    fps: 30,
+                    qrbox: function(viewfinderWidth, viewfinderHeight) {
+                        let minEdgePercentage = 0.7;
+                        let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+                        let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+                        return {
+                            width: qrboxSize,
+                            height: qrboxSize
+                        };
+                    },
+                    aspectRatio: 1.0
+                };
+                
+                html5QrcodeScanner.start(
+                    { facingMode: "environment" }, // Tentar traseira novamente
+                    configMaximo,
+                    onScanSuccess,
+                    onScanFailure
+                ).catch(err3 => {
+                    console.error("Erro na terceira tentativa:", err3);
+                    atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
+                    alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Tente recarregar a página\n• Use o botão 'Testar Manual'");
+                    fecharScannerQR();
+                });
             });
         });
     } catch (error) {
@@ -1054,8 +1094,18 @@ function onScanSuccess(decodedText, decodedResult) {
 
 function onScanFailure(error) {
     // Log apenas erros importantes, não os de "não encontrado"
-    if (error && !error.includes("No QR code found") && !error.includes("QR code parse error")) {
-        console.warn("Erro no scanner:", error);
+    if (error && !error.includes("No QR code found") && !error.includes("QR code parse error") && !error.includes("NotFoundException")) {
+        console.warn("⚠️ Erro no scanner:", error);
+    }
+    
+    // Contador de tentativas para feedback visual
+    if (!window.scanAttempts) window.scanAttempts = 0;
+    window.scanAttempts++;
+    
+    // A cada 50 tentativas, dar feedback
+    if (window.scanAttempts % 50 === 0) {
+        console.log(`🔍 ${window.scanAttempts} tentativas de scan... Continue posicionando o QR Code`);
+        atualizarStatusCamera("warning", `📹 Tentativa ${window.scanAttempts} - Continue tentando`);
     }
 }
 
