@@ -598,16 +598,35 @@
                     <div class="text-xs text-gray-500 mb-3">
                         ✅ <strong>Empacotamento</strong> (EMP...) ou <strong>Sacola</strong> (PC...)
                     </div>
+                    
+                    <!-- Status da câmera -->
+                    <div id="camera-status" class="mb-3 p-2 rounded text-xs">
+                        <div class="flex items-center justify-center">
+                            <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Iniciando câmera...
+                        </div>
+                    </div>
+                    
                     <div class="qr-scanner-container">
                         <div id="qr-reader"></div>
                     </div>
                 </div>
                 
-                <div class="text-center">
-                    <button onclick="fecharScannerQR()" 
-                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                        Cancelar
-                    </button>
+                <div class="text-center space-y-2">
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="fecharScannerQR()" 
+                                class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                            Cancelar
+                        </button>
+                        <button onclick="testarQRCodeManual()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            Testar Manual
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500">Use "Testar Manual" se a câmera não funcionar</p>
                 </div>
             </div>
         </div>
@@ -937,6 +956,7 @@ function fecharModalAssinatura() {
 
 function abrirScannerQR() {
     document.getElementById('modalScannerQR').classList.remove('hidden');
+    atualizarStatusCamera('loading', 'Iniciando câmera...');
     iniciarScanner();
 }
 
@@ -946,28 +966,65 @@ function fecharScannerQR() {
 }
 
 function iniciarScanner() {
+    console.log("Iniciando scanner QR...");
+    
     if (html5QrcodeScanner) {
+        console.log("Scanner existente encontrado, parando...");
         pararScanner();
     }
 
-    html5QrcodeScanner = new Html5Qrcode("qr-reader");
+    try {
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        console.log("Scanner criado com sucesso");
 
-    const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
-    };
+        const config = {
+            fps: 10,
+            qrbox: { width: 200, height: 200 },
+            aspectRatio: 1.0,
+            disableFlip: false,
+            rememberLastUsedCamera: true
+        };
 
-    html5QrcodeScanner.start(
-        { facingMode: "environment" }, // Câmera traseira
-        config,
-        onScanSuccess,
-        onScanFailure
-    ).catch(err => {
-        console.error("Erro ao iniciar scanner:", err);
-        alert("❌ Erro ao acessar câmera. Verifique as permissões.");
+        console.log("Tentando iniciar câmera...");
+        
+        html5QrcodeScanner.start(
+            { facingMode: "environment" }, // Câmera traseira
+            config,
+            onScanSuccess,
+            onScanFailure
+        ).then(() => {
+            console.log("Scanner iniciado com sucesso!");
+            atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
+        }).catch(err => {
+            console.error("Erro ao iniciar scanner:", err);
+            
+            // Tentar com configurações mais permissivas
+            console.log("Tentando com configurações alternativas...");
+            const configFallback = {
+                fps: 5,
+                qrbox: { width: 150, height: 150 }
+            };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "user" }, // Câmera frontal como fallback
+                configFallback,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                console.log("Scanner iniciado com câmera frontal!");
+                atualizarStatusCamera("warning", "📱 Câmera frontal ativa - Posicione o QR Code");
+            }).catch(err2 => {
+                console.error("Erro na segunda tentativa:", err2);
+                atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
+                alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Tente recarregar a página");
+                fecharScannerQR();
+            });
+        });
+    } catch (error) {
+        console.error("Erro ao criar scanner:", error);
+        alert("❌ Erro ao inicializar scanner. Recarregue a página e tente novamente.");
         fecharScannerQR();
-    });
+    }
 }
 
 function pararScanner() {
@@ -982,18 +1039,24 @@ function pararScanner() {
 }
 
 function onScanSuccess(decodedText, decodedResult) {
-    console.log(`QR Code detectado: ${decodedText}`);
+    console.log(`✅ QR Code detectado com sucesso: ${decodedText}`);
+    console.log("Resultado completo:", decodedResult);
     
     // Parar scanner imediatamente
+    console.log("Parando scanner...");
     pararScanner();
     fecharScannerQR();
     
     // Processar o QR Code
+    console.log("Processando QR Code...");
     processarQRCode(decodedText);
 }
 
 function onScanFailure(error) {
-    // Silencioso - erros são normais durante o scan
+    // Log apenas erros importantes, não os de "não encontrado"
+    if (error && !error.includes("No QR code found") && !error.includes("QR code parse error")) {
+        console.warn("Erro no scanner:", error);
+    }
 }
 
 function processarQRCode(codigo) {
@@ -1223,6 +1286,62 @@ function mostrarMensagemCarregando(texto) {
 function ocultarMensagemCarregando(elemento) {
     if (elemento && elemento.parentNode) {
         elemento.parentNode.removeChild(elemento);
+    }
+}
+
+// ============ FUNÇÕES DE STATUS DA CÂMERA ============
+
+function atualizarStatusCamera(tipo, mensagem) {
+    const statusEl = document.getElementById('camera-status');
+    if (!statusEl) return;
+    
+    let classes = 'mb-3 p-2 rounded text-xs ';
+    let icon = '';
+    
+    switch(tipo) {
+        case 'loading':
+            classes += 'bg-blue-100 text-blue-800';
+            icon = `<svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>`;
+            break;
+        case 'success':
+            classes += 'bg-green-100 text-green-800';
+            icon = `<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>`;
+            break;
+        case 'warning':
+            classes += 'bg-yellow-100 text-yellow-800';
+            icon = `<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>`;
+            break;
+        case 'error':
+            classes += 'bg-red-100 text-red-800';
+            icon = `<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    </svg>`;
+            break;
+    }
+    
+    statusEl.className = classes;
+    statusEl.innerHTML = `
+        <div class="flex items-center justify-center">
+            ${icon}
+            ${mensagem}
+        </div>
+    `;
+}
+
+// ============ FUNÇÃO PARA TESTE MANUAL ============
+
+function testarQRCodeManual() {
+    const codigo = prompt("Digite o código QR para testar:\n(Ex: EMP3KXG10Z ou PC...)");
+    if (codigo && codigo.trim()) {
+        console.log("Teste manual com código:", codigo.trim());
+        processarQRCode(codigo.trim());
     }
 }
 </script>
