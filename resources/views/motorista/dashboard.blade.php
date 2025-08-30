@@ -1096,9 +1096,9 @@ function buscarEmpacotamento(codigo, loadingMsg) {
             loadingMsg.querySelector('svg').nextSibling.textContent = '📦 Buscando empacotamento...';
         }
         
-        console.log("Fazendo requisição para:", '{{ route("buscar-empacotamento") }}');
+        console.log("Fazendo requisição para:", '{{ route("motorista.buscar-empacotamento") }}');
         
-        fetch('{{ route("buscar-empacotamento") }}', {
+        fetch('{{ route("motorista.buscar-empacotamento") }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

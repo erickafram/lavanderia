@@ -91,12 +91,19 @@ class MotoristaController extends Controller
     public function buscarEmpacotamento(Request $request)
     {
         $codigo = $request->input('codigo');
+        
+        // Log para debug
+        \Log::info("🔍 BUSCAR EMPACOTAMENTO - Código recebido: " . $codigo);
+        \Log::info("🔍 Request completo: " . json_encode($request->all()));
 
         $empacotamento = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->where('codigo_qr', $codigo)
             ->first();
+            
+        \Log::info("🔍 Empacotamento encontrado: " . ($empacotamento ? "SIM (ID: {$empacotamento->id})" : "NÃO"));
 
         if (!$empacotamento) {
+            \Log::warning("❌ Empacotamento não encontrado para código: " . $codigo);
             return response()->json([
                 'success' => false,
                 'message' => '❌ Empacotamento não encontrado!\nVerifique se o QR Code está correto.'
@@ -111,6 +118,8 @@ class MotoristaController extends Controller
             ]);
         }
 
+        \Log::info("✅ Retornando empacotamento com sucesso - ID: " . $empacotamento->id);
+        
         return response()->json([
             'success' => true,
             'empacotamento' => $empacotamento->load(['coleta.estabelecimento', 'status', 'entrega'])
@@ -225,10 +234,16 @@ class MotoristaController extends Controller
     public function buscarSacola(Request $request)
     {
         $codigo = $request->input('codigo');
+        
+        // Log para debug
+        \Log::info("🏷️ BUSCAR SACOLA - Código recebido: " . $codigo);
+        \Log::info("🏷️ Request completo: " . json_encode($request->all()));
 
         $sacola = EmpacotamentoPeca::with(['empacotamento.coleta.estabelecimento', 'empacotamento.status', 'tipo'])
             ->where('codigo_qr', $codigo)
             ->first();
+            
+        \Log::info("🏷️ Sacola encontrada: " . ($sacola ? "SIM (ID: {$sacola->id})" : "NÃO"));
 
         if (!$sacola) {
             return response()->json([
