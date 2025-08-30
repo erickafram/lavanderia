@@ -54,8 +54,8 @@
 @endpush
 
 @push('scripts')
-<!-- ZXing QR Code Scanner - Biblioteca mais moderna e eficiente -->
-<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
+<!-- jsQR - Biblioteca mais simples e confiável -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 @endpush
 
 @section('content')
@@ -624,7 +624,7 @@
                         💡 <strong>Dicas:</strong> Mantenha estável por 2-3 segundos • Use boa iluminação • Evite reflexos
                     </div>
                     <div class="text-xs text-green-600 mb-3">
-                        🔧 <strong>Nova biblioteca ZXing</strong> - Detecção mais rápida e precisa
+                        🚀 <strong>jsQR - Scanner otimizado</strong> - Mais leve e confiável
                     </div>
                     
                     <!-- Status da câmera -->
@@ -1043,11 +1043,8 @@ function iniciarScanner() {
                 video.srcObject = stream;
                 window.currentStream = stream;
                 
-                // Criar code reader ZXing
-                codeReader = new ZXing.BrowserQRCodeReader();
-                
                 video.addEventListener('loadedmetadata', () => {
-                    console.log("📹 Vídeo carregado, iniciando detecção...");
+                    console.log("📹 Vídeo carregado, iniciando detecção jsQR...");
                     atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
                     
                     // Iniciar loop de detecção
@@ -1074,7 +1071,6 @@ function iniciarScanner() {
                         
                         video.srcObject = stream;
                         window.currentStream = stream;
-                        codeReader = new ZXing.BrowserQRCodeReader();
                         
                         video.addEventListener('loadedmetadata', () => {
                             atualizarStatusCamera("warning", "📱 Câmera frontal ativa");
@@ -1110,46 +1106,60 @@ function iniciarScanner() {
 }
 
 function iniciarLoopDeteccao(video) {
-    if (!codeReader || !video) return;
+    if (!video) return;
+    
+    console.log("🔄 Iniciando loop de detecção jsQR...");
     
     // Criar canvas para capturar frames
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    
     let isScanning = true;
     window.scanningActive = true;
+    let frameCount = 0;
     
     function detectarFrame() {
         if (!isScanning || !window.scanningActive) return;
         
         try {
+            // Aguardar o vídeo estar pronto
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+                requestAnimationFrame(detectarFrame);
+                return;
+            }
+            
+            // Ajustar canvas ao tamanho do vídeo
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
             // Capturar frame atual do vídeo
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             
-            // Tentar decodificar
+            // Obter dados da imagem
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             
-            codeReader.decodeFromImageData(imageData)
-                .then(result => {
-                    if (result && result.text) {
-                        console.log("✅ QR Code detectado:", result.text);
-                        isScanning = false;
-                        window.scanningActive = false;
-                        onScanSuccess(result.text, result);
-                    }
-                })
-                .catch(err => {
-                    // Erro normal quando não encontra QR code
-                    if (!(err instanceof ZXing.NotFoundException)) {
-                        console.warn("⚠️ Erro de decodificação:", err);
-                    }
-                });
+            // Tentar decodificar com jsQR
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+            
+            if (code) {
+                console.log("✅ QR Code detectado com jsQR:", code.data);
+                isScanning = false;
+                window.scanningActive = false;
+                onScanSuccess(code.data, code);
+                return;
+            }
+            
+            // Feedback visual a cada 60 frames (~2 segundos a 30fps)
+            frameCount++;
+            if (frameCount % 60 === 0) {
+                console.log(`🔍 Escaneando... frame ${frameCount}`);
+                atualizarStatusCamera("warning", `📹 Escaneando... (${Math.floor(frameCount/30)}s)`);
+            }
                 
         } catch (error) {
-            console.error("❌ Erro no loop de detecção:", error);
+            console.error("❌ Erro no loop jsQR:", error);
         }
         
         // Continuar o loop se ainda estiver escaneando
@@ -1158,9 +1168,16 @@ function iniciarLoopDeteccao(video) {
         }
     }
     
-    // Iniciar loop de detecção
-    console.log("🔄 Iniciando loop de detecção...");
-    detectarFrame();
+    // Aguardar vídeo carregar e iniciar
+    video.addEventListener('loadeddata', () => {
+        console.log("📹 Vídeo carregado, iniciando detecção jsQR...");
+        detectarFrame();
+    });
+    
+    // Se o vídeo já estiver carregado
+    if (video.readyState >= 2) {
+        detectarFrame();
+    }
 }
 
 function pararScanner() {
@@ -1179,10 +1196,8 @@ function pararScanner() {
             window.currentStream = null;
         }
         
-        // Limpar code reader
-        if (codeReader) {
-            codeReader = null;
-        }
+        // Limpar variáveis globais
+        codeReader = null;
         
         // Limpar elemento de vídeo
         const previewElement = document.getElementById('qr-reader');
