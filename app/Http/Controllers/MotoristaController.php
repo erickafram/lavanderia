@@ -218,4 +218,112 @@ class MotoristaController extends Controller
             'message' => 'Recebimento confirmado com sucesso!'
         ]);
     }
+
+    /**
+     * Buscar sacola individual por QR code
+     */
+    public function buscarSacola(Request $request)
+    {
+        $codigo = $request->input('codigo');
+
+        $sacola = EmpacotamentoPeca::with(['empacotamento.coleta.estabelecimento', 'empacotamento.status', 'tipo'])
+            ->where('codigo_qr', $codigo)
+            ->first();
+
+        if (!$sacola) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Sacola não encontrada!\nVerifique se o QR Code está correto.'
+            ]);
+        }
+
+        // Verificar se a sacola pertence a um empacotamento válido
+        if (!$sacola->empacotamento || !$sacola->empacotamento->coleta) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Sacola sem empacotamento válido!'
+            ]);
+        }
+
+        // Verificar se está pronta para saída
+        if ($sacola->empacotamento->status->nome !== 'Pronto para motorista') {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Esta sacola ainda não está pronta para saída!\nStatus atual: ' . $sacola->empacotamento->status->nome
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'sacola' => $sacola->load(['empacotamento.coleta.estabelecimento', 'empacotamento.status', 'tipo'])
+        ]);
+    }
+
+    /**
+     * Confirmar saída de sacola individual
+     */
+    public function confirmarSaidaSacola(Request $request)
+    {
+        $request->validate([
+            'codigo_qr' => 'required|string'
+        ]);
+
+        $sacola = EmpacotamentoPeca::with(['empacotamento'])
+            ->where('codigo_qr', $request->codigo_qr)
+            ->first();
+
+        if (!$sacola) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sacola não encontrada!'
+            ]);
+        }
+
+        // Verificar se pode dar saída
+        if ($sacola->empacotamento->status->nome !== 'Pronto para motorista') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta sacola não está pronta para saída!'
+            ]);
+        }
+
+        $statusTransito = Status::where('nome', 'Em Trânsito')->first();
+
+        // Atualizar status da sacola individual
+        $sacola->update([
+            'status_saida' => 'em_transito',
+            'data_saida' => now(),
+            'motorista_saida_id' => Auth::id()
+        ]);
+
+        // Verificar se todas as sacolas do empacotamento saíram
+        $todasSacolas = $sacola->empacotamento->pecasIndividuais;
+        $sacolasEmTransito = $todasSacolas->where('status_saida', 'em_transito');
+
+        if ($todasSacolas->count() === $sacolasEmTransito->count()) {
+            // Todas as sacolas saíram, atualizar status do empacotamento
+            $sacola->empacotamento->update(['status_id' => $statusTransito->id]);
+
+            // Criar ou atualizar entrega
+            Entrega::updateOrCreate(
+                ['empacotamento_id' => $sacola->empacotamento->id],
+                [
+                    'status_id' => $statusTransito->id,
+                    'data_saida' => now(),
+                    'motorista_saida_id' => Auth::id()
+                ]
+            );
+
+            $mensagem = 'Sacola confirmada! 🎉 TODAS as sacolas do empacotamento estão agora em trânsito.';
+        } else {
+            $restantes = $todasSacolas->count() - $sacolasEmTransito->count();
+            $mensagem = "Sacola confirmada! ✅ Ainda restam {$restantes} sacola(s) para saída.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $mensagem,
+            'todas_sacolasem_transito' => $todasSacolas->count() === $sacolasEmTransito->count()
+        ]);
+    }
 }

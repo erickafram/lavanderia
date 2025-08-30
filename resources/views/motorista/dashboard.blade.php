@@ -2,20 +2,64 @@
 
 @section('title', 'Dashboard do Motorista')
 
+@push('styles')
+<style>
+    /* Estilos para scanner QR */
+    #qr-reader {
+        width: 100%;
+    }
+    #qr-reader__dashboard_section_csr {
+        background: #f8f9fa !important;
+    }
+    .qr-scanner-container {
+        position: relative;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    /* Melhorias para mobile */
+    @media (max-width: 768px) {
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .md\:grid-cols-2 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        .lg\:grid-cols-3 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+    }
+</style>
+@endpush
+
 @push('scripts')
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 @endpush
 
 @section('content')
 <div class="container mx-auto px-4 py-4">
     <!-- Header -->
     <div class="mb-4">
-        <h1 class="text-2xl font-bold text-gray-900">Dashboard do Motorista</h1>
-        <p class="text-gray-600 text-sm">Gerencie as sacolas individuais para entrega</p>
-        <div class="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-900">Dashboard do Motorista</h1>
+                <p class="text-gray-600 text-sm">Gerencie as sacolas individuais para entrega</p>
+            </div>
+            <div class="mt-3 sm:mt-0 sm:ml-4">
+                <button onclick="abrirScannerQR()" 
+                        class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors duration-200 shadow-lg">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M9 16h.01M15 16h.01M16 12h1M8 12H7m5 5v3m-5-2h10a1 1 0 001-1V8a1 1 0 00-1-1H6a1 1 0 00-1 1v9a1 1 0 001 1z"></path>
+                    </svg>
+                    📱 Escanear QR Code
+                </button>
+            </div>
+        </div>
+        <div class="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
             <p class="text-blue-800 text-sm">
                 <span class="font-medium">📦 Nova funcionalidade:</span> 
                 Cada empacotamento contém várias sacolas (uma para cada tipo de peça). 
-                Gerencie cada sacola individualmente através dos QR codes.
+                Gerencie cada sacola individualmente através dos QR codes ou use o botão <strong>"Escanear QR Code"</strong> para leitura rápida.
             </p>
         </div>
     </div>
@@ -532,12 +576,78 @@
     </div>
 </div>
 
+<!-- Modal Scanner QR Code -->
+<div id="modalScannerQR" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-900">📱 Scanner QR Code</h3>
+                    <button onclick="fecharScannerQR()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-4 text-center">
+                    <p class="text-gray-600 text-sm mb-2">Posicione o QR Code da sacola na câmera</p>
+                    <div class="qr-scanner-container">
+                        <div id="qr-reader"></div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="fecharScannerQR()" 
+                            class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmação Saída por Sacola -->
+<div id="modalSaidaSacola" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div class="p-4">
+                <h3 class="text-base font-bold text-green-900 mb-3">🚚 Confirmar Saída da Sacola</h3>
+                <div class="bg-green-50 p-3 rounded-lg mb-3">
+                    <p class="text-green-800 text-sm font-medium">
+                        <span class="block">🏷️ <span id="sacola-tipo"></span></span>
+                        <span class="block">📦 QR: <span id="sacola-codigo" class="font-mono"></span></span>
+                        <span class="block">🏢 <span id="sacola-estabelecimento"></span></span>
+                        <span class="block">📊 Qtd: <span id="sacola-quantidade"></span> peças</span>
+                    </p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" onclick="fecharModalSaidaSacola()"
+                            class="flex-1 px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmarSaidaSacolaRapida()"
+                            class="flex-1 px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        ✅ Confirmar Saída
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
 // Variáveis globais para assinatura
 let canvas, ctx, isDrawing = false;
+
+// Variáveis globais para scanner QR
+let html5QrcodeScanner = null;
+let sacolaParaConfirmacao = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar com a aba "Prontos"
@@ -815,6 +925,176 @@ function verAssinaturaCompleta(assinatura, nome, codigo) {
 
 function fecharModalAssinatura() {
     document.getElementById('modalAssinatura').classList.add('hidden');
+}
+
+// ============ FUNÇÕES SCANNER QR CODE ============
+
+function abrirScannerQR() {
+    document.getElementById('modalScannerQR').classList.remove('hidden');
+    iniciarScanner();
+}
+
+function fecharScannerQR() {
+    pararScanner();
+    document.getElementById('modalScannerQR').classList.add('hidden');
+}
+
+function iniciarScanner() {
+    if (html5QrcodeScanner) {
+        pararScanner();
+    }
+
+    html5QrcodeScanner = new Html5Qrcode("qr-reader");
+
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+    };
+
+    html5QrcodeScanner.start(
+        { facingMode: "environment" }, // Câmera traseira
+        config,
+        onScanSuccess,
+        onScanFailure
+    ).catch(err => {
+        console.error("Erro ao iniciar scanner:", err);
+        alert("❌ Erro ao acessar câmera. Verifique as permissões.");
+        fecharScannerQR();
+    });
+}
+
+function pararScanner() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().then(() => {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }).catch(err => {
+            console.error("Erro ao parar scanner:", err);
+        });
+    }
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    console.log(`QR Code detectado: ${decodedText}`);
+    
+    // Parar scanner imediatamente
+    pararScanner();
+    fecharScannerQR();
+    
+    // Processar o QR Code
+    processarQRCode(decodedText);
+}
+
+function onScanFailure(error) {
+    // Silencioso - erros são normais durante o scan
+}
+
+function processarQRCode(codigo) {
+    // Mostrar loading
+    const loadingMsg = mostrarMensagemCarregando("🔍 Buscando sacola...");
+    
+    // Buscar sacola pelo código
+    fetch('{{ route("motorista.buscar-sacola") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ codigo: codigo })
+    })
+    .then(response => response.json())
+    .then(data => {
+        ocultarMensagemCarregando(loadingMsg);
+        
+        if (data.success) {
+            // Sacola encontrada, mostrar modal de confirmação
+            abrirModalSaidaSacola(data.sacola);
+        } else {
+            alert(data.message || '❌ Erro ao buscar sacola');
+        }
+    })
+    .catch(error => {
+        ocultarMensagemCarregando(loadingMsg);
+        console.error('Erro:', error);
+        alert('❌ Erro ao buscar sacola. Tente novamente.');
+    });
+}
+
+// ============ FUNÇÕES SAÍDA POR SACOLA ============
+
+function abrirModalSaidaSacola(sacola) {
+    sacolaParaConfirmacao = sacola;
+    
+    // Preencher dados no modal
+    document.getElementById('sacola-tipo').textContent = sacola.tipo.nome;
+    document.getElementById('sacola-codigo').textContent = sacola.codigo_qr;
+    document.getElementById('sacola-estabelecimento').textContent = 
+        sacola.empacotamento.coleta.estabelecimento.nome_fantasia || 
+        sacola.empacotamento.coleta.estabelecimento.razao_social;
+    document.getElementById('sacola-quantidade').textContent = sacola.quantidade;
+    
+    document.getElementById('modalSaidaSacola').classList.remove('hidden');
+}
+
+function fecharModalSaidaSacola() {
+    document.getElementById('modalSaidaSacola').classList.add('hidden');
+    sacolaParaConfirmacao = null;
+}
+
+function confirmarSaidaSacolaRapida() {
+    if (!sacolaParaConfirmacao) return;
+
+    const loadingMsg = mostrarMensagemCarregando("🚚 Confirmando saída...");
+
+    fetch('{{ route("motorista.confirmar-saida-sacola") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ codigo_qr: sacolaParaConfirmacao.codigo_qr })
+    })
+    .then(response => response.json())
+    .then(data => {
+        ocultarMensagemCarregando(loadingMsg);
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            fecharModalSaidaSacola();
+            location.reload(); // Recarregar para atualizar status
+        } else {
+            alert('❌ ' + (data.message || 'Erro ao confirmar saída'));
+        }
+    })
+    .catch(error => {
+        ocultarMensagemCarregando(loadingMsg);
+        console.error('Erro:', error);
+        alert('❌ Erro ao confirmar saída. Tente novamente.');
+    });
+}
+
+// ============ FUNÇÕES AUXILIARES ============
+
+function mostrarMensagemCarregando(texto) {
+    const div = document.createElement('div');
+    div.id = 'loading-message';
+    div.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 flex items-center';
+    div.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        ${texto}
+    `;
+    document.body.appendChild(div);
+    return div;
+}
+
+function ocultarMensagemCarregando(elemento) {
+    if (elemento && elemento.parentNode) {
+        elemento.parentNode.removeChild(elemento);
+    }
 }
 </script>
 @endpush

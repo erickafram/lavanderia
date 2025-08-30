@@ -141,6 +141,10 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::post('/buscar-empacotamento', [MotoristaController::class, 'buscarEmpacotamento'])->name('buscar-empacotamento');
         Route::post('/confirmar-saida', [MotoristaController::class, 'confirmarSaida'])->name('confirmar-saida');
         Route::post('/confirmar-entrega', [MotoristaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
+        
+        // Novas rotas para sacolas individuais
+        Route::post('/buscar-sacola', [MotoristaController::class, 'buscarSacola'])->name('buscar-sacola');
+        Route::post('/confirmar-saida-sacola', [MotoristaController::class, 'confirmarSaidaSacola'])->name('confirmar-saida-sacola');
     });
 
     // Relatórios routes

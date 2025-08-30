@@ -336,13 +336,16 @@ class EmpacotamentoController extends Controller
                     continue;
                 }
 
-                EmpacotamentoPeca::create([
-                    'empacotamento_id' => $empacotamento->id,
-                    'tipo_id' => $dadosLote['tipo_id'],
-                    'quantidade' => $dadosLote['quantidade'],
-                    'peso' => $dadosLote['peso'] ?? 0,
-                    'observacoes' => "Lote adicional - Tipo: {$dadosLote['tipo_nome']}"
-                ]);
+                // Só criar o registro se a quantidade for maior que 0
+                if (($dadosLote['quantidade'] ?? 0) > 0) {
+                    EmpacotamentoPeca::create([
+                        'empacotamento_id' => $empacotamento->id,
+                        'tipo_id' => $dadosLote['tipo_id'],
+                        'quantidade' => $dadosLote['quantidade'],
+                        'peso' => $dadosLote['peso'] ?? 0,
+                        'observacoes' => "Lote adicional - Tipo: {$dadosLote['tipo_nome']}"
+                    ]);
+                }
             }
         }
 
@@ -357,15 +360,18 @@ class EmpacotamentoController extends Controller
                     continue;
                 }
 
-                $pecaExtra = EmpacotamentoPeca::create([
-                    'empacotamento_id' => $empacotamento->id,
-                    'tipo_id' => $dadosExtra['tipo_id'],
-                    'quantidade' => $dadosExtra['quantidade'],
-                    'peso' => $dadosExtra['peso'] ?? 0,
-                    'observacoes' => $dadosExtra['observacoes'] ?? "Peça extra - Tipo: {$dadosExtra['tipo_nome']}"
-                ]);
+                // Só criar o registro se a quantidade for maior que 0
+                if (($dadosExtra['quantidade'] ?? 0) > 0) {
+                    $pecaExtra = EmpacotamentoPeca::create([
+                        'empacotamento_id' => $empacotamento->id,
+                        'tipo_id' => $dadosExtra['tipo_id'],
+                        'quantidade' => $dadosExtra['quantidade'],
+                        'peso' => $dadosExtra['peso'] ?? 0,
+                        'observacoes' => $dadosExtra['observacoes'] ?? "Peça extra - Tipo: {$dadosExtra['tipo_nome']}"
+                    ]);
 
-                \Log::info('Peça extra criada:', $pecaExtra->toArray());
+                    \Log::info('Peça extra criada:', $pecaExtra->toArray());
+                }
             }
         } else {
             \Log::info('Nenhuma peça extra recebida no request');
@@ -379,18 +385,11 @@ class EmpacotamentoController extends Controller
     {
         $coleta = $empacotamento->coleta;
 
-        // Para cada peça da coleta, criar uma peça individual no empacotamento com quantidade 0
+        // NÃO criar registros na empacotamento_pecas inicialmente
+        // Os registros serão criados apenas quando o usuário preencher quantidades > 0
+        // Apenas inicializar as quantidades empacotadas na coleta_pecas
         foreach ($coleta->pecas as $coletaPeca) {
             if ($coletaPeca->quantidade > 0) {
-                // Criar peça individual com quantidade 0 (usuário vai preencher)
-                EmpacotamentoPeca::create([
-                    'empacotamento_id' => $empacotamento->id,
-                    'tipo_id' => $coletaPeca->tipo_id,
-                    'quantidade' => 0, // Quantidade 0 por padrão
-                    'peso' => $coletaPeca->peso ?? 0,
-                    'observacoes' => "Lote inicial - Qtd. original da coleta: {$coletaPeca->quantidade} peças"
-                ]);
-
                 // Inicializar quantidade_empacotada como 0 (não empacotou nada ainda)
                 $coletaPeca->update([
                     'quantidade_empacotada' => 0,

@@ -184,6 +184,9 @@
                             $totalLotes = $empacotamento->pecasIndividuais->count();
                             $lotesProcessados = $empacotamento->pecasIndividuais->where('quantidade', '>', 0)->count();
                             $lotesPendentes = $totalLotes - $lotesProcessados;
+                            
+                            // Contar tipos da coleta que ainda não têm lotes
+                            $tiposSemLotes = $empacotamento->coleta->pecas->whereNotIn('tipo_id', $empacotamento->pecasIndividuais->pluck('tipo_id'))->count();
                         @endphp
                         @if($totalLotes > 0)
 
@@ -239,47 +242,48 @@
                     <!-- Container dos Tipos de Peças Agrupadas -->
                     <div class="p-4">
                         @php
-                            // Agrupar peças por tipo
-                            $pecasPorTipo = $empacotamento->pecasIndividuais->groupBy('tipo_id');
+                            // Combinar peças da coleta com peças já empacotadas
+                            $pecasIndividuais = $empacotamento->pecasIndividuais->groupBy('tipo_id');
                             $coletaPecas = $empacotamento->coleta->pecas->keyBy('tipo_id');
-
-                            // Debug - vamos ver o que tem nas peças da coleta
-                            // dd($empacotamento->coleta->pecas->toArray(), $coletaPecas->toArray());
+                            
+                            // Criar lista combinada de tipos (da coleta + empacotadas)
+                            $todosTipos = collect();
+                            
+                            // Adicionar tipos da coleta
+                            foreach ($coletaPecas as $tipoId => $coletaPeca) {
+                                $todosTipos->put($tipoId, [
+                                    'tipo_id' => $tipoId,
+                                    'tipo' => $coletaPeca->tipo,
+                                    'quantidade_coletada' => $coletaPeca->quantidade,
+                                    'pecas_empacotadas' => $pecasIndividuais->get($tipoId, collect())
+                                ]);
+                            }
+                            
+                            // Adicionar tipos que só existem no empacotamento (peças extras)
+                            foreach ($pecasIndividuais as $tipoId => $pecasEmpacotadasTipo) {
+                                if (!$todosTipos->has($tipoId)) {
+                                    $primeiraP = $pecasEmpacotadasTipo->first();
+                                    $todosTipos->put($tipoId, [
+                                        'tipo_id' => $tipoId,
+                                        'tipo' => $primeiraP->tipo,
+                                        'quantidade_coletada' => 0,
+                                        'pecas_empacotadas' => $pecasEmpacotadasTipo
+                                    ]);
+                                }
+                            }
                         @endphp
 
-                        @foreach($pecasPorTipo as $tipoId => $pecasDoTipo)
+                        @foreach($todosTipos as $tipoId => $dadosTipo)
                             @php
-                                $primeiraP = $pecasDoTipo->first();
-
-                                // Buscar a peça da coleta de forma mais robusta
-                                $coletaPeca = $empacotamento->coleta->pecas->where('tipo_id', $tipoId)->first();
-                                $quantidadeColetada = $coletaPeca ? $coletaPeca->quantidade : 0;
-
-                                // Se ainda for 0, tentar buscar pela observação da peça individual
-                                if ($quantidadeColetada == 0 && $primeiraP->observacoes) {
-                                    // Tentar diferentes padrões de regex
-                                    $patterns = [
-                                        '/Qtd\. coletada: (\d+)/',
-                                        '/quantidade: (\d+)/',
-                                        '/original da coleta: (\d+)/',
-                                        '/original: (\d+)/'
-                                    ];
-
-                                    foreach ($patterns as $pattern) {
-                                        if (preg_match($pattern, $primeiraP->observacoes, $matches)) {
-                                            $quantidadeColetada = (int)$matches[1];
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                // Debug: vamos ver o que está acontecendo
-                                if ($tipoId == $pecasPorTipo->keys()->first()) {
-                                    // dd('Primeira iteração:', $tipoId, $coletaPeca, $quantidadeColetada, $primeiraP->observacoes, $empacotamento->coleta->pecas->toArray());
-                                }
-
-                                $totalEmpacotado = $pecasDoTipo->sum('quantidade');
+                                $tipo = $dadosTipo['tipo'];
+                                $quantidadeColetada = $dadosTipo['quantidade_coletada'];
+                                $pecasEmpacotadas = $dadosTipo['pecas_empacotadas'];
+                                
+                                $totalEmpacotado = $pecasEmpacotadas->sum('quantidade');
                                 $diferenca = $totalEmpacotado - $quantidadeColetada;
+                                
+                                // Determinar se há lotes pendentes (sem quantidade)
+                                $lotesPendentesTipo = $pecasEmpacotadas->where('quantidade', '=', 0)->count();
                             @endphp
 
                             <div class="tipo-peca-container border border-gray-200 rounded-lg overflow-hidden mb-4">
@@ -303,10 +307,7 @@
                                             <div class="w-3 h-3 bg-blue-500 rounded-full indicador-tipo"></div>
                                             <div>
                                                 <div class="flex items-center">
-                                                    <h5 class="text-sm font-semibold text-gray-900">{{ $primeiraP->tipo->nome }}</h5>
-                                                    @php
-                                                        $lotesPendentesTipo = $pecasDoTipo->where('quantidade', '=', 0)->count();
-                                                    @endphp
+                                                    <h5 class="text-sm font-semibold text-gray-900">{{ $tipo->nome }}</h5>
                                                     @if($lotesPendentesTipo > 0)
                                                         <span class="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                                                             <svg class="w-2 h-2 mr-1" fill="currentColor" viewBox="0 0 8 8">
@@ -316,7 +317,7 @@
                                                         </span>
                                                     @endif
                                                 </div>
-                                                <p class="text-xs text-gray-500">{{ $primeiraP->tipo->categoria }}</p>
+                                                <p class="text-xs text-gray-500">{{ $tipo->categoria }}</p>
                                             </div>
                                         </div>
                                         <div class="flex items-center space-x-4">
@@ -345,9 +346,9 @@
                                             <div class="text-right">
                                                 <div class="text-xs text-gray-500">Lotes</div>
                                                 <div class="text-sm font-medium text-blue-600">
-                                                    {{ $pecasDoTipo->count() }} lotes
+                                                    {{ $pecasEmpacotadas->count() }} lotes
                                                     @php
-                                                        $lotesProcessados = $pecasDoTipo->where('quantidade', '>', 0)->count();
+                                                        $lotesProcessados = $pecasEmpacotadas->where('quantidade', '>', 0)->count();
                                                     @endphp
                                                     @if($lotesProcessados > 0)
                                                         <div class="text-xs text-green-600 font-medium">
@@ -356,7 +357,17 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                            @if($lotesPendentesTipo > 0)
+                                            @if($quantidadeColetada > 0 && $totalEmpacotado == 0)
+                                                <button type="button"
+                                                        onclick="event.stopPropagation(); criarLoteInicial('{{ $tipoId }}', '{{ $tipo->nome }}')"
+                                                        class="mr-2 inline-flex items-center px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium rounded transition-colors"
+                                                        title="Criar lote inicial para este tipo">
+                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                    </svg>
+                                                    Criar Lote
+                                                </button>
+                                            @elseif($lotesPendentesTipo > 0)
                                                 <button type="button"
                                                         onclick="event.stopPropagation(); preencherLotesTipo('{{ $tipoId }}', {{ $lotesPendentesTipo }})"
                                                         class="mr-2 inline-flex items-center px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs font-medium rounded transition-colors"
@@ -380,10 +391,10 @@
                                         <div class="mb-4">
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm font-medium text-gray-700">Lotes de empacotamento:</span>
-                                                @php
-                                                    $lotesProcessados = $pecasDoTipo->where('quantidade', '>', 0)->count();
-                                                    $totalLotes = $pecasDoTipo->count();
-                                                @endphp
+                                                                                                    @php
+                                                        $lotesProcessados = $pecasEmpacotadas->where('quantidade', '>', 0)->count();
+                                                        $totalLotes = $pecasEmpacotadas->count();
+                                                    @endphp
                                                 @if($lotesProcessados > 0)
                                                     <div class="flex items-center text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
                                                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -396,7 +407,8 @@
                                         </div>
 
                                         <div class="space-y-3">
-                                            @foreach($pecasDoTipo as $index => $peca)
+                                            @if($pecasEmpacotadas->count() > 0)
+                                                @foreach($pecasEmpacotadas as $index => $peca)
                                                 <div class="lote-empacotamento flex items-center space-x-3 p-3 rounded border {{ $peca->quantidade > 0 ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200' }}">
                                                     <!-- Badge de Status -->
                                                     @if($peca->quantidade > 0)
@@ -455,7 +467,7 @@
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    @if($pecasDoTipo->count() > 1)
+                                                    @if($pecasEmpacotadas->count() > 1)
                                                         <div class="flex-shrink-0">
                                                             <button type="button" onclick="removerLoteEdicao({{ $peca->id }})"
                                                                     class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors"
@@ -467,12 +479,22 @@
                                                         </div>
                                                     @endif
                                                 </div>
-                                            @endforeach
+                                                @endforeach
+                                            @else
+                                                <!-- Mostrar mensagem quando não há lotes criados ainda -->
+                                                <div class="text-center py-8 text-gray-500">
+                                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-6a2 2 0 00-2 2v1a2 2 0 01-2 2H8a2 2 0 01-2-2v-1a2 2 0 00-2-2H2"></path>
+                                                    </svg>
+                                                    <p class="text-sm">Nenhum lote criado ainda para este tipo</p>
+                                                    <p class="text-xs mt-1">Clique em "Criar Lote" para começar</p>
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <!-- Botão Adicionar Lote no final -->
                                         <div class="mt-4 pt-3 border-t border-gray-200">
-                                            <button type="button" onclick="duplicarLoteEdicao('{{ $tipoId }}', '{{ $primeiraP->tipo->nome }}')"
+                                            <button type="button" onclick="duplicarLoteEdicao('{{ $tipoId }}', '{{ $tipo->nome }}')"
                                                     class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -790,6 +812,82 @@ document.addEventListener('DOMContentLoaded', function() {
             content.classList.add('hidden');
             chevron.style.transform = 'rotate(0deg)';
         }
+    };
+
+    // Função para criar lote inicial (primeiro lote de um tipo)
+    window.criarLoteInicial = function(tipoId, tipoNome) {
+        const container = document.querySelector(`#content-${tipoId} .space-y-3`);
+        const novoIndex = Date.now();
+
+        const novoLote = document.createElement('div');
+        novoLote.className = 'lote-empacotamento flex items-center space-x-3 p-3 bg-gray-50 rounded border border-gray-200';
+        novoLote.innerHTML = `
+            <div class="flex-shrink-0">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Pendente
+                </span>
+            </div>
+            <div class="flex-1 grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Código QR</label>
+                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-mono font-medium bg-gray-100 text-gray-800">
+                        Será gerado
+                    </span>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Quantidade</label>
+                    <input type="number"
+                           name="novos_lotes[${novoIndex}][quantidade]"
+                           value="0"
+                           min="0"
+                           data-tipo-id="${tipoId}"
+                           onchange="atualizarStatusTipo('${tipoId}')"
+                           oninput="atualizarStatusTipo('${tipoId}')"
+                           class="quantidade-lote w-full px-2 py-1 text-center border border-gray-300 rounded text-sm focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500">
+                    <input type="hidden" name="novos_lotes[${novoIndex}][tipo_id]" value="${tipoId}">
+                    <input type="hidden" name="novos_lotes[${novoIndex}][tipo_nome]" value="${tipoNome}">
+                    <input type="hidden" name="novos_lotes[${novoIndex}][peso]" value="0">
+                </div>
+            </div>
+            <div class="flex-shrink-0">
+                <button type="button" onclick="removerNovoLote(this, '${tipoId}')"
+                        class="inline-flex items-center px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-medium rounded transition-colors"
+                        title="Remover lote">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // Remover mensagem de "nenhum lote criado" se existir
+        const mensagemVazia = container.querySelector('.text-center.py-8');
+        if (mensagemVazia) {
+            mensagemVazia.remove();
+        }
+
+        container.appendChild(novoLote);
+
+        // Atualizar status após adicionar
+        atualizarStatusTipo(tipoId);
+
+        // Scroll suave para o novo lote
+        setTimeout(() => {
+            novoLote.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+
+            // Focar no input de quantidade
+            const input = novoLote.querySelector('.quantidade-lote');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 100);
     };
 
     // Função para duplicar lote (adicionar novo lote do mesmo tipo)

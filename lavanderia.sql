@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Tempo de geração: 21/08/2025 às 14:36
--- Versão do servidor: 9.1.0
--- Versão do PHP: 8.3.14
+-- Tempo de geração: 30/08/2025 às 05:43
+-- Versão do servidor: 8.4.5-5
+-- Versão do PHP: 8.1.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -27,9 +27,8 @@ SET time_zone = "+00:00";
 -- Estrutura para tabela `anotacoes`
 --
 
-DROP TABLE IF EXISTS `anotacoes`;
-CREATE TABLE IF NOT EXISTS `anotacoes` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `anotacoes` (
+  `id` bigint UNSIGNED NOT NULL,
   `usuario_id` bigint UNSIGNED NOT NULL,
   `modulo` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `pagina` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -40,11 +39,7 @@ CREATE TABLE IF NOT EXISTS `anotacoes` (
   `data_resolucao` timestamp NULL DEFAULT NULL,
   `observacao_resolucao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `anotacoes_usuario_id_modulo_index` (`usuario_id`,`modulo`),
-  KEY `anotacoes_modulo_categoria_index` (`modulo`,`categoria`),
-  KEY `anotacoes_resolvida_index` (`resolvida`)
+  `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -53,9 +48,8 @@ CREATE TABLE IF NOT EXISTS `anotacoes` (
 -- Estrutura para tabela `coletas`
 --
 
-DROP TABLE IF EXISTS `coletas`;
-CREATE TABLE IF NOT EXISTS `coletas` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `coletas` (
+  `id` bigint UNSIGNED NOT NULL,
   `estabelecimento_id` bigint UNSIGNED NOT NULL,
   `usuario_id` bigint UNSIGNED NOT NULL,
   `status_id` bigint UNSIGNED NOT NULL,
@@ -68,20 +62,16 @@ CREATE TABLE IF NOT EXISTS `coletas` (
   `peso_total` decimal(8,2) NOT NULL DEFAULT '0.00',
   `numero_coleta` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `coletas_numero_coleta_unique` (`numero_coleta`),
-  KEY `coletas_estabelecimento_id_foreign` (`estabelecimento_id`),
-  KEY `coletas_usuario_id_foreign` (`usuario_id`),
-  KEY `coletas_status_id_foreign` (`status_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `coletas`
 --
 
 INSERT INTO `coletas` (`id`, `estabelecimento_id`, `usuario_id`, `status_id`, `data_agendamento`, `data_coleta`, `data_conclusao`, `observacoes`, `acompanhante`, `motivo_cancelamento`, `peso_total`, `numero_coleta`, `created_at`, `updated_at`) VALUES
-(25, 5, 1, 3, '2025-08-20 23:54:00', '2025-08-20 23:54:47', '2025-08-20 23:54:47', NULL, NULL, NULL, 0.00, 'COL000001', '2025-08-21 02:54:00', '2025-08-21 02:54:47');
+(1, 1, 1, 3, '2025-08-29 11:15:24', '2025-08-29 12:58:44', '2025-08-29 12:58:44', NULL, 'LUCAS MATTIELLO', NULL, 15.00, 'COL000001', '2025-08-29 11:15:24', '2025-08-29 12:58:44'),
+(2, 2, 1, 3, '2025-08-29 13:03:47', '2025-08-29 13:05:07', '2025-08-29 13:05:07', NULL, 'LUCAS MATTIELLO', NULL, 0.00, 'COL000002', '2025-08-29 13:03:47', '2025-08-29 13:05:07');
 
 -- --------------------------------------------------------
 
@@ -89,9 +79,8 @@ INSERT INTO `coletas` (`id`, `estabelecimento_id`, `usuario_id`, `status_id`, `d
 -- Estrutura para tabela `coleta_pecas`
 --
 
-DROP TABLE IF EXISTS `coleta_pecas`;
-CREATE TABLE IF NOT EXISTS `coleta_pecas` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `coleta_pecas` (
+  `id` bigint UNSIGNED NOT NULL,
   `coleta_id` bigint UNSIGNED NOT NULL,
   `tipo_id` bigint UNSIGNED NOT NULL,
   `quantidade` int NOT NULL,
@@ -100,19 +89,19 @@ CREATE TABLE IF NOT EXISTS `coleta_pecas` (
   `peso_empacotado` decimal(8,2) NOT NULL DEFAULT '0.00',
   `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `coleta_pecas_coleta_id_foreign` (`coleta_id`),
-  KEY `coleta_pecas_tipo_id_foreign` (`tipo_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `coleta_pecas`
 --
 
 INSERT INTO `coleta_pecas` (`id`, `coleta_id`, `tipo_id`, `quantidade`, `peso`, `quantidade_empacotada`, `peso_empacotado`, `observacoes`, `created_at`, `updated_at`) VALUES
-(55, 25, 3, 18, 0.00, 0, 0.00, NULL, '2025-08-21 02:54:44', '2025-08-21 02:54:44'),
-(54, 25, 13, 25, 0.00, 0, 0.00, NULL, '2025-08-21 02:54:44', '2025-08-21 02:54:44');
+(1, 1, 16, 0, 15.00, 0, 0.00, NULL, '2025-08-29 12:58:41', '2025-08-29 12:58:41'),
+(2, 2, 10, 25, 0.00, 0, 0.00, NULL, '2025-08-29 13:04:50', '2025-08-29 13:04:50'),
+(3, 2, 9, 15, 0.00, 0, 0.00, NULL, '2025-08-29 13:04:50', '2025-08-29 13:04:50'),
+(4, 2, 2, 18, 0.00, 0, 0.00, NULL, '2025-08-29 13:04:50', '2025-08-29 13:04:50'),
+(5, 2, 3, 159, 0.00, 0, 0.00, NULL, '2025-08-29 13:04:50', '2025-08-29 13:04:50');
 
 -- --------------------------------------------------------
 
@@ -120,9 +109,8 @@ INSERT INTO `coleta_pecas` (`id`, `coleta_id`, `tipo_id`, `quantidade`, `peso`, 
 -- Estrutura para tabela `empacotamento`
 --
 
-DROP TABLE IF EXISTS `empacotamento`;
-CREATE TABLE IF NOT EXISTS `empacotamento` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `empacotamento` (
+  `id` bigint UNSIGNED NOT NULL,
   `coleta_id` bigint UNSIGNED NOT NULL,
   `usuario_empacotamento_id` bigint UNSIGNED NOT NULL,
   `motorista_id` bigint UNSIGNED DEFAULT NULL,
@@ -140,16 +128,16 @@ CREATE TABLE IF NOT EXISTS `empacotamento` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `motorista_saida_id` bigint UNSIGNED DEFAULT NULL,
-  `motorista_entrega_id` bigint UNSIGNED DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `empacotamento_codigo_qr_unique` (`codigo_qr`),
-  KEY `empacotamento_coleta_id_foreign` (`coleta_id`),
-  KEY `empacotamento_usuario_empacotamento_id_foreign` (`usuario_empacotamento_id`),
-  KEY `empacotamento_motorista_id_foreign` (`motorista_id`),
-  KEY `empacotamento_status_id_foreign` (`status_id`),
-  KEY `empacotamento_motorista_saida_id_foreign` (`motorista_saida_id`),
-  KEY `empacotamento_motorista_entrega_id_foreign` (`motorista_entrega_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `motorista_entrega_id` bigint UNSIGNED DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Despejando dados para a tabela `empacotamento`
+--
+
+INSERT INTO `empacotamento` (`id`, `coleta_id`, `usuario_empacotamento_id`, `motorista_id`, `status_id`, `codigo_qr`, `data_empacotamento`, `data_saida`, `data_entrega`, `data_confirmacao_recebimento`, `assinatura_recebimento`, `nome_recebedor`, `assinatura_recebedor`, `observacoes_empacotamento`, `observacoes_entrega`, `created_at`, `updated_at`, `motorista_saida_id`, `motorista_entrega_id`) VALUES
+(2, 2, 1, NULL, 9, 'EMPQGW4CFGO', '2025-08-29 13:09:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-08-29 13:09:50', '2025-08-29 13:20:42', NULL, NULL),
+(3, 1, 1, NULL, 7, 'EMPGGBYLQRU', '2025-08-29 13:22:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-08-29 13:22:05', '2025-08-29 13:22:05', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -157,23 +145,24 @@ CREATE TABLE IF NOT EXISTS `empacotamento` (
 -- Estrutura para tabela `empacotamento_pecas`
 --
 
-DROP TABLE IF EXISTS `empacotamento_pecas`;
-CREATE TABLE IF NOT EXISTS `empacotamento_pecas` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `empacotamento_pecas` (
+  `id` bigint UNSIGNED NOT NULL,
   `empacotamento_id` bigint UNSIGNED NOT NULL,
   `tipo_id` bigint UNSIGNED NOT NULL,
   `codigo_qr` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `quantidade` int NOT NULL,
   `peso` decimal(8,3) NOT NULL DEFAULT '0.000',
   `observacoes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `status_saida` enum('pronto','em_transito','entregue') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'pronto',
+  `data_saida` timestamp NULL DEFAULT NULL,
+  `motorista_saida_id` bigint UNSIGNED DEFAULT NULL,
+  `data_entrega` timestamp NULL DEFAULT NULL,
+  `motorista_entrega_id` bigint UNSIGNED DEFAULT NULL,
+  `nome_recebedor` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `assinatura_recebedor` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `empacotamento_pecas_codigo_qr_unique` (`codigo_qr`),
-  KEY `empacotamento_pecas_tipo_id_foreign` (`tipo_id`),
-  KEY `empacotamento_pecas_empacotamento_id_tipo_id_index` (`empacotamento_id`,`tipo_id`),
-  KEY `empacotamento_pecas_codigo_qr_index` (`codigo_qr`)
-) ENGINE=MyISAM AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -181,9 +170,8 @@ CREATE TABLE IF NOT EXISTS `empacotamento_pecas` (
 -- Estrutura para tabela `entregas`
 --
 
-DROP TABLE IF EXISTS `entregas`;
-CREATE TABLE IF NOT EXISTS `entregas` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `entregas` (
+  `id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `empacotamento_id` bigint UNSIGNED NOT NULL,
@@ -196,13 +184,8 @@ CREATE TABLE IF NOT EXISTS `entregas` (
   `nome_recebedor` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `assinatura_recebedor` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `assinatura_cliente` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  `observacoes_entrega` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`id`),
-  KEY `entregas_empacotamento_id_foreign` (`empacotamento_id`),
-  KEY `entregas_motorista_saida_id_foreign` (`motorista_saida_id`),
-  KEY `entregas_motorista_entrega_id_foreign` (`motorista_entrega_id`),
-  KEY `entregas_status_id_foreign` (`status_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `observacoes_entrega` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -210,9 +193,8 @@ CREATE TABLE IF NOT EXISTS `entregas` (
 -- Estrutura para tabela `estabelecimentos`
 --
 
-DROP TABLE IF EXISTS `estabelecimentos`;
-CREATE TABLE IF NOT EXISTS `estabelecimentos` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `estabelecimentos` (
+  `id` bigint UNSIGNED NOT NULL,
   `cnpj` varchar(18) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `razao_social` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `nome_fantasia` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -231,22 +213,16 @@ CREATE TABLE IF NOT EXISTS `estabelecimentos` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `emails` json DEFAULT NULL,
-  `contatos_responsaveis` json DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `estabelecimentos_cnpj_unique` (`cnpj`)
-) ENGINE=MyISAM AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `contatos_responsaveis` json DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `estabelecimentos`
 --
 
 INSERT INTO `estabelecimentos` (`id`, `cnpj`, `razao_social`, `nome_fantasia`, `endereco`, `numero`, `complemento`, `bairro`, `cidade`, `estado`, `cep`, `telefone`, `email_old`, `contato_responsavel_old`, `observacoes`, `ativo`, `created_at`, `updated_at`, `emails`, `contatos_responsaveis`) VALUES
-(1, '03737166000183', 'KOCHE & DALLA COSTA LTDA.', 'HOTEL 10', '101 NORTE, CONJUNTO 01, LOTE 01', 'SN', 'AV.TEOTONIO SEGURADO', 'PLANO DIRETOR NORTE', 'PALMAS', 'TO', '77001004', '(63) 2104-1010', NULL, NULL, NULL, 1, '2025-07-28 17:52:57', '2025-07-28 17:52:57', '[]', '[]'),
-(2, '11222333000144', 'Hotel Exemplo Ltda', 'Hotel Exemplo', 'Rua das Flores', '123', 'Andar 1', 'Centro', 'São Paulo', 'SP', '01234567', '(11) 99999-9999', NULL, NULL, 'Cliente VIP - prioridade nas coletas', 1, '2025-07-28 18:10:53', '2025-07-28 18:10:53', '\"[\\\"contato@hotelexemplo.com.br\\\"]\"', '\"[\\\"Jo\\\\u00e3o Silva\\\"]\"'),
-(3, '22333444000155', 'Pousada Beira Mar S/A', 'Pousada Beira Mar', 'Avenida Atlântica', '456', NULL, 'Copacabana', 'Rio de Janeiro', 'RJ', '22070011', '(21) 88888-8888', NULL, NULL, 'Coletas diárias - horário preferencial: 14h às 16h', 1, '2025-07-28 18:10:53', '2025-07-28 18:10:53', '\"[\\\"reservas@pousadabeiramar.com.br\\\"]\"', '\"[\\\"Maria Santos\\\"]\"'),
-(4, '33444555000166', 'Resort Tropical Eireli', 'Resort Tropical', 'Estrada da Praia', '789', 'Km 15', 'Praia do Forte', 'Mata de São João', 'BA', '48280000', '(71) 77777-7777', NULL, NULL, 'Grande volume - necessário caminhão para coleta', 1, '2025-07-28 18:10:53', '2025-07-28 18:10:53', '\"[\\\"operacoes@resorttropical.com.br\\\",\\\"gerencia@resorttropical.com.br\\\"]\"', '\"[\\\"Carlos Oliveira\\\",\\\"Ana Gerente\\\"]\"'),
-(5, '44555666000177', 'Hotel Executivo Ltda ME', 'Hotel Executivo', 'Rua dos Negócios', '321', 'Sala 101', 'Funcionários', 'Belo Horizonte', 'MG', '30112000', '(31) 66666-6666', NULL, NULL, 'Foco em roupas executivas - cuidado especial com ternos', 1, '2025-07-28 18:10:53', '2025-07-28 18:10:53', '\"[\\\"gerencia@hotelexecutivo.com.br\\\"]\"', '\"[\\\"Ana Costa\\\"]\"'),
-(6, '55666777000188', 'Motel Descanso Ltda', 'Motel Descanso', 'Rodovia BR-101', '1500', 'Km 25', 'Zona Rural', 'Curitiba', 'PR', '82000000', '(41) 55555-5555', NULL, NULL, 'Coletas noturnas preferenciais', 0, '2025-07-28 18:10:53', '2025-07-28 18:10:53', NULL, '\"[\\\"Pedro Souza\\\"]\"');
+(1, '03737166000183', 'KOCHE & DALLA COSTA LTDA.', 'HOTEL 10', '101 NORTE, CONJUNTO 01, LOTE 01', 'SN', 'AV.TEOTONIO SEGURADO', 'PLANO DIRETOR NORTE', 'PALMAS', 'TO', '77001004', '(63) 2104-1010', NULL, NULL, NULL, 1, '2025-08-29 11:13:07', '2025-08-29 11:13:07', '[\"hotel10palmas@hotel10.com.br\", \"financeiropalmas@hotel10.com.br\"]', '[{\"nome\": \"FABIANA\", \"telefone\": \"(63) 99248-4601\"}]'),
+(2, '04037547000112', 'FAIXA EMPREENDIMENTOS TURISTICOS LTDA', '103 HOTEL & FLATS', '103 SUL RUA SO 1', '36', 'QUADRAACSO 1 CONJ 02 LOTE 13', 'PLANO DIRETOR SUL', 'PALMAS', 'TO', '77015014', '(63) 3215-3036', NULL, NULL, NULL, 1, '2025-08-29 11:13:45', '2025-08-29 11:13:45', '[]', '[]');
 
 -- --------------------------------------------------------
 
@@ -254,13 +230,11 @@ INSERT INTO `estabelecimentos` (`id`, `cnpj`, `razao_social`, `nome_fantasia`, `
 -- Estrutura para tabela `migrations`
 --
 
-DROP TABLE IF EXISTS `migrations`;
-CREATE TABLE IF NOT EXISTS `migrations` (
-  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `migrations` (
+  `id` int UNSIGNED NOT NULL,
   `migration` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `batch` int NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `batch` int NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `migrations`
@@ -302,25 +276,22 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 -- Estrutura para tabela `niveis_acesso`
 --
 
-DROP TABLE IF EXISTS `niveis_acesso`;
-CREATE TABLE IF NOT EXISTS `niveis_acesso` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `niveis_acesso` (
+  `id` bigint UNSIGNED NOT NULL,
   `nome` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `permissoes` json DEFAULT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `niveis_acesso_nome_unique` (`nome`)
-) ENGINE=MyISAM AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `niveis_acesso`
 --
 
 INSERT INTO `niveis_acesso` (`id`, `nome`, `descricao`, `permissoes`, `ativo`, `created_at`, `updated_at`) VALUES
-(1, 'Administrador', 'Acesso completo a todas as funcionalidades do sistema', '[\"usuarios.criar\", \"usuarios.editar\", \"usuarios.excluir\", \"usuarios.visualizar\", \"estabelecimentos.criar\", \"estabelecimentos.editar\", \"estabelecimentos.excluir\", \"estabelecimentos.visualizar\", \"coletas.criar\", \"coletas.editar\", \"coletas.cancelar\", \"coletas.visualizar\", \"pesagem.criar\", \"pesagem.editar\", \"pesagem.visualizar\", \"empacotamento.criar\", \"empacotamento.editar\", \"empacotamento.visualizar\", \"motorista.visualizar\", \"relatorios.visualizar\", \"relatorios.exportar\", \"tipos.criar\", \"tipos.editar\", \"tipos.excluir\", \"status.criar\", \"status.editar\", \"status.excluir\"]', 1, '2025-07-28 17:37:48', '2025-07-28 17:37:48'),
+(1, 'Administrador', 'Acesso completo a todas as funcionalidades do sistema', '[\"usuarios.criar\", \"usuarios.editar\", \"usuarios.excluir\", \"usuarios.visualizar\", \"estabelecimentos.criar\", \"estabelecimentos.editar\", \"estabelecimentos.excluir\", \"estabelecimentos.visualizar\", \"coletas.criar\", \"coletas.editar\", \"coletas.cancelar\", \"coletas.visualizar\", \"pesagem.criar\", \"pesagem.editar\", \"pesagem.visualizar\", \"empacotamento.criar\", \"empacotamento.editar\", \"empacotamento.visualizar\", \"motorista.visualizar\", \"relatorios.visualizar\", \"relatorios.exportar\", \"tipos.visualizar\", \"tipos.criar\", \"tipos.editar\", \"tipos.excluir\", \"status.criar\", \"status.editar\", \"status.excluir\"]', 1, '2025-07-28 17:37:48', '2025-07-28 17:37:48'),
 (2, 'Operador', 'Acesso às operações de coleta, pesagem e empacotamento', '[\"estabelecimentos.visualizar\", \"coletas.criar\", \"coletas.editar\", \"coletas.visualizar\", \"pesagem.criar\", \"pesagem.editar\", \"pesagem.visualizar\", \"empacotamento.criar\", \"empacotamento.editar\", \"empacotamento.visualizar\", \"motorista.visualizar\", \"relatorios.visualizar\"]', 1, '2025-07-28 17:37:48', '2025-07-28 17:37:48'),
 (3, 'Motorista', 'Acesso específico para confirmação de entregas', '[\"empacotamento.visualizar\", \"empacotamento.confirmar_entrega\", \"motorista.visualizar\", \"qrcodes.visualizar\"]', 1, '2025-07-28 17:37:48', '2025-07-28 17:37:48'),
 (4, 'Visualizador', 'Acesso apenas para consulta de relatórios', '[\"estabelecimentos.visualizar\", \"coletas.visualizar\", \"pesagem.visualizar\", \"empacotamento.visualizar\", \"relatorios.visualizar\"]', 1, '2025-07-28 17:37:48', '2025-07-28 17:37:48');
@@ -331,9 +302,8 @@ INSERT INTO `niveis_acesso` (`id`, `nome`, `descricao`, `permissoes`, `ativo`, `
 -- Estrutura para tabela `personal_access_tokens`
 --
 
-DROP TABLE IF EXISTS `personal_access_tokens`;
-CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `personal_access_tokens` (
+  `id` bigint UNSIGNED NOT NULL,
   `tokenable_type` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `tokenable_id` bigint UNSIGNED NOT NULL,
   `name` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -342,10 +312,7 @@ CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
   `last_used_at` timestamp NULL DEFAULT NULL,
   `expires_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
-  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
+  `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -354,9 +321,8 @@ CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
 -- Estrutura para tabela `pesagens`
 --
 
-DROP TABLE IF EXISTS `pesagens`;
-CREATE TABLE IF NOT EXISTS `pesagens` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `pesagens` (
+  `id` bigint UNSIGNED NOT NULL,
   `coleta_id` bigint UNSIGNED NOT NULL,
   `usuario_id` bigint UNSIGNED NOT NULL,
   `tipo_id` bigint UNSIGNED DEFAULT NULL,
@@ -371,23 +337,16 @@ CREATE TABLE IF NOT EXISTS `pesagens` (
   `usuario_conferencia_id` bigint UNSIGNED DEFAULT NULL,
   `data_conferencia` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `pesagens_tipo_id_foreign` (`tipo_id`),
-  KEY `pesagens_usuario_conferencia_id_foreign` (`usuario_conferencia_id`),
-  KEY `pesagens_coleta_id_tipo_id_index` (`coleta_id`,`tipo_id`),
-  KEY `pesagens_data_pesagem_index` (`data_pesagem`),
-  KEY `pesagens_usuario_id_index` (`usuario_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `pesagens`
 --
 
 INSERT INTO `pesagens` (`id`, `coleta_id`, `usuario_id`, `tipo_id`, `peso`, `quantidade`, `peso_unitario`, `data_pesagem`, `observacoes`, `local_pesagem`, `status`, `conferido`, `usuario_conferencia_id`, `data_conferencia`, `created_at`, `updated_at`) VALUES
-(24, 25, 1, NULL, 25.00, 1, 25.00, '2025-08-20 23:57:00', NULL, NULL, 'concluida', 0, NULL, NULL, '2025-08-21 02:58:00', '2025-08-21 02:58:00'),
-(23, 25, 1, NULL, 25.00, 1, 25.00, '2025-08-20 23:57:00', NULL, NULL, 'concluida', 0, NULL, NULL, '2025-08-21 02:58:00', '2025-08-21 02:58:00'),
-(22, 24, 1, NULL, 30.00, 1, 30.00, '2025-08-20 23:16:00', NULL, NULL, 'concluida', 0, NULL, NULL, '2025-08-21 02:16:23', '2025-08-21 02:16:23');
+(2, 2, 1, NULL, 69.50, 1, 69.50, '2025-08-29 13:05:00', NULL, NULL, 'rascunho', 0, NULL, NULL, '2025-08-29 13:06:01', '2025-08-29 13:06:01'),
+(3, 1, 1, NULL, 12.00, 1, 12.00, '2025-08-29 13:06:00', NULL, NULL, 'concluida', 0, NULL, NULL, '2025-08-29 13:06:19', '2025-08-29 13:06:19');
 
 -- --------------------------------------------------------
 
@@ -395,17 +354,13 @@ INSERT INTO `pesagens` (`id`, `coleta_id`, `usuario_id`, `tipo_id`, `peso`, `qua
 -- Estrutura para tabela `sessions`
 --
 
-DROP TABLE IF EXISTS `sessions`;
-CREATE TABLE IF NOT EXISTS `sessions` (
+CREATE TABLE `sessions` (
   `id` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint UNSIGNED DEFAULT NULL,
   `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `user_agent` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `last_activity` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `sessions_user_id_index` (`user_id`),
-  KEY `sessions_last_activity_index` (`last_activity`)
+  `last_activity` int NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -414,9 +369,8 @@ CREATE TABLE IF NOT EXISTS `sessions` (
 -- Estrutura para tabela `status`
 --
 
-DROP TABLE IF EXISTS `status`;
-CREATE TABLE IF NOT EXISTS `status` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `status` (
+  `id` bigint UNSIGNED NOT NULL,
   `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `tipo` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -424,9 +378,8 @@ CREATE TABLE IF NOT EXISTS `status` (
   `ordem` int NOT NULL DEFAULT '0',
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `status`
@@ -459,17 +412,15 @@ INSERT INTO `status` (`id`, `nome`, `descricao`, `tipo`, `cor`, `ordem`, `ativo`
 -- Estrutura para tabela `tipos`
 --
 
-DROP TABLE IF EXISTS `tipos`;
-CREATE TABLE IF NOT EXISTS `tipos` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `tipos` (
+  `id` bigint UNSIGNED NOT NULL,
   `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `descricao` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `categoria` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `tipos`
@@ -486,11 +437,8 @@ INSERT INTO `tipos` (`id`, `nome`, `descricao`, `categoria`, `ativo`, `created_a
 (8, 'Roupão', 'Roupão de banho', 'roupa_banho', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
 (9, 'Camisa', 'Camisa social ou casual', 'vestuario', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
 (10, 'Calça', 'Calça social ou casual', 'vestuario', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
-(11, 'Vestido', 'Vestido feminino', 'vestuario', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
 (12, 'Terno/Blazer', 'Terno completo ou blazer', 'vestuario', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
 (13, 'Toalha de Mesa', 'Toalha de mesa', 'mesa_copa', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
-(14, 'Guardanapo', 'Guardanapo de tecido', 'mesa_copa', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
-(15, 'Cortina', 'Cortina de ambiente', 'cortina', 1, '2025-07-28 17:54:10', '2025-07-28 17:54:10'),
 (16, 'Peso', 'Tipo especial para coletas realizadas por peso (kg)', 'peso', 1, '2025-08-01 02:11:15', '2025-08-01 02:11:15');
 
 -- --------------------------------------------------------
@@ -499,9 +447,8 @@ INSERT INTO `tipos` (`id`, `nome`, `descricao`, `categoria`, `ativo`, `created_a
 -- Estrutura para tabela `usuarios`
 --
 
-DROP TABLE IF EXISTS `usuarios`;
-CREATE TABLE IF NOT EXISTS `usuarios` (
-  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+CREATE TABLE `usuarios` (
+  `id` bigint UNSIGNED NOT NULL,
   `nome` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
@@ -513,28 +460,238 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `ultimo_login` timestamp NULL DEFAULT NULL,
   `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `usuarios_email_unique` (`email`),
-  UNIQUE KEY `usuarios_cpf_unique` (`cpf`),
-  KEY `usuarios_nivel_acesso_id_foreign` (`nivel_acesso_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Despejando dados para a tabela `usuarios`
 --
 
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `email_verified_at`, `password`, `telefone`, `cpf`, `nivel_acesso_id`, `ativo`, `ultimo_login`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Administrador do Sistema', 'admin@lavanderia.com', '2025-07-28 17:48:07', '$2y$12$VHgBPMyhGQkw8AD9XfZ37.IkatcvncObGguDCmWq1tFGtY1bFbMrS', '(11) 99999-9999', '000.000.000-00', 1, 1, '2025-08-21 12:56:30', NULL, '2025-07-28 17:48:07', '2025-08-21 12:56:30'),
-(2, 'João Silva', 'joao.motorista@lavanderia.com', NULL, '$2y$12$7QsK2TuwwLkq6vAdHegA8.spqCLHiZdUEyf8dLkRaKdhwZTb3ZWJu', '(11) 99999-1111', '12345678901', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
-(3, 'Maria Santos', 'maria.motorista@lavanderia.com', NULL, '$2y$12$X/9QtU.8HmV9ZYPluEMZ..3CdlbzIwWQvBzVRtBjzSAf2DYKGbQ8m', '(11) 99999-2222', '12345678902', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
-(4, 'Carlos Oliveira', 'carlos.motorista@lavanderia.com', NULL, '$2y$12$KnsIrYHmiEJISkQnd26SlO41zopIMgcYnaQZ/lQssXH9NCA4tr6ya', '(11) 99999-3333', '12345678903', 3, 1, NULL, NULL, '2025-07-28 17:54:28', '2025-07-28 17:54:28'),
-(5, 'Ana Costa', 'ana.operador@lavanderia.com', NULL, '$2y$12$VgtxK3op.t6lUee.v.A9UeP25c.tRB/I7uwt1nHd6FHisk.Ng/Dje', '(11) 98888-1111', '11111111111', 2, 1, NULL, NULL, '2025-07-28 18:05:42', '2025-07-28 18:05:42'),
-(6, 'Pedro Almeida', 'pedro.operador@lavanderia.com', NULL, '$2y$12$BjGz6G/HGLlaFgL0PBFlVe5gsAQ1aoU/7v.FxOzlnMVvygRF5M4fS', '(11) 98888-2222', '22222222222', 2, 1, NULL, NULL, '2025-07-28 18:05:42', '2025-07-28 18:05:42'),
-(7, 'Roberto Gerente', 'roberto.gerente@lavanderia.com', NULL, '$2y$12$OZ66HsmiY1SW2ujUOYJB2OKqfEBqYk5UsyvnI46i.2/oiSohQK1Nm', '(11) 97777-1111', '33333333333', 4, 1, NULL, NULL, '2025-07-28 18:05:42', '2025-07-28 18:05:42'),
-(8, 'Lucas Pereira', 'lucas.motorista@lavanderia.com', NULL, '$2y$12$eNI4aZxEQWLJyBa2fplHse9/q6M/Itf0hMiBxh1PHdr1XsmrOaApO', '(11) 96666-1111', '44444444444', 3, 1, NULL, NULL, '2025-07-28 18:05:42', '2025-07-28 18:05:42'),
-(9, 'Rafael Souza', 'rafael.motorista@lavanderia.com', NULL, '$2y$12$.cOLcUZST/d1vZl6nVoE6OPl4.e1wJCI.mXpX6hk9dcSK.b5TA9ea', '(11) 96666-2222', '55555555555', 3, 1, NULL, NULL, '2025-07-28 18:05:42', '2025-07-28 18:05:42'),
-(10, 'Kauany', 'kauany@gmail.com', NULL, '$2y$12$QK7hu9E.XUsEcwAsnKoU5.iyCuoiLZ4Beq44S.6/NB23cG.Nw37wK', '(63) 98101-3088', '07886155130', 3, 1, '2025-08-07 03:27:57', NULL, '2025-08-07 03:06:33', '2025-08-07 03:27:57');
+(1, 'Administrador do Sistema', 'admin@lavanderia.com', '2025-07-28 17:48:07', '$2y$12$VHgBPMyhGQkw8AD9XfZ37.IkatcvncObGguDCmWq1tFGtY1bFbMrS', '(11) 99999-9999', '000.000.000-00', 1, 1, '2025-08-29 11:04:35', '2r2PdaSgF76Yvo8vLX7Vbm8i3yy5wHva1vfeBfP2zfJRolqbPpymAQSABnJF', '2025-07-28 17:48:07', '2025-08-29 11:04:35'),
+(11, 'LUCAS MATTIELLO', 'mattiello.to@gmail.com', NULL, '$2y$12$0un/374eif177rZmP5gnnevNjRPUvVQEnBB7XgdEPvzUhhTGBS4lW', '(63) 98400-0070', '02698744113', 3, 1, NULL, NULL, '2025-08-29 11:14:56', '2025-08-29 11:14:56');
+
+--
+-- Índices para tabelas despejadas
+--
+
+--
+-- Índices de tabela `anotacoes`
+--
+ALTER TABLE `anotacoes`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `anotacoes_usuario_id_modulo_index` (`usuario_id`,`modulo`),
+  ADD KEY `anotacoes_modulo_categoria_index` (`modulo`,`categoria`),
+  ADD KEY `anotacoes_resolvida_index` (`resolvida`);
+
+--
+-- Índices de tabela `coletas`
+--
+ALTER TABLE `coletas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `coletas_numero_coleta_unique` (`numero_coleta`),
+  ADD KEY `coletas_estabelecimento_id_foreign` (`estabelecimento_id`),
+  ADD KEY `coletas_usuario_id_foreign` (`usuario_id`),
+  ADD KEY `coletas_status_id_foreign` (`status_id`);
+
+--
+-- Índices de tabela `coleta_pecas`
+--
+ALTER TABLE `coleta_pecas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `coleta_pecas_coleta_id_foreign` (`coleta_id`),
+  ADD KEY `coleta_pecas_tipo_id_foreign` (`tipo_id`);
+
+--
+-- Índices de tabela `empacotamento`
+--
+ALTER TABLE `empacotamento`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `empacotamento_codigo_qr_unique` (`codigo_qr`),
+  ADD KEY `empacotamento_coleta_id_foreign` (`coleta_id`),
+  ADD KEY `empacotamento_usuario_empacotamento_id_foreign` (`usuario_empacotamento_id`),
+  ADD KEY `empacotamento_motorista_id_foreign` (`motorista_id`),
+  ADD KEY `empacotamento_status_id_foreign` (`status_id`),
+  ADD KEY `empacotamento_motorista_saida_id_foreign` (`motorista_saida_id`),
+  ADD KEY `empacotamento_motorista_entrega_id_foreign` (`motorista_entrega_id`);
+
+--
+-- Índices de tabela `empacotamento_pecas`
+--
+ALTER TABLE `empacotamento_pecas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `empacotamento_pecas_codigo_qr_unique` (`codigo_qr`),
+  ADD KEY `empacotamento_pecas_tipo_id_foreign` (`tipo_id`),
+  ADD KEY `empacotamento_pecas_empacotamento_id_tipo_id_index` (`empacotamento_id`,`tipo_id`),
+  ADD KEY `empacotamento_pecas_codigo_qr_index` (`codigo_qr`),
+  ADD KEY `idx_status_empacotamento` (`status_saida`,`empacotamento_id`),
+  ADD KEY `idx_data_saida_motorista` (`data_saida`,`motorista_saida_id`);
+
+--
+-- Índices de tabela `entregas`
+--
+ALTER TABLE `entregas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `entregas_empacotamento_id_foreign` (`empacotamento_id`),
+  ADD KEY `entregas_motorista_saida_id_foreign` (`motorista_saida_id`),
+  ADD KEY `entregas_motorista_entrega_id_foreign` (`motorista_entrega_id`),
+  ADD KEY `entregas_status_id_foreign` (`status_id`);
+
+--
+-- Índices de tabela `estabelecimentos`
+--
+ALTER TABLE `estabelecimentos`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `estabelecimentos_cnpj_unique` (`cnpj`);
+
+--
+-- Índices de tabela `migrations`
+--
+ALTER TABLE `migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices de tabela `niveis_acesso`
+--
+ALTER TABLE `niveis_acesso`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `niveis_acesso_nome_unique` (`nome`);
+
+--
+-- Índices de tabela `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
+
+--
+-- Índices de tabela `pesagens`
+--
+ALTER TABLE `pesagens`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `pesagens_tipo_id_foreign` (`tipo_id`),
+  ADD KEY `pesagens_usuario_conferencia_id_foreign` (`usuario_conferencia_id`),
+  ADD KEY `pesagens_coleta_id_tipo_id_index` (`coleta_id`,`tipo_id`),
+  ADD KEY `pesagens_data_pesagem_index` (`data_pesagem`),
+  ADD KEY `pesagens_usuario_id_index` (`usuario_id`);
+
+--
+-- Índices de tabela `sessions`
+--
+ALTER TABLE `sessions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `sessions_user_id_index` (`user_id`),
+  ADD KEY `sessions_last_activity_index` (`last_activity`);
+
+--
+-- Índices de tabela `status`
+--
+ALTER TABLE `status`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices de tabela `tipos`
+--
+ALTER TABLE `tipos`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Índices de tabela `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `usuarios_email_unique` (`email`),
+  ADD UNIQUE KEY `usuarios_cpf_unique` (`cpf`),
+  ADD KEY `usuarios_nivel_acesso_id_foreign` (`nivel_acesso_id`);
+
+--
+-- AUTO_INCREMENT para tabelas despejadas
+--
+
+--
+-- AUTO_INCREMENT de tabela `anotacoes`
+--
+ALTER TABLE `anotacoes`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de tabela `coletas`
+--
+ALTER TABLE `coletas`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de tabela `coleta_pecas`
+--
+ALTER TABLE `coleta_pecas`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de tabela `empacotamento`
+--
+ALTER TABLE `empacotamento`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de tabela `empacotamento_pecas`
+--
+ALTER TABLE `empacotamento_pecas`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+
+--
+-- AUTO_INCREMENT de tabela `entregas`
+--
+ALTER TABLE `entregas`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de tabela `estabelecimentos`
+--
+ALTER TABLE `estabelecimentos`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de tabela `migrations`
+--
+ALTER TABLE `migrations`
+  MODIFY `id` int UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+
+--
+-- AUTO_INCREMENT de tabela `niveis_acesso`
+--
+ALTER TABLE `niveis_acesso`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT de tabela `personal_access_tokens`
+--
+ALTER TABLE `personal_access_tokens`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de tabela `pesagens`
+--
+ALTER TABLE `pesagens`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de tabela `status`
+--
+ALTER TABLE `status`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
+-- AUTO_INCREMENT de tabela `tipos`
+--
+ALTER TABLE `tipos`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT de tabela `usuarios`
+--
+ALTER TABLE `usuarios`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
