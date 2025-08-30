@@ -30,45 +30,49 @@ class MotoristaController extends Controller
             ->count();
         $total = Empacotamento::count();
         
-        // Buscar empacotamentos prontos para entrega com suas peças individuais
+        // Buscar empacotamentos prontos para entrega com suas peças individuais (apenas sacolas prontas)
         $empacotamentosProntos = Empacotamento::with([
                 'coleta.estabelecimento', 
+                'pecasIndividuais' => function($query) {
+                    $query->where('status_saida', 'pronto');
+                },
                 'pecasIndividuais.tipo', 
                 'status', 
                 'entrega'
             ])
             ->whereHas('coleta')
             ->where('status_id', $statusPronto?->id)
+            ->whereHas('pecasIndividuais', function($query) {
+                $query->where('status_saida', 'pronto');
+            })
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Contar total de sacolas prontas
+        // Contar total de sacolas prontas (apenas as que estão efetivamente prontas)
         $totalSacolasProntas = $empacotamentosProntos->sum(function($emp) {
-            return $emp->pecasIndividuais->count();
+            return $emp->pecasIndividuais->where('status_saida', 'pronto')->count();
         });
 
-        // Buscar empacotamentos em trânsito com suas peças individuais
+        // Buscar empacotamentos que têm pelo menos uma sacola em trânsito
         $empacotamentosTransito = Empacotamento::with([
                 'coleta.estabelecimento', 
+                'pecasIndividuais' => function($query) {
+                    $query->where('status_saida', 'em_transito');
+                },
                 'pecasIndividuais.tipo', 
                 'status', 
                 'entrega'
             ])
             ->whereHas('coleta')
-            ->where(function($query) use ($statusTransito) {
-                // Empacotamento com status "Em Trânsito"
-                $query->where('status_id', $statusTransito?->id)
-                      // OU tem entrega com status "Em Trânsito"
-                      ->orWhereHas('entrega', function($subQuery) use ($statusTransito) {
-                          $subQuery->where('status_id', $statusTransito?->id);
-                      });
+            ->whereHas('pecasIndividuais', function($query) {
+                $query->where('status_saida', 'em_transito');
             })
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Contar total de sacolas em trânsito
+        // Contar total de sacolas em trânsito (apenas as que estão efetivamente em trânsito)
         $totalSacolasTransito = $empacotamentosTransito->sum(function($emp) {
-            return $emp->pecasIndividuais->count();
+            return $emp->pecasIndividuais->where('status_saida', 'em_transito')->count();
         });
             
         // Buscar entregas realizadas hoje
