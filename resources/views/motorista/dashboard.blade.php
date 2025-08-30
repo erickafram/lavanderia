@@ -15,6 +15,27 @@
         position: relative;
         max-width: 400px;
         margin: 0 auto;
+        border: 2px solid #3B82F6;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+    }
+    
+    #qr-reader {
+        width: 100% !important;
+        height: 300px !important;
+        border: none !important;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 6px;
     }
     
     /* Melhorias para mobile */
@@ -33,7 +54,8 @@
 @endpush
 
 @push('scripts')
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- ZXing QR Code Scanner - Biblioteca mais moderna e eficiente -->
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 @endpush
 
 @section('content')
@@ -601,6 +623,9 @@
                     <div class="text-xs text-blue-600 mb-3">
                         💡 <strong>Dicas:</strong> Mantenha estável por 2-3 segundos • Use boa iluminação • Evite reflexos
                     </div>
+                    <div class="text-xs text-green-600 mb-3">
+                        🔧 <strong>Nova biblioteca ZXing</strong> - Detecção mais rápida e precisa
+                    </div>
                     
                     <!-- Status da câmera -->
                     <div id="camera-status" class="mb-3 p-2 rounded text-xs">
@@ -955,7 +980,11 @@ function fecharModalAssinatura() {
     document.getElementById('modalAssinatura').classList.add('hidden');
 }
 
-// ============ FUNÇÕES SCANNER QR CODE ============
+// ============ FUNÇÕES SCANNER QR CODE COM ZXING ============
+
+// Variáveis globais do ZXing
+let codeReader = null;
+let selectedDeviceId = null;
 
 function abrirScannerQR() {
     // Reset contador de tentativas
@@ -972,109 +1001,92 @@ function fecharScannerQR() {
 }
 
 function iniciarScanner() {
-    console.log("Iniciando scanner QR...");
+    console.log("🚀 Iniciando scanner ZXing...");
     
-    if (html5QrcodeScanner) {
-        console.log("Scanner existente encontrado, parando...");
-        pararScanner();
-    }
-
     try {
-        html5QrcodeScanner = new Html5Qrcode("qr-reader");
-        console.log("Scanner criado com sucesso");
-
-        const config = {
-            fps: 15,
-            qrbox: { width: 280, height: 280 },
-            aspectRatio: 1.0,
-            disableFlip: false,
-            rememberLastUsedCamera: true,
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: true
-            },
-            supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
-        };
-
-        console.log("Tentando iniciar câmera...");
+        // Parar scanner anterior se existir
+        if (codeReader) {
+            pararScanner();
+        }
         
-        html5QrcodeScanner.start(
-            { facingMode: "environment" }, // Câmera traseira
-            config,
-            onScanSuccess,
-            onScanFailure
-        ).then(() => {
-            console.log("Scanner iniciado com sucesso!");
-            atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
-        }).catch(err => {
-            console.error("Erro ao iniciar scanner:", err);
-            
-            // Tentar com configurações mais permissivas
-            console.log("Tentando com configurações alternativas...");
-            const configFallback = {
-                fps: 20,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-                disableFlip: false,
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
+        // Criar novo code reader
+        codeReader = new ZXing.BrowserQRCodeReader();
+        console.log("✅ ZXing Code Reader criado");
+        
+        // Limpar área do scanner
+        const previewElement = document.getElementById('qr-reader');
+        previewElement.innerHTML = '';
+        
+        // Listar câmeras disponíveis
+        codeReader.listVideoInputDevices()
+            .then((videoInputDevices) => {
+                console.log("📱 Câmeras encontradas:", videoInputDevices.length);
+                
+                if (videoInputDevices.length === 0) {
+                    throw new Error('Nenhuma câmera encontrada');
                 }
-            };
-            
-            html5QrcodeScanner.start(
-                { facingMode: "user" }, // Câmera frontal como fallback
-                configFallback,
-                onScanSuccess,
-                onScanFailure
-            ).then(() => {
-                console.log("Scanner iniciado com câmera frontal!");
-                atualizarStatusCamera("warning", "📱 Câmera frontal ativa - Posicione o QR Code");
-            }).catch(err2 => {
-                console.error("Erro na segunda tentativa:", err2);
                 
-                // Terceira tentativa - configurações muito agressivas
-                console.log("Terceira tentativa com configurações máximas...");
-                const configMaximo = {
-                    fps: 30,
-                    qrbox: function(viewfinderWidth, viewfinderHeight) {
-                        let minEdgePercentage = 0.7;
-                        let minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-                        let qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
-                        return {
-                            width: qrboxSize,
-                            height: qrboxSize
-                        };
-                    },
-                    aspectRatio: 1.0
-                };
+                // Tentar encontrar câmera traseira primeiro
+                selectedDeviceId = videoInputDevices.find(device => 
+                    device.label.toLowerCase().includes('back') || 
+                    device.label.toLowerCase().includes('rear') ||
+                    device.label.toLowerCase().includes('traseira')
+                )?.deviceId || videoInputDevices[0].deviceId;
                 
-                html5QrcodeScanner.start(
-                    { facingMode: "environment" }, // Tentar traseira novamente
-                    configMaximo,
-                    onScanSuccess,
-                    onScanFailure
-                ).catch(err3 => {
-                    console.error("Erro na terceira tentativa:", err3);
-                    atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
-                    alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Tente recarregar a página\n• Use o botão 'Testar Manual'");
-                    fecharScannerQR();
+                console.log("📹 Usando câmera:", selectedDeviceId);
+                
+                // Iniciar decodificação
+                return codeReader.decodeFromVideoDevice(selectedDeviceId, 'qr-reader', (result, err) => {
+                    if (result) {
+                        console.log("✅ QR Code detectado:", result.text);
+                        onScanSuccess(result.text, result);
+                    }
+                    
+                    if (err && !(err instanceof ZXing.NotFoundException)) {
+                        console.warn("⚠️ Erro de decodificação:", err);
+                        onScanFailure(err.message);
+                    }
                 });
+            })
+            .then(() => {
+                console.log("✅ Scanner ZXing iniciado com sucesso!");
+                atualizarStatusCamera("success", "📹 Câmera ativa - Posicione o QR Code");
+            })
+            .catch(err => {
+                console.error("❌ Erro ao iniciar ZXing:", err);
+                atualizarStatusCamera("error", "❌ Erro ao acessar câmera");
+                alert("❌ Erro ao acessar câmera.\n\nPossíveis soluções:\n• Permita acesso à câmera\n• Verifique se está usando HTTPS\n• Recarregue a página\n• Use 'Testar Manual'");
+                fecharScannerQR();
             });
-        });
+            
     } catch (error) {
-        console.error("Erro ao criar scanner:", error);
-        alert("❌ Erro ao inicializar scanner. Recarregue a página e tente novamente.");
+        console.error("❌ Erro ao criar ZXing scanner:", error);
+        alert("❌ Erro ao inicializar scanner. Recarregue a página.");
         fecharScannerQR();
     }
 }
 
 function pararScanner() {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.stop().then(() => {
-            html5QrcodeScanner.clear();
-            html5QrcodeScanner = null;
-        }).catch(err => {
-            console.error("Erro ao parar scanner:", err);
-        });
+    console.log("🛑 Parando scanner ZXing...");
+    
+    try {
+        if (codeReader) {
+            codeReader.reset();
+            console.log("✅ Scanner ZXing parado");
+        }
+        
+        // Limpar variáveis
+        codeReader = null;
+        selectedDeviceId = null;
+        
+        // Limpar elemento de vídeo
+        const previewElement = document.getElementById('qr-reader');
+        if (previewElement) {
+            previewElement.innerHTML = '';
+        }
+        
+    } catch (error) {
+        console.error("❌ Erro ao parar scanner:", error);
     }
 }
 
