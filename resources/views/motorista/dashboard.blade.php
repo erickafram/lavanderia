@@ -670,7 +670,7 @@
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-sm w-full">
             <div class="p-4">
-                <h3 class="text-base font-bold text-green-900 mb-3">🚚 Confirmar Saída da Sacola</h3>
+                <h3 class="text-base font-bold text-green-900 mb-3">🚚 Confirmação Automática</h3>
                 <div class="bg-green-50 p-3 rounded-lg mb-3">
                     <p class="text-green-800 text-sm font-medium">
                         <span class="block">🏷️ <span id="sacola-tipo"></span></span>
@@ -678,6 +678,9 @@
                         <span class="block">🏢 <span id="sacola-estabelecimento"></span></span>
                         <span class="block">📊 Qtd: <span id="sacola-quantidade"></span> peças</span>
                     </p>
+                    <div class="text-xs text-blue-600 mt-2 p-2 bg-blue-50 rounded">
+                        ⚡ <strong>Confirmação automática</strong> em 3 segundos para agilizar o processo
+                    </div>
                 </div>
 
                 <div class="flex gap-2">
@@ -1447,6 +1450,63 @@ function abrirModalSaidaEmpacotamento(empacotamento) {
     }
 }
 
+// ============ FUNÇÕES AUXILIARES ============
+
+function playSuccessSound() {
+    // Criar um tom de sucesso usando Web Audio API
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Tom de sucesso: duas notas
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+        
+        console.log("🔊 Som de sucesso reproduzido");
+    } catch (error) {
+        console.log("🔇 Som não suportado pelo navegador");
+    }
+}
+
+function mostrarToastSucesso(mensagem) {
+    // Criar elemento toast
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+            <span class="font-medium">${mensagem}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animar entrada
+    setTimeout(() => {
+        toast.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
 // ============ FUNÇÕES SAÍDA POR SACOLA ============
 
 function abrirModalSaidaSacola(sacola) {
@@ -1461,9 +1521,47 @@ function abrirModalSaidaSacola(sacola) {
     document.getElementById('sacola-quantidade').textContent = sacola.quantidade;
     
     document.getElementById('modalSaidaSacola').classList.remove('hidden');
+    
+    // 🚀 CONFIRMAÇÃO AUTOMÁTICA em 3 segundos
+    console.log("⏱️ Iniciando confirmação automática em 3 segundos...");
+    
+    let countdown = 3;
+    const botaoConfirmar = document.querySelector('#modalSaidaSacola button[onclick="confirmarSaidaSacolaRapida()"]');
+    const textoOriginal = botaoConfirmar.textContent;
+    
+    // Atualizar botão com countdown
+    const interval = setInterval(() => {
+        botaoConfirmar.textContent = `⏱️ Confirmando em ${countdown}s...`;
+        countdown--;
+        
+        if (countdown < 0) {
+            clearInterval(interval);
+            botaoConfirmar.textContent = "🚀 Confirmando...";
+            
+            // Confirmar automaticamente
+            console.log("✅ Confirmação automática executada!");
+            confirmarSaidaSacolaRapida();
+        }
+    }, 1000);
+    
+    // Guardar interval para poder cancelar se necessário
+    window.currentCountdown = interval;
+    window.originalButtonText = textoOriginal;
 }
 
 function fecharModalSaidaSacola() {
+    // Cancelar countdown se existir
+    if (window.currentCountdown) {
+        clearInterval(window.currentCountdown);
+        window.currentCountdown = null;
+        
+        // Restaurar texto original do botão
+        const botaoConfirmar = document.querySelector('#modalSaidaSacola button[onclick="confirmarSaidaSacolaRapida()"]');
+        if (botaoConfirmar && window.originalButtonText) {
+            botaoConfirmar.textContent = window.originalButtonText;
+        }
+    }
+    
     document.getElementById('modalSaidaSacola').classList.add('hidden');
     sacolaParaConfirmacao = null;
 }
@@ -1486,9 +1584,22 @@ function confirmarSaidaSacolaRapida() {
         ocultarMensagemCarregando(loadingMsg);
         
         if (data.success) {
-            alert('✅ ' + data.message);
+            // Reproduzir som de sucesso
+            playSuccessSound();
+            
+            // Mostrar mensagem de sucesso sem alert (mais elegante)
+            console.log('✅ ' + data.message);
+            
+            // Fechar modal imediatamente
             fecharModalSaidaSacola();
-            location.reload(); // Recarregar para atualizar status
+            
+            // Mostrar toast/notificação visual rápida
+            mostrarToastSucesso(data.message);
+            
+            // Recarregar página após 1 segundo para ver mudanças
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
         } else {
             alert('❌ ' + (data.message || 'Erro ao confirmar saída'));
         }
