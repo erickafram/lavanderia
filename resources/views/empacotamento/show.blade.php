@@ -596,6 +596,175 @@ function imprimirQRCodesPecas() {
         printWindow.print();
     };
 }
+
+// ============ AUTO-REFRESH PARA ATUALIZAÇÕES EM TEMPO REAL ============
+
+let ultimaVerificacao = Date.now();
+let intervaloVerificacao = null;
+
+function verificarAtualizacoesSacolas() {
+    // Buscar mudanças via AJAX sem recarregar a página completa
+    fetch(window.location.href, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Criar um documento temporário para analisar a resposta
+        const parser = new DOMParser();
+        const novoDoc = parser.parseFromString(html, 'text/html');
+        
+        // Extrair as seções que podem ter mudado
+        const novoQRCodes = novoDoc.querySelector('#qr-codes-pecas');
+        const novasSacolasTransito = novoDoc.querySelector('[class*="Sacolas em Trânsito"]')?.closest('.bg-white');
+        
+        // Atualizar seção QR Codes das Peças
+        const qrAtual = document.querySelector('#qr-codes-pecas');
+        if (novoQRCodes && qrAtual) {
+            const qrAtualHTML = qrAtual.outerHTML;
+            const novoQRHTML = novoQRCodes.outerHTML;
+            
+            if (qrAtualHTML !== novoQRHTML) {
+                console.log('🔄 Atualizando QR Codes das Peças...');
+                qrAtual.outerHTML = novoQRHTML;
+                mostrarNotificacaoAtualizacao('📦 Lista de sacolas atualizada!');
+            }
+        }
+        
+        // Se não há mais QR codes para mostrar, remover a seção
+        if (!novoQRCodes && qrAtual) {
+            console.log('✅ Todas as sacolas saíram! Removendo seção...');
+            qrAtual.remove();
+            mostrarNotificacaoAtualizacao('🎉 Todas as sacolas estão em trânsito!');
+        }
+        
+        // Atualizar ou criar seção de Sacolas em Trânsito
+        atualizarSacolasTransito(novoDoc);
+        
+    })
+    .catch(error => {
+        console.error('❌ Erro ao verificar atualizações:', error);
+    });
+}
+
+function atualizarSacolasTransito(novoDoc) {
+    // Buscar a nova seção de sacolas em trânsito
+    const novaSecaoTransito = Array.from(novoDoc.querySelectorAll('h3'))
+        .find(h3 => h3.textContent.includes('Sacolas em Trânsito'))
+        ?.closest('.bg-white');
+    
+    // Buscar a seção atual
+    const secaoAtualTransito = Array.from(document.querySelectorAll('h3'))
+        .find(h3 => h3.textContent.includes('Sacolas em Trânsito'))
+        ?.closest('.bg-white');
+    
+    if (novaSecaoTransito && secaoAtualTransito) {
+        // Atualizar seção existente
+        const htmlAtual = secaoAtualTransito.outerHTML;
+        const novoHTML = novaSecaoTransito.outerHTML;
+        
+        if (htmlAtual !== novoHTML) {
+            console.log('🚚 Atualizando Sacolas em Trânsito...');
+            secaoAtualTransito.outerHTML = novoHTML;
+            mostrarNotificacaoAtualizacao('🚚 Sacolas em trânsito atualizadas!');
+        }
+    } else if (novaSecaoTransito && !secaoAtualTransito) {
+        // Criar nova seção se não existir
+        console.log('➕ Criando seção Sacolas em Trânsito...');
+        const qrCodesSection = document.querySelector('#qr-codes-pecas')?.closest('.bg-white');
+        if (qrCodesSection) {
+            qrCodesSection.insertAdjacentHTML('afterend', novaSecaoTransito.outerHTML);
+            mostrarNotificacaoAtualizacao('➕ Nova sacola em trânsito!');
+        }
+    }
+}
+
+function mostrarNotificacaoAtualizacao(mensagem) {
+    // Criar notificação visual elegante
+    const notificacao = document.createElement('div');
+    notificacao.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+    notificacao.innerHTML = `
+        <div class="flex items-center">
+            <svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm font-medium">${mensagem}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notificacao);
+    
+    // Animar entrada
+    setTimeout(() => {
+        notificacao.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        notificacao.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (document.body.contains(notificacao)) {
+                document.body.removeChild(notificacao);
+            }
+        }, 300);
+    }, 3000);
+}
+
+function iniciarMonitoramento() {
+    console.log('🔄 Iniciando monitoramento de atualizações...');
+    
+    // Verificar a cada 5 segundos
+    intervaloVerificacao = setInterval(verificarAtualizacoesSacolas, 5000);
+    
+    // Verificar também quando a página ganha foco
+    window.addEventListener('focus', verificarAtualizacoesSacolas);
+    
+    // Mostrar indicador de monitoramento ativo
+    mostrarIndicadorMonitoramento();
+}
+
+function mostrarIndicadorMonitoramento() {
+    const indicador = document.createElement('div');
+    indicador.id = 'indicador-monitoramento';
+    indicador.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-3 py-2 rounded-full shadow-lg z-40 text-xs font-medium';
+    indicador.innerHTML = `
+        <div class="flex items-center">
+            <div class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+            Monitorando atualizações
+        </div>
+    `;
+    
+    document.body.appendChild(indicador);
+}
+
+function pararMonitoramento() {
+    if (intervaloVerificacao) {
+        clearInterval(intervaloVerificacao);
+        intervaloVerificacao = null;
+        console.log('⏹️ Monitoramento parado');
+        
+        const indicador = document.getElementById('indicador-monitoramento');
+        if (indicador) {
+            indicador.remove();
+        }
+    }
+}
+
+// Iniciar monitoramento quando a página carregar
+document.addEventListener('DOMContentLoaded', function() {
+    // Aguardar 2 segundos antes de iniciar o monitoramento
+    setTimeout(iniciarMonitoramento, 2000);
+});
+
+// Parar monitoramento quando sair da página
+window.addEventListener('beforeunload', pararMonitoramento);
+
+console.log('📱 Auto-refresh configurado para empacotamento {{ $empacotamento->codigo_qr }}');
+
 </script>
 @endpush
 @endsection
