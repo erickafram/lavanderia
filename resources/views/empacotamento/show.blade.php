@@ -247,7 +247,10 @@
 
 
             <!-- QR Codes Individuais das Peças -->
-            @if($empacotamento->pecasIndividuais->count() > 0)
+            @php
+                $pecasDisponiveis = $empacotamento->pecasIndividuais->where('status_saida', '!=', 'em_transito');
+            @endphp
+            @if($pecasDisponiveis->count() > 0)
                 <div id="qr-codes-pecas" class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
                         <h3 class="text-lg font-bold text-gray-900 flex items-center">
@@ -256,13 +259,21 @@
                             </svg>
                             QR Codes das Peças
                             <span class="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                                {{ $empacotamento->pecasIndividuais->count() }}
+                                {{ $pecasDisponiveis->count() }}
                             </span>
+                            @if($empacotamento->pecasIndividuais->where('status_saida', 'em_transito')->count() > 0)
+                                <span class="ml-1 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                    {{ $empacotamento->pecasIndividuais->where('status_saida', 'em_transito')->count() }} em trânsito
+                                </span>
+                            @endif
                         </h3>
+                        <p class="text-xs text-gray-600 mt-1">
+                            💡 Exibindo apenas sacolas que ainda não saíram para entrega
+                        </p>
                     </div>
                     <div class="p-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            @foreach($empacotamento->pecasIndividuais as $peca)
+                            @foreach($pecasDisponiveis as $peca)
                                 <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition-colors">
                                     <div class="text-center">
                                         <div class="mb-3">
@@ -309,6 +320,50 @@
                                 </svg>
                                 Imprimir QR Codes das Peças
                             </button>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            
+            <!-- Informações sobre sacolas em trânsito -->
+            @if($empacotamento->pecasIndividuais->where('status_saida', 'em_transito')->count() > 0)
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-blue-50">
+                        <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Sacolas em Trânsito
+                            <span class="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                {{ $empacotamento->pecasIndividuais->where('status_saida', 'em_transito')->count() }}
+                            </span>
+                        </h3>
+                        <p class="text-xs text-gray-600 mt-1">
+                            🚚 Sacolas que já saíram com o motorista
+                        </p>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-2">
+                            @foreach($empacotamento->pecasIndividuais->where('status_saida', 'em_transito') as $peca)
+                                <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        <div>
+                                            <div class="font-medium text-sm text-gray-900">{{ $peca->tipo->nome }}</div>
+                                            <div class="text-xs text-gray-600">{{ $peca->quantidade }} peças • {{ $peca->codigo_qr }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-green-600 font-medium">
+                                        @if($peca->data_saida)
+                                            {{ $peca->data_saida->format('d/m H:i') }}
+                                        @else
+                                            Em trânsito
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
