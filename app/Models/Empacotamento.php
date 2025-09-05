@@ -28,14 +28,18 @@ class Empacotamento extends Model
         'assinatura_recebedor',
         'nome_recebedor',
         'observacoes_empacotamento',
-        'observacoes_entrega'
+        'observacoes_entrega',
+        'tipos_finalizados',
+        'progresso_percentual'
     ];
 
     protected $casts = [
         'data_empacotamento' => 'datetime',
         'data_saida' => 'datetime',
         'data_entrega' => 'datetime',
-        'data_confirmacao_recebimento' => 'datetime'
+        'data_confirmacao_recebimento' => 'datetime',
+        'tipos_finalizados' => 'array',
+        'progresso_percentual' => 'decimal:2'
     ];
 
     /**
@@ -100,6 +104,14 @@ class Empacotamento extends Model
     public function pecasIndividuais()
     {
         return $this->hasMany(EmpacotamentoPeca::class);
+    }
+
+    /**
+     * Relacionamento com etapas do empacotamento
+     */
+    public function etapas()
+    {
+        return $this->hasMany(EmpacotamentoEtapa::class);
     }
 
     /**
@@ -190,5 +202,126 @@ class Empacotamento extends Model
     public function podeSerEditado()
     {
         return !in_array($this->status->nome, ['Entregue', 'Cancelado']);
+    }
+
+    /**
+     * Finaliza um tipo de peça no empacotamento
+     */
+    public function finalizarTipo($tipoId)
+    {
+        $tiposFinalizados = $this->tipos_finalizados ?? [];
+        
+        if (!in_array($tipoId, $tiposFinalizados)) {
+            $tiposFinalizados[] = $tipoId;
+            $this->tipos_finalizados = $tiposFinalizados;
+            $this->calcularProgresso();
+            $this->save();
+        }
+    }
+
+    /**
+     * Reabrir um tipo de peça no empacotamento
+     */
+    public function reabrirTipo($tipoId)
+    {
+        $tiposFinalizados = $this->tipos_finalizados ?? [];
+        
+        if (($key = array_search($tipoId, $tiposFinalizados)) !== false) {
+            unset($tiposFinalizados[$key]);
+            $this->tipos_finalizados = array_values($tiposFinalizados);
+            $this->calcularProgresso();
+            $this->save();
+        }
+    }
+
+    /**
+     * Verifica se um tipo foi finalizado
+     */
+    public function tipoFinalizado($tipoId)
+    {
+        return in_array($tipoId, $this->tipos_finalizados ?? []);
+    }
+
+    /**
+     * Calcula o progresso do empacotamento baseado nos tipos finalizados
+     */
+    public function calcularProgresso()
+    {
+        $tiposDaColeta = $this->coleta->pecas->pluck('tipo_id')->unique();
+        $totalTipos = $tiposDaColeta->count();
+        
+        if ($totalTipos === 0) {
+            $this->progresso_percentual = 0;
+            return;
+        }
+        
+        $tiposFinalizados = count($this->tipos_finalizados ?? []);
+        $progresso = ($tiposFinalizados / $totalTipos) * 100;
+        
+        $this->progresso_percentual = min(100, max(0, $progresso));
+    }
+
+    /**
+     * Obter tipos da coleta que ainda não foram finalizados
+     */
+    public function getTiposNaoFinalizados()
+    {
+        $tiposDaColeta = $this->coleta->pecas->pluck('tipo_id')->unique();
+        $tiposFinalizados = $this->tipos_finalizados ?? [];
+        
+        return $tiposDaColeta->diff($tiposFinalizados);
+    }
+
+    /**
+     * Verifica se todos os tipos foram finalizados
+     */
+    public function todosTiposFinalizados()
+    {
+        return $this->getTiposNaoFinalizados()->isEmpty();
+    }
+
+    /**
+     * Conta total de peças relave no empacotamento
+     */
+    public function totalPecasRelave()
+    {
+        return $this->pecasIndividuais()->relave()->sum('quantidade');
+    }
+
+    /**
+     * Conta total de peças inutilizadas no empacotamento
+     */
+    public function totalPecasInutilizadas()
+    {
+        return $this->pecasIndividuais()->inutilizada()->sum('quantidade');
+    }
+
+    /**
+     * Conta total de etiquetas impressas
+     */
+    public function totalEtiquetasImpressas()
+    {
+        return $this->pecasIndividuais()->impresso()->count();
+    }
+
+    /**
+     * Conta total de etiquetas não impressas
+     */
+    public function totalEtiquetasNaoImpressas()
+    {
+        return $this->pecasIndividuais()->naoImpresso()->count();
+    }
+
+    /**
+     * Obter funcionários que trabalharam no empacotamento
+     */
+    public function getFuncionariosEmpacotamento()
+    {
+        return $this->pecasIndividuais()
+            ->whereNotNull('responsavel_empacotamento_id')
+            ->with('responsavelEmpacotamento')
+            ->get()
+            ->pluck('responsavelEmpacotamento')
+            ->unique('id');
     }
 }

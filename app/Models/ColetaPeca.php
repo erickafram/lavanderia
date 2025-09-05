@@ -16,12 +16,16 @@ class ColetaPeca extends Model
         'tipo_id',
         'quantidade',
         'peso',
-        'observacoes'
+        'observacoes',
+        'relave',
+        'desengoma'
     ];
 
     protected $casts = [
         'quantidade' => 'integer',
-        'peso' => 'decimal:2'
+        'peso' => 'decimal:2',
+        'relave' => 'boolean',
+        'desengoma' => 'boolean'
     ];
 
     /**
@@ -69,6 +73,56 @@ class ColetaPeca extends Model
      */
     public function getSubtotalFormatadoAttribute()
     {
-        return $this->subtotal . ($this->subtotal == 1 ? ' peça' : ' peças');
+        return $this->quantidade . ($this->quantidade == 1 ? ' peça' : ' peças');
+    }
+
+    /**
+     * Scope para peças relave
+     */
+    public function scopeRelave($query)
+    {
+        return $query->where('relave', true);
+    }
+
+    /**
+     * Scope para peças desengoma
+     */
+    public function scopeDesengoma($query)
+    {
+        return $query->where('desengoma', true);
+    }
+
+    /**
+     * Scope para peças normais (não relave nem desengoma)
+     */
+    public function scopeNormal($query)
+    {
+        return $query->where('relave', false)->where('desengoma', false);
+    }
+
+    /**
+     * Verifica se a peça é cobrável (não relave)
+     */
+    public function isCobravel()
+    {
+        return !$this->relave;
+    }
+
+    /**
+     * Gera descrição do tipo da peça com marcações especiais
+     */
+    public function getDescricaoTipoAttribute()
+    {
+        $descricao = $this->tipo->nome;
+        
+        if ($this->relave) {
+            $descricao .= ' (RELAVE)';
+        }
+        
+        if ($this->desengoma) {
+            $descricao .= ' (DESENGOMA)';
+        }
+        
+        return $descricao;
     }
 }

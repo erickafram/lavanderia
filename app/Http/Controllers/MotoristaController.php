@@ -484,4 +484,291 @@ class MotoristaController extends Controller
             'todas_sacolasem_transito' => $todasSacolas->count() === $sacolasEmTransito->count()
         ]);
     }
+
+    /**
+     * Validar QR Code na entrega - verificar se pertence ao hotel correto
+     */
+    public function validarQREntrega(Request $request)
+    {
+        $request->validate([
+            'codigo_qr' => 'required|string',
+            'estabelecimento_id' => 'required|integer'
+        ]);
+
+        // Buscar pela peça individual
+        $peca = EmpacotamentoPeca::with(['empacotamento.coleta.estabelecimento', 'tipo'])
+            ->where('codigo_qr', $request->codigo_qr)
+            ->first();
+
+        if (!$peca) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ QR Code não encontrado!',
+                'type' => 'error'
+            ]);
+        }
+
+        // Verificar se pertence ao estabelecimento correto
+        if ($peca->empacotamento->coleta->estabelecimento_id != $request->estabelecimento_id) {
+            return response()->json([
+                'success' => false,
+                'message' => '🚨 ATENÇÃO! Esta peça NÃO pertence a este hotel!',
+                'details' => [
+                    'hotel_correto' => $peca->empacotamento->coleta->estabelecimento->nome_fantasia,
+                    'codigo_coleta' => $peca->empacotamento->coleta->numero_coleta
+                ],
+                'type' => 'wrong_hotel'
+            ]);
+        }
+
+        // Verificar se já foi entregue
+        if ($peca->status_saida === 'entregue') {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ Esta peça já foi entregue anteriormente!',
+                'type' => 'already_delivered'
+            ]);
+        }
+
+        // Verificar se está em trânsito (pode ser entregue)
+        if ($peca->status_saida !== 'em_transito') {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ Esta peça não está em trânsito!',
+                'type' => 'not_in_transit'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ QR Code válido para entrega!',
+            'peca' => [
+                'id' => $peca->id,
+                'codigo_qr' => $peca->codigo_qr,
+                'tipo' => $peca->tipo->nome,
+                'quantidade' => $peca->quantidade,
+                'hotel' => $peca->empacotamento->coleta->estabelecimento->nome_fantasia,
+                'coleta' => $peca->empacotamento->coleta->numero_coleta,
+                'relave' => $peca->relave,
+                'inutilizada' => $peca->inutilizada
+            ],
+            'type' => 'valid'
+        ]);
+    }
+
+    /**
+     * Finalizar carregamento do motorista com feedback visual
+     */
+    public function finalizarCarregamento(Request $request)
+    {
+        $request->validate([
+            'empacotamento_id' => 'required|exists:empacotamento,id'
+        ]);
+
+        $empacotamento = Empacotamento::with(['pecasIndividuais', 'coleta.estabelecimento'])->findOrFail($request->empacotamento_id);
+        
+        // Verificar se todas as peças necessárias foram carregadas
+        $pecasEmTransito = $empacotamento->pecasIndividuais()->where('status_saida', 'em_transito')->count();
+        $pecasProntas = $empacotamento->pecasIndividuais()->where('status_saida', 'pronto')->count();
+        
+        if ($pecasProntas > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "⚠️ Ainda há {$pecasProntas} peça(s) não carregada(s)!",
+                'type' => 'incomplete'
+            ]);
+        }
+
+        if ($pecasEmTransito === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => '⚠️ Nenhuma peça foi carregada!',
+                'type' => 'empty'
+            ]);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Atualizar status do empacotamento para "Em Trânsito"
+            $statusTransito = Status::where('nome', 'Em Trânsito')->first();
+            $empacotamento->update([
+                'status_id' => $statusTransito->id,
+                'data_saida' => now(),
+                'motorista_saida_id' => Auth::id()
+            ]);
+
+            // Criar ou atualizar registro de entrega
+            Entrega::updateOrCreate(
+                ['empacotamento_id' => $empacotamento->id],
+                [
+                    'status_id' => $statusTransito->id,
+                    'data_saida' => now(),
+                    'motorista_saida_id' => Auth::id()
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "🎉 CARREGAMENTO CONCLUÍDO!\n{$pecasEmTransito} peça(s) carregada(s) para {$empacotamento->coleta->estabelecimento->nome_fantasia}",
+                'stats' => [
+                    'pecas_carregadas' => $pecasEmTransito,
+                    'hotel' => $empacotamento->coleta->estabelecimento->nome_fantasia,
+                    'data_saida' => now()->format('H:i')
+                ],
+                'type' => 'completed'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Erro ao finalizar carregamento:', ['error' => $e->getMessage()]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao finalizar carregamento: ' . $e->getMessage(),
+                'type' => 'error'
+            ]);
+        }
+    }
+
+    /**
+     * Confirmar entrega de peça individual com validação
+     */
+    public function confirmarEntregaPeca(Request $request)
+    {
+        $request->validate([
+            'codigo_qr' => 'required|string',
+            'estabelecimento_id' => 'required|integer'
+        ]);
+
+        // Primeiro validar o QR code
+        $validacao = $this->validarQREntrega($request);
+        $responseData = json_decode($validacao->getContent(), true);
+
+        if (!$responseData['success']) {
+            return $validacao; // Retornar erro de validação
+        }
+
+        // Buscar a peça
+        $peca = EmpacotamentoPeca::where('codigo_qr', $request->codigo_qr)->first();
+
+        DB::beginTransaction();
+        try {
+            // Marcar peça como entregue
+            $peca->update([
+                'status_saida' => 'entregue',
+                'data_entrega' => now(),
+                'motorista_entrega_id' => Auth::id()
+            ]);
+
+            // Verificar se todas as peças do empacotamento foram entregues
+            $empacotamento = $peca->empacotamento;
+            $pecasRestantes = $empacotamento->pecasIndividuais()
+                ->whereIn('status_saida', ['pronto', 'em_transito'])
+                ->count();
+
+            $mensagem = "✅ Peça entregue com sucesso!";
+            
+            if ($pecasRestantes === 0) {
+                // Todas as peças foram entregues, atualizar status do empacotamento
+                $statusEntregue = Status::where('nome', 'Entregue')->first();
+                $empacotamento->update([
+                    'status_id' => $statusEntregue->id,
+                    'data_entrega' => now(),
+                    'motorista_entrega_id' => Auth::id()
+                ]);
+
+                // Atualizar entrega
+                Entrega::where('empacotamento_id', $empacotamento->id)->update([
+                    'status_id' => $statusEntregue->id,
+                    'data_entrega' => now(),
+                    'motorista_entrega_id' => Auth::id()
+                ]);
+
+                $mensagem = "🎉 EMPACOTAMENTO TOTALMENTE ENTREGUE!\nTodas as peças foram entregues ao cliente.";
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensagem,
+                'stats' => [
+                    'pecas_restantes' => $pecasRestantes,
+                    'empacotamento_completo' => $pecasRestantes === 0
+                ],
+                'type' => $pecasRestantes === 0 ? 'completed' : 'partial'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Erro ao confirmar entrega de peça:', ['error' => $e->getMessage()]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao confirmar entrega: ' . $e->getMessage(),
+                'type' => 'error'
+            ]);
+        }
+    }
+
+    /**
+     * Obter estatísticas em tempo real para o motorista
+     */
+    public function getEstatisticasMotorista()
+    {
+        $motorista = Auth::user();
+        
+        // Estatísticas do dia
+        $hoje = Carbon::today();
+        
+        $stats = [
+            'carregamentos_hoje' => Entrega::where('motorista_saida_id', $motorista->id)
+                ->whereDate('data_saida', $hoje)
+                ->count(),
+                
+            'entregas_hoje' => Entrega::where('motorista_entrega_id', $motorista->id)
+                ->whereDate('data_entrega', $hoje)
+                ->count(),
+                
+            'pecas_carregadas_hoje' => EmpacotamentoPeca::where('motorista_saida_id', $motorista->id)
+                ->whereDate('data_saida', $hoje)
+                ->count(),
+                
+            'pecas_entregues_hoje' => EmpacotamentoPeca::where('motorista_entrega_id', $motorista->id)
+                ->whereDate('data_entrega', $hoje)
+                ->count(),
+                
+            'empacotamentos_prontos' => Empacotamento::whereHas('status', function($q) {
+                    $q->where('nome', 'Pronto para motorista');
+                })
+                ->whereHas('pecasIndividuais', function($q) {
+                    $q->where('status_saida', 'pronto');
+                })
+                ->count(),
+                
+            'empacotamentos_transito' => Empacotamento::whereHas('status', function($q) {
+                    $q->where('nome', 'Em Trânsito');
+                })
+                ->whereHas('pecasIndividuais', function($q) {
+                    $q->where('status_saida', 'em_transito');
+                })
+                ->count()
+        ];
+        
+        return response()->json(['stats' => $stats]);
+    }
+
+    /**
+     * Listar estabelecimentos para validação de entrega
+     */
+    public function getEstabelecimentos()
+    {
+        $estabelecimentos = \App\Models\Estabelecimento::where('ativo', true)
+            ->orderBy('nome_fantasia')
+            ->get(['id', 'nome_fantasia', 'razao_social']);
+            
+        return response()->json(['estabelecimentos' => $estabelecimentos]);
+    }
 }

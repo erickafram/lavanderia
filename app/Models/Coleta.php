@@ -22,14 +22,17 @@ class Coleta extends Model
         'acompanhante',
         'motivo_cancelamento',
         'peso_total',
-        'numero_coleta'
+        'numero_coleta',
+        'tipo_coleta',
+        'data_prazo_entrega'
     ];
 
     protected $casts = [
         'data_agendamento' => 'datetime',
         'data_coleta' => 'datetime',
         'data_conclusao' => 'datetime',
-        'peso_total' => 'decimal:2'
+        'peso_total' => 'decimal:2',
+        'data_prazo_entrega' => 'date'
     ];
 
     /**
@@ -225,5 +228,108 @@ class Coleta extends Model
         }
 
         return (($pesoPesagens - $pesoPecas) / $pesoPecas) * 100;
+    }
+
+    /**
+     * Scope para coletas por tipo
+     */
+    public function scopePorTipo($query, $tipo)
+    {
+        return $query->where('tipo_coleta', $tipo);
+    }
+
+    /**
+     * Scope para coletas normais
+     */
+    public function scopeNormal($query)
+    {
+        return $query->where('tipo_coleta', 'normal');
+    }
+
+    /**
+     * Scope para coletas de desengoma
+     */
+    public function scopeDesengoma($query)
+    {
+        return $query->where('tipo_coleta', 'desengoma');
+    }
+
+    /**
+     * Scope para coletas de relave
+     */
+    public function scopeRelave($query)
+    {
+        return $query->where('tipo_coleta', 'relave');
+    }
+
+    /**
+     * Verifica se é coleta de desengoma
+     */
+    public function isDesengoma()
+    {
+        return $this->tipo_coleta === 'desengoma';
+    }
+
+    /**
+     * Verifica se é coleta de relave
+     */
+    public function isRelave()
+    {
+        return $this->tipo_coleta === 'relave';
+    }
+
+    /**
+     * Verifica se é coleta normal
+     */
+    public function isNormal()
+    {
+        return $this->tipo_coleta === 'normal';
+    }
+
+    /**
+     * Calcula quantas peças relave foram coletadas
+     */
+    public function totalPecasRelave()
+    {
+        return $this->pecas()->relave()->sum('quantidade');
+    }
+
+    /**
+     * Calcula quantas peças desengoma foram coletadas
+     */
+    public function totalPecasDesengoma()
+    {
+        return $this->pecas()->desengoma()->sum('quantidade');
+    }
+
+    /**
+     * Calcula quantas peças normais (cobráveis) foram coletadas
+     */
+    public function totalPecasCobráveis()
+    {
+        return $this->pecas()->normal()->sum('quantidade');
+    }
+
+    /**
+     * Gera descrição do tipo de coleta
+     */
+    public function getDescricaoTipoColetaAttribute()
+    {
+        switch ($this->tipo_coleta) {
+            case 'desengoma':
+                return 'Desengoma';
+            case 'relave':
+                return 'Relave';
+            default:
+                return 'Normal';
+        }
+    }
+
+    /**
+     * Verifica se a coleta tem prazo especial
+     */
+    public function temPrazoEspecial()
+    {
+        return $this->data_prazo_entrega !== null;
     }
 }

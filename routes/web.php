@@ -93,6 +93,14 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::put('/{id}/cancelar', [ColetaController::class, 'cancelar'])->middleware(['nivel.acesso:coletas.cancelar'])->name('cancelar');
         Route::put('/{id}/concluir', [ColetaController::class, 'concluir'])->middleware(['nivel.acesso:coletas.editar'])->name('concluir');
 
+        // Novas funcionalidades para DESENGOMA e RELAVE
+        Route::get('/desengoma/nova', [ColetaController::class, 'createDesengoma'])->middleware(['nivel.acesso:coletas.criar'])->name('create-desengoma');
+        Route::post('/desengoma/nova', [ColetaController::class, 'storeDesengoma'])->middleware(['nivel.acesso:coletas.criar'])->name('store-desengoma');
+        Route::get('/relave/nova', [ColetaController::class, 'createRelave'])->middleware(['nivel.acesso:coletas.criar'])->name('create-relave');
+        Route::post('/relave/nova', [ColetaController::class, 'storeRelave'])->middleware(['nivel.acesso:coletas.criar'])->name('store-relave');
+        Route::get('/tipo/{tipo}', [ColetaController::class, 'indexPorTipo'])->name('index-tipo');
+        Route::get('/estatisticas/tipo', [ColetaController::class, 'getEstatisticasTipo'])->name('estatisticas-tipo');
+
         // APIs
         Route::get('/estabelecimento/{estabelecimento_id}/coletas', [ColetaController::class, 'getColetasPorEstabelecimento'])->name('por-estabelecimento');
         Route::get('/{id}/pecas', [ColetaController::class, 'getPecasColeta'])->name('pecas');
@@ -133,6 +141,18 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::put('/{id}/confirmar-entrega', [EmpacotamentoController::class, 'confirmarEntrega'])->middleware(['nivel.acesso:empacotamento.confirmar_entrega'])->name('confirmar-entrega');
         Route::get('/{id}/reimprimir-qr', [EmpacotamentoController::class, 'reimprimirQR'])->name('reimprimir-qr');
         Route::get('/{id}/etiqueta', [EmpacotamentoController::class, 'gerarEtiqueta'])->name('etiqueta');
+        
+        // Novas funcionalidades melhoradas
+        Route::post('/{id}/finalizar-tipo/{tipoId}', [EmpacotamentoController::class, 'finalizarTipo'])->middleware(['nivel.acesso:empacotamento.editar'])->name('finalizar-tipo');
+        Route::post('/{id}/reabrir-tipo/{tipoId}', [EmpacotamentoController::class, 'reabrirTipo'])->middleware(['nivel.acesso:empacotamento.editar'])->name('reabrir-tipo');
+        Route::post('/{id}/duplicar-lote', [EmpacotamentoController::class, 'duplicarLote'])->middleware(['nivel.acesso:empacotamento.editar'])->name('duplicar-lote');
+        Route::post('/peca/{pecaId}/marcar-relave', [EmpacotamentoController::class, 'marcarRelave'])->middleware(['nivel.acesso:empacotamento.editar'])->name('marcar-relave');
+        Route::post('/peca/{pecaId}/marcar-inutilizada', [EmpacotamentoController::class, 'marcarInutilizada'])->middleware(['nivel.acesso:empacotamento.editar'])->name('marcar-inutilizada');
+        Route::post('/marcar-impresso', [EmpacotamentoController::class, 'marcarImpresso'])->middleware(['nivel.acesso:empacotamento.editar'])->name('marcar-impresso');
+        Route::get('/peca/{pecaId}/reimprimir-etiqueta', [EmpacotamentoController::class, 'reimprimirEtiqueta'])->name('reimprimir-etiqueta');
+        Route::get('/funcionarios', [EmpacotamentoController::class, 'getFuncionarios'])->name('funcionarios');
+        Route::post('/{id}/imprimir-etiquetas', [EmpacotamentoController::class, 'imprimirEtiquetas'])->name('imprimir-etiquetas');
+        Route::get('/{id}/estatisticas', [EmpacotamentoController::class, 'getEstatisticas'])->name('estatisticas');
     });
 
     // Motorista routes - Acesso restrito apenas para motoristas
@@ -142,9 +162,16 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::post('/confirmar-saida', [MotoristaController::class, 'confirmarSaida'])->name('confirmar-saida');
         Route::post('/confirmar-entrega', [MotoristaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
         
-        // Novas rotas para sacolas individuais
+        // Rotas para sacolas individuais
         Route::post('/buscar-sacola', [MotoristaController::class, 'buscarSacola'])->name('buscar-sacola');
         Route::post('/confirmar-saida-sacola', [MotoristaController::class, 'confirmarSaidaSacola'])->name('confirmar-saida-sacola');
+        
+        // Novas funcionalidades melhoradas
+        Route::post('/validar-qr-entrega', [MotoristaController::class, 'validarQREntrega'])->name('validar-qr-entrega');
+        Route::post('/finalizar-carregamento', [MotoristaController::class, 'finalizarCarregamento'])->name('finalizar-carregamento');
+        Route::post('/confirmar-entrega-peca', [MotoristaController::class, 'confirmarEntregaPeca'])->name('confirmar-entrega-peca');
+        Route::get('/estatisticas', [MotoristaController::class, 'getEstatisticasMotorista'])->name('estatisticas');
+        Route::get('/estabelecimentos', [MotoristaController::class, 'getEstabelecimentos'])->name('estabelecimentos');
     });
 
     // Relatórios routes

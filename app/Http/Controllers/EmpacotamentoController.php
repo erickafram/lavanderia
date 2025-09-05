@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Empacotamento;
 use App\Models\EmpacotamentoPeca;
+use App\Models\EmpacotamentoEtapa;
 use App\Models\Coleta;
 use App\Models\ColetaPeca;
 use App\Models\Usuario;
@@ -559,5 +560,361 @@ class EmpacotamentoController extends Controller
                 'message' => 'Erro ao concluir empacotamento: ' . $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * Finalizar tipo de peça no empacotamento
+     */
+    public function finalizarTipo(Request $request, $id, $tipoId)
+    {
+        $empacotamento = Empacotamento::findOrFail($id);
+        
+        if (!$empacotamento->podeSerEditado()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não pode ser editado.'
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Finalizar tipo no empacotamento
+            $empacotamento->finalizarTipo($tipoId);
+
+            // Registrar etapa se fornecido usuário responsável
+            if ($request->filled('usuario_responsavel_id')) {
+                EmpacotamentoEtapa::create([
+                    'empacotamento_id' => $empacotamento->id,
+                    'tipo_id' => $tipoId,
+                    'usuario_responsavel_id' => $request->usuario_responsavel_id,
+                    'status' => 'finalizado',
+                    'data_inicio' => now()->subMinutes(30), // Estimativa
+                    'data_finalizacao' => now(),
+                    'observacoes' => $request->observacoes
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tipo de peça finalizado com sucesso!',
+                'progresso' => $empacotamento->fresh()->progresso_percentual
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao finalizar tipo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reabrir tipo de peça no empacotamento
+     */
+    public function reabrirTipo($id, $tipoId)
+    {
+        $empacotamento = Empacotamento::findOrFail($id);
+        
+        if (!$empacotamento->podeSerEditado()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não pode ser editado.'
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $empacotamento->reabrirTipo($tipoId);
+
+            // Reabrir etapa correspondente
+            $etapa = EmpacotamentoEtapa::where('empacotamento_id', $empacotamento->id)
+                                    ->where('tipo_id', $tipoId)
+                                    ->where('status', 'finalizado')
+                                    ->first();
+            
+            if ($etapa) {
+                $etapa->reabrir();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tipo de peça reaberto com sucesso!',
+                'progresso' => $empacotamento->fresh()->progresso_percentual
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao reabrir tipo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Duplicar lote no empacotamento
+     */
+    public function duplicarLote(Request $request, $id)
+    {
+        $empacotamento = Empacotamento::findOrFail($id);
+        $pecaOriginal = EmpacotamentoPeca::findOrFail($request->peca_id);
+
+        if ($pecaOriginal->empacotamento_id !== $empacotamento->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peça não pertence a este empacotamento.'
+            ], 403);
+        }
+
+        if (!$empacotamento->podeSerEditado()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não pode ser editado.'
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $novaPeca = EmpacotamentoPeca::create([
+                'empacotamento_id' => $empacotamento->id,
+                'tipo_id' => $pecaOriginal->tipo_id,
+                'quantidade' => $pecaOriginal->quantidade,
+                'peso' => $pecaOriginal->peso,
+                'observacoes' => 'Lote duplicado - Baseado no lote ' . $pecaOriginal->codigo_qr,
+                'responsavel_empacotamento_id' => $request->responsavel_empacotamento_id ?? Auth::id(),
+                'relave' => $pecaOriginal->relave,
+                'inutilizada' => $pecaOriginal->inutilizada
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Lote duplicado com sucesso!',
+                'nova_peca' => [
+                    'id' => $novaPeca->id,
+                    'codigo_qr' => $novaPeca->codigo_qr,
+                    'quantidade' => $novaPeca->quantidade,
+                    'peso' => $novaPeca->peso
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao duplicar lote: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Marcar peça como relave
+     */
+    public function marcarRelave(Request $request, $pecaId)
+    {
+        $peca = EmpacotamentoPeca::findOrFail($pecaId);
+        
+        if (!$peca->empacotamento->podeSerEditado()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não pode ser editado.'
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $peca->update([
+                'relave' => $request->boolean('relave'),
+                'observacoes' => $request->filled('observacoes') ? $request->observacoes : 
+                    ($request->boolean('relave') ? 'Peça marcada como RELAVE' : 'Marca RELAVE removida')
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->boolean('relave') ? 'Peça marcada como RELAVE' : 'Marca RELAVE removida'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao marcar peça: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Marcar peça como inutilizada
+     */
+    public function marcarInutilizada(Request $request, $pecaId)
+    {
+        $peca = EmpacotamentoPeca::findOrFail($pecaId);
+        
+        if (!$peca->empacotamento->podeSerEditado()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este empacotamento não pode ser editado.'
+            ], 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $peca->update([
+                'inutilizada' => $request->boolean('inutilizada'),
+                'observacoes' => $request->filled('observacoes') ? $request->observacoes : 
+                    ($request->boolean('inutilizada') ? 'Peça marcada como INUTILIZADA' : 'Marca INUTILIZADA removida')
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $request->boolean('inutilizada') ? 'Peça marcada como INUTILIZADA' : 'Marca INUTILIZADA removida'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao marcar peça: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Marcar etiqueta como impressa
+     */
+    public function marcarImpresso(Request $request)
+    {
+        $pecasIds = $request->input('pecas_ids', []);
+        
+        if (empty($pecasIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Nenhuma peça selecionada para impressão.'
+            ], 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            $pecas = EmpacotamentoPeca::whereIn('id', $pecasIds)->get();
+            
+            foreach ($pecas as $peca) {
+                $peca->marcarComoImpresso();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Etiquetas marcadas como impressas!',
+                'count' => count($pecasIds)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao marcar impressão: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reimprimir etiqueta
+     */
+    public function reimprimirEtiqueta($pecaId)
+    {
+        $peca = EmpacotamentoPeca::with(['empacotamento.coleta.estabelecimento', 'tipo', 'responsavelEmpacotamento'])
+                                ->findOrFail($pecaId);
+
+        if (!$peca->podeSerReimpresso()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta etiqueta ainda não foi impressa.'
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'etiqueta_data' => [
+                'codigo_qr' => $peca->codigo_qr,
+                'url_qr' => $peca->url_qr_code,
+                'descricao' => $peca->descricao_etiqueta,
+                'hotel' => $peca->empacotamento->coleta->estabelecimento->nome_fantasia,
+                'tipo' => $peca->tipo->nome,
+                'quantidade' => $peca->quantidade,
+                'data' => $peca->empacotamento->data_empacotamento->format('d/m/Y'),
+                'responsavel' => $peca->responsavelEmpacotamento?->nome,
+                'relave' => $peca->relave,
+                'inutilizada' => $peca->inutilizada
+            ]
+        ]);
+    }
+
+    /**
+     * Obter lista de funcionários disponíveis para empacotamento
+     */
+    public function getFuncionarios()
+    {
+        $funcionarios = Usuario::where('ativo', true)
+                             ->whereHas('nivelAcesso', function($q) {
+                                 $q->whereJsonContains('permissoes', 'empacotamento.criar')
+                                   ->orWhereJsonContains('permissoes', 'empacotamento.editar');
+                             })
+                             ->orderBy('nome')
+                             ->get(['id', 'nome']);
+
+        return response()->json(['funcionarios' => $funcionarios]);
+    }
+
+    /**
+     * Imprimir etiquetas de lotes selecionados
+     */
+    public function imprimirEtiquetas(Request $request, $id)
+    {
+        $empacotamento = Empacotamento::with(['coleta.estabelecimento'])->findOrFail($id);
+        $pecasIds = $request->input('pecas_ids', []);
+
+        if (empty($pecasIds)) {
+            return back()->with('error', 'Nenhuma peça selecionada para impressão.');
+        }
+
+        $pecas = EmpacotamentoPeca::with(['tipo', 'responsavelEmpacotamento'])
+                                 ->whereIn('id', $pecasIds)
+                                 ->where('empacotamento_id', $empacotamento->id)
+                                 ->get();
+
+        return view('empacotamento.etiquetas-lote', compact('empacotamento', 'pecas'));
+    }
+
+    /**
+     * Obter estatísticas do empacotamento
+     */
+    public function getEstatisticas($id)
+    {
+        $empacotamento = Empacotamento::with(['pecasIndividuais', 'coleta.pecas'])->findOrFail($id);
+
+        $stats = [
+            'progresso_percentual' => $empacotamento->progresso_percentual,
+            'tipos_totais' => $empacotamento->coleta->pecas->pluck('tipo_id')->unique()->count(),
+            'tipos_finalizados' => count($empacotamento->tipos_finalizados ?? []),
+            'total_lotes' => $empacotamento->pecasIndividuais->count(),
+            'lotes_impressos' => $empacotamento->totalEtiquetasImpressas(),
+            'lotes_nao_impressos' => $empacotamento->totalEtiquetasNaoImpressas(),
+            'pecas_relave' => $empacotamento->totalPecasRelave(),
+            'pecas_inutilizadas' => $empacotamento->totalPecasInutilizadas(),
+            'funcionarios_trabalhando' => $empacotamento->getFuncionariosEmpacotamento()->count()
+        ];
+
+        return response()->json(['stats' => $stats]);
     }
 }
