@@ -10,6 +10,7 @@ use App\Http\Controllers\AnotacaoController;
 use App\Http\Controllers\PesagemController;
 use App\Http\Controllers\EmpacotamentoController;
 use App\Http\Controllers\MotoristaController;
+use App\Http\Controllers\EntregaController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\UsuarioController;
@@ -199,6 +200,17 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         Route::put('/{id}', [UsuarioController::class, 'update'])->middleware(['nivel.acesso:usuarios.editar'])->name('update');
         Route::delete('/{id}', [UsuarioController::class, 'destroy'])->middleware(['nivel.acesso:usuarios.excluir'])->name('destroy');
         Route::post('/{id}/toggle-status', [UsuarioController::class, 'toggleStatus'])->middleware(['nivel.acesso:usuarios.editar'])->name('toggle-status');
+    });
+
+    // Entrega routes - Para motoristas com acesso às funcionalidades de entrega
+    Route::prefix('entrega')->name('entrega.')->middleware(['nivel.acesso:motorista.visualizar'])->group(function () {
+        Route::get('/dashboard', [EntregaController::class, 'dashboard'])->name('dashboard');
+        Route::post('/buscar-empacotamento', [EntregaController::class, 'buscarEmpacotamento'])->name('buscar-empacotamento');
+        Route::post('/buscar-peca', [EntregaController::class, 'buscarPeca'])->name('buscar-peca');
+        Route::post('/confirmar-saida', [EntregaController::class, 'confirmarSaida'])->name('confirmar-saida');
+        Route::post('/confirmar-saida-peca', [EntregaController::class, 'confirmarSaidaPeca'])->name('confirmar-saida-peca');
+        Route::post('/confirmar-entrega', [EntregaController::class, 'confirmarEntrega'])->name('confirmar-entrega');
+        Route::post('/confirmar-entrega-peca', [EntregaController::class, 'confirmarEntregaPeca'])->name('confirmar-entrega-peca');
     });
     
 });

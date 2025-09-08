@@ -205,29 +205,61 @@ class MotoristaController extends Controller
             'assinatura_recebedor' => 'required|string'
         ]);
 
-        $empacotamento = Empacotamento::findOrFail($request->empacotamento_id);
+        DB::beginTransaction();
+        try {
+            $empacotamento = Empacotamento::findOrFail($request->empacotamento_id);
 
-        $statusEntregue = Status::where('nome', 'Entregue')->first();
+            // Buscar status "Confirmado pelo Cliente" - finaliza o processo imediatamente
+            $statusConfirmado = Status::where('nome', 'Confirmado pelo Cliente')->first();
+            
+            if (!$statusConfirmado) {
+                // Se não encontrar, usar "Entregue" como fallback
+                $statusConfirmado = Status::where('nome', 'Entregue')->first();
+            }
 
-        // Atualizar status do empacotamento
-        $empacotamento->update(['status_id' => $statusEntregue->id]);
+            // Atualizar status do empacotamento para finalizado
+            $empacotamento->update(['status_id' => $statusConfirmado->id]);
 
-        // Criar ou atualizar entrega
-        Entrega::updateOrCreate(
-            ['empacotamento_id' => $empacotamento->id],
-            [
-                'status_id' => $statusEntregue->id,
-                'data_entrega' => now(),
-                'motorista_entrega_id' => Auth::id(),
-                'nome_recebedor' => $request->nome_recebedor,
-                'assinatura_recebedor' => $request->assinatura_recebedor
-            ]
-        );
+            // Criar ou atualizar entrega com todos os dados finais
+            Entrega::updateOrCreate(
+                ['empacotamento_id' => $empacotamento->id],
+                [
+                    'status_id' => $statusConfirmado->id,
+                    'data_entrega' => now(),
+                    'data_confirmacao_recebimento' => now(), // Confirma automaticamente
+                    'motorista_entrega_id' => Auth::id(),
+                    'nome_recebedor' => $request->nome_recebedor,
+                    'assinatura_recebedor' => $request->assinatura_recebedor,
+                    'assinatura_cliente' => $request->assinatura_recebedor // Usar a mesma assinatura
+                ]
+            );
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Entrega confirmada! Aguardando confirmação do cliente.'
-        ]);
+            // Atualizar todas as peças do empacotamento como entregues
+            \App\Models\EmpacotamentoPeca::where('empacotamento_id', $empacotamento->id)
+                ->where('status_saida', 'em_transito')
+                ->whereNull('data_entrega')
+                ->update([
+                    'status_saida' => 'entregue',
+                    'data_entrega' => now(),
+                    'motorista_entrega_id' => Auth::id(),
+                    'nome_recebedor' => $request->nome_recebedor,
+                    'assinatura_recebedor' => $request->assinatura_recebedor
+                ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Entrega confirmada e finalizada com sucesso!'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao confirmar entrega: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function confirmarRecebimento(Request $request)

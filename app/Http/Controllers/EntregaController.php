@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Empacotamento;
+use App\Models\EmpacotamentoPeca;
 use App\Models\Entrega;
 use App\Models\Status;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,46 @@ class EntregaController extends Controller
     {
         $motorista = Auth::user();
 
-        // Empacotamentos prontos para entrega
+        // Peças prontas para retirada (apenas peças que não saíram ainda)
+        $pecasProntas = EmpacotamentoPeca::with([
+            'empacotamento.coleta.estabelecimento', 
+            'empacotamento.status',
+            'tipo'
+        ])
+        ->whereHas('empacotamento.status', function($query) {
+            $query->where('nome', 'Pronto para motorista');
+        })
+        ->where(function($query) {
+            $query->whereNull('status_saida')
+                  ->orWhere('status_saida', 'pronto');
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        // Peças em trânsito (retiradas por este motorista mas ainda não entregues)
+        $pecasEmTransito = EmpacotamentoPeca::with([
+            'empacotamento.coleta.estabelecimento',
+            'tipo',
+            'motoristaSaida'
+        ])
+        ->where('motorista_saida_id', $motorista->id)
+        ->where('status_saida', 'em_transito')
+        ->whereNull('data_entrega')
+        ->orderBy('data_saida', 'desc')
+        ->get();
+
+        // Peças entregues hoje (por este motorista)
+        $pecasEntreguesHoje = EmpacotamentoPeca::with([
+            'empacotamento.coleta.estabelecimento',
+            'tipo',
+            'motoristaEntrega'
+        ])
+        ->where('motorista_entrega_id', $motorista->id)
+        ->whereDate('data_entrega', today())
+        ->orderBy('data_entrega', 'desc')
+        ->get();
+
+        // Empacotamentos para compatibilidade com views existentes
         $empacotamentosProntos = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->whereHas('status', function($query) {
                 $query->where('nome', 'Pronto para motorista');
@@ -27,7 +67,6 @@ class EntregaController extends Controller
             ->orderBy('data_empacotamento', 'desc')
             ->get();
 
-        // Empacotamentos em trânsito (com este motorista)
         $empacotamentosEmTransito = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega'])
             ->whereHas('entrega', function($query) use ($motorista) {
                 $query->where('motorista_saida_id', $motorista->id)
@@ -38,7 +77,6 @@ class EntregaController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Empacotamentos entregues hoje (com este motorista)
         $empacotamentosEntregues = Empacotamento::with(['coleta.estabelecimento', 'status', 'entrega.motoristaEntrega'])
             ->whereHas('entrega', function($query) use ($motorista) {
                 $query->where('motorista_entrega_id', $motorista->id)
@@ -51,27 +89,65 @@ class EntregaController extends Controller
             ->get();
 
         // Estatísticas
+        $totalPecasProntas = $pecasProntas->count();
+        $totalPecasEmTransito = $pecasEmTransito->count();
+        $totalPecasEntreguesHoje = $pecasEntreguesHoje->count();
         $totalProntos = $empacotamentosProntos->count();
         $totalEmTransito = $empacotamentosEmTransito->count();
         $totalEntreguesHoje = $empacotamentosEntregues->count();
-        $totalEntreguesMotorista = Entrega::where('motorista_entrega_id', $motorista->id)
-            ->whereHas('status', function($query) {
-                $query->whereIn('nome', ['Entregue', 'Confirmado pelo Cliente']);
-            })->count();
+        $totalEntreguesMotorista = EmpacotamentoPeca::where('motorista_entrega_id', $motorista->id)->count();
 
         return view('motorista.dashboard', compact(
             'empacotamentosProntos',
-            'empacotamentosEmTransito',
+            'empacotamentosEmTransito', 
             'empacotamentosEntregues',
+            'pecasProntas',
+            'pecasEmTransito',
+            'pecasEntreguesHoje',
             'totalProntos',
             'totalEmTransito',
             'totalEntreguesHoje',
-            'totalEntreguesMotorista'
+            'totalEntreguesMotorista',
+            'totalPecasProntas',
+            'totalPecasEmTransito',
+            'totalPecasEntreguesHoje'
         ));
     }
 
     /**
-     * Buscar empacotamento por QR Code ou código
+     * Buscar peça por QR Code ou código
+     */
+    public function buscarPeca(Request $request)
+    {
+        $request->validate([
+            'codigo' => 'required|string'
+        ]);
+
+        $peca = EmpacotamentoPeca::with([
+            'empacotamento.coleta.estabelecimento', 
+            'empacotamento.status',
+            'tipo',
+            'motoristaSaida',
+            'motoristaEntrega'
+        ])
+        ->where('codigo_qr', $request->codigo)
+        ->first();
+
+        if (!$peca) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peça não encontrada'
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'peca' => $peca
+        ]);
+    }
+
+    /**
+     * Buscar empacotamento por QR Code ou código (mantido para compatibilidade)
      */
     public function buscarEmpacotamento(Request $request)
     {
@@ -97,7 +173,88 @@ class EntregaController extends Controller
     }
 
     /**
-     * Confirmar saída para entrega
+     * Confirmar saída de uma peça individual para entrega
+     */
+    public function confirmarSaidaPeca(Request $request)
+    {
+        $request->validate([
+            'peca_id' => 'required|exists:empacotamento_pecas,id'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $peca = EmpacotamentoPeca::with(['empacotamento.status'])->findOrFail($request->peca_id);
+
+            // Verificar se o empacotamento está pronto para entrega
+            if ($peca->empacotamento->status->nome !== 'Pronto para motorista') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este empacotamento não está pronto para entrega'
+                ]);
+            }
+
+            // Verificar se a peça já saiu
+            if ($peca->status_saida === 'em_transito' || $peca->motorista_saida_id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta peça já foi retirada por outro motorista'
+                ]);
+            }
+
+            // Atualizar a peça
+            $peca->update([
+                'status_saida' => 'em_transito',
+                'data_saida' => now(),
+                'motorista_saida_id' => Auth::id()
+            ]);
+
+            // Verificar se todas as peças do empacotamento saíram
+            $pecasRestantes = EmpacotamentoPeca::where('empacotamento_id', $peca->empacotamento_id)
+                ->where(function($query) {
+                    $query->where('status_saida', '!=', 'em_transito')
+                          ->orWhereNull('status_saida')
+                          ->orWhere('status_saida', 'pronto');
+                })
+                ->count();
+
+            // Se todas as peças saíram, atualizar o status do empacotamento
+            if ($pecasRestantes == 0) {
+                $statusEmTransito = Status::where('nome', 'Em trânsito')->first();
+                if ($statusEmTransito) {
+                    $peca->empacotamento->update(['status_id' => $statusEmTransito->id]);
+                    
+                    // Atualizar ou criar registro de entrega para o empacotamento
+                    Entrega::updateOrCreate(
+                        ['empacotamento_id' => $peca->empacotamento_id],
+                        [
+                            'status_id' => $statusEmTransito->id,
+                            'data_saida' => now(),
+                            'motorista_saida_id' => Auth::id()
+                        ]
+                    );
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Saída da peça confirmada com sucesso!',
+                'peca' => $peca,
+                'todas_pecas_sairam' => $pecasRestantes == 0
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao confirmar saída: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Confirmar saída de todas as peças do empacotamento
      */
     public function confirmarSaida(Request $request)
     {
@@ -135,6 +292,18 @@ class EntregaController extends Controller
                 ]);
             }
 
+            // Atualizar todas as peças do empacotamento
+            EmpacotamentoPeca::where('empacotamento_id', $empacotamento->id)
+                ->where(function($query) {
+                    $query->whereNull('status_saida')
+                          ->orWhere('status_saida', 'pronto');
+                })
+                ->update([
+                    'status_saida' => 'em_transito',
+                    'data_saida' => now(),
+                    'motorista_saida_id' => Auth::id()
+                ]);
+
             // Atualizar empacotamento
             $empacotamento->update(['status_id' => $statusEmTransito->id]);
 
@@ -152,7 +321,7 @@ class EntregaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Saída confirmada com sucesso!'
+                'message' => 'Saída de todas as peças confirmada com sucesso!'
             ]);
 
         } catch (\Exception $e) {
@@ -165,7 +334,110 @@ class EntregaController extends Controller
     }
 
     /**
-     * Confirmar entrega
+     * Confirmar entrega de uma peça individual
+     */
+    public function confirmarEntregaPeca(Request $request)
+    {
+        $request->validate([
+            'peca_id' => 'required|exists:empacotamento_pecas,id',
+            'nome_recebedor' => 'required|string|max:255',
+            'assinatura' => 'nullable|string', // Base64 da assinatura
+            'observacoes' => 'nullable|string|max:1000'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $peca = EmpacotamentoPeca::with(['empacotamento.status'])->findOrFail($request->peca_id);
+
+            // Verificar se a peça saiu com este motorista
+            if ($peca->status_saida !== 'em_transito' || $peca->motorista_saida_id !== Auth::id()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Você não pode entregar esta peça'
+                ]);
+            }
+
+            // Verificar se já foi entregue
+            if ($peca->data_entrega || $peca->motoristaEntrega) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta peça já foi entregue'
+                ]);
+            }
+
+            // Salvar assinatura se fornecida
+            $caminhoAssinatura = null;
+            if ($request->assinatura) {
+                $assinaturaData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $request->assinatura));
+                $nomeArquivo = 'assinatura_peca_' . $peca->id . '_' . time() . '.png';
+                $caminhoAssinatura = 'assinaturas/' . $nomeArquivo;
+
+                \Storage::disk('public')->put($caminhoAssinatura, $assinaturaData);
+            }
+
+            // Atualizar a peça
+            $peca->update([
+                'status_saida' => 'entregue',
+                'data_entrega' => now(),
+                'motorista_entrega_id' => Auth::id(),
+                'nome_recebedor' => $request->nome_recebedor,
+                'assinatura_recebedor' => $caminhoAssinatura,
+                'observacoes' => $request->observacoes
+            ]);
+
+            // Verificar se todas as peças que saíram foram entregues
+            $pecasPendentesEntrega = EmpacotamentoPeca::where('empacotamento_id', $peca->empacotamento_id)
+                ->where('status_saida', 'em_transito')
+                ->whereNull('data_entrega')
+                ->count();
+
+            // Se todas as peças que saíram foram entregues, finalizar empacotamento
+            if ($pecasPendentesEntrega == 0) {
+                $statusConfirmado = Status::where('nome', 'Confirmado pelo Cliente')->first();
+                if (!$statusConfirmado) {
+                    $statusConfirmado = Status::where('nome', 'Entregue')->first();
+                }
+                
+                if ($statusConfirmado) {
+                    $peca->empacotamento->update(['status_id' => $statusConfirmado->id]);
+                    
+                    // Atualizar registro de entrega do empacotamento com confirmação automática
+                    $entrega = $peca->empacotamento->entrega;
+                    if ($entrega) {
+                        $entrega->update([
+                            'status_id' => $statusConfirmado->id,
+                            'data_entrega' => now(),
+                            'data_confirmacao_recebimento' => now(), // Confirma automaticamente
+                            'motorista_entrega_id' => Auth::id(),
+                            'nome_recebedor' => $request->nome_recebedor,
+                            'assinatura_recebedor' => $caminhoAssinatura,
+                            'assinatura_cliente' => $caminhoAssinatura, // Usar a mesma assinatura
+                            'observacoes_entrega' => $request->observacoes
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Entrega da peça confirmada com sucesso!',
+                'peca' => $peca,
+                'todas_pecas_entregues' => $pecasPendentesEntrega == 0
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao confirmar entrega: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Confirmar entrega de todas as peças do empacotamento
      */
     public function confirmarEntrega(Request $request)
     {
@@ -189,13 +461,17 @@ class EntregaController extends Controller
                 ]);
             }
 
-            // Buscar status "Entregue"
-            $statusEntregue = Status::where('nome', 'Entregue')->first();
-            if (!$statusEntregue) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Status "Entregue" não encontrado'
-                ]);
+            // Buscar status "Confirmado pelo Cliente" para finalizar imediatamente
+            $statusConfirmado = Status::where('nome', 'Confirmado pelo Cliente')->first();
+            if (!$statusConfirmado) {
+                // Se não encontrar, usar "Entregue" como fallback
+                $statusConfirmado = Status::where('nome', 'Entregue')->first();
+                if (!$statusConfirmado) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status de entrega não encontrado'
+                    ]);
+                }
             }
 
             // Salvar assinatura se fornecida
@@ -208,16 +484,31 @@ class EntregaController extends Controller
                 \Storage::disk('public')->put($caminhoAssinatura, $assinaturaData);
             }
 
-            // Atualizar empacotamento
-            $empacotamento->update(['status_id' => $statusEntregue->id]);
+            // Atualizar todas as peças que saíram mas não foram entregues
+            EmpacotamentoPeca::where('empacotamento_id', $empacotamento->id)
+                ->where('status_saida', 'em_transito')
+                ->whereNull('data_entrega')
+                ->update([
+                    'status_saida' => 'entregue',
+                    'data_entrega' => now(),
+                    'motorista_entrega_id' => Auth::id(),
+                    'nome_recebedor' => $request->nome_recebedor,
+                    'assinatura_recebedor' => $caminhoAssinatura,
+                    'observacoes' => $request->observacoes
+                ]);
 
-            // Atualizar entrega
+            // Atualizar empacotamento para status finalizado
+            $empacotamento->update(['status_id' => $statusConfirmado->id]);
+
+            // Atualizar entrega com confirmação automática
             $entrega->update([
-                'status_id' => $statusEntregue->id,
+                'status_id' => $statusConfirmado->id,
                 'data_entrega' => now(),
+                'data_confirmacao_recebimento' => now(), // Confirma automaticamente
                 'motorista_entrega_id' => Auth::id(),
                 'nome_recebedor' => $request->nome_recebedor,
                 'assinatura_recebedor' => $caminhoAssinatura,
+                'assinatura_cliente' => $caminhoAssinatura, // Usar a mesma assinatura
                 'observacoes_entrega' => $request->observacoes
             ]);
 
@@ -225,7 +516,7 @@ class EntregaController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Entrega confirmada com sucesso!'
+                'message' => '✅ Entrega confirmada e finalizada com sucesso!'
             ]);
 
         } catch (\Exception $e) {
