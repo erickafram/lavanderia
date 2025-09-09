@@ -108,4 +108,30 @@ class Usuario extends Authenticatable
             $q->where('nome', 'Motorista');
         });
     }
+
+    /**
+     * Define o campo usado para autenticação
+     */
+    public function getAuthIdentifierName()
+    {
+        return 'cpf';
+    }
+
+    /**
+     * Retorna CPF sem formatação
+     */
+    public function getCpfLimpoAttribute()
+    {
+        return preg_replace('/[^0-9]/', '', $this->attributes['cpf'] ?? '');
+    }
+
+    /**
+     * Retorna CPF formatado
+     */
+    public function getCpfFormatadoAttribute()
+    {
+        $cpf = $this->getCpfLimpoAttribute();
+        if (strlen($cpf) !== 11) return $this->attributes['cpf'];
+        return substr($cpf, 0, 3) . '.' . substr($cpf, 3, 3) . '.' . substr($cpf, 6, 3) . '-' . substr($cpf, 9, 2);
+    }
 }

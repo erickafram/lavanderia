@@ -112,27 +112,28 @@
             <form method="POST" action="{{ route('login.post') }}" class="space-y-5">
                 @csrf
 
-                <!-- Campo Email -->
+                <!-- Campo CPF -->
                 <div class="space-y-2">
-                    <label for="email" class="block text-sm font-medium text-primary-700">
-                        Email
+                    <label for="cpf" class="block text-sm font-medium text-primary-700">
+                        CPF
                     </label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="w-5 h-5 text-primary-400 group-focus-within:text-brand-500 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
-                        <input type="email"
-                               class="w-full pl-12 pr-4 py-3.5 bg-white border border-primary-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200 placeholder-primary-400 @error('email') border-red-300 focus:border-red-500 focus:ring-red-500/20 @enderror"
-                               id="email"
-                               name="email"
-                               value="{{ old('email') }}"
-                               placeholder="seu@email.com"
+                        <input type="text"
+                               class="w-full pl-12 pr-4 py-3.5 bg-white border border-primary-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all duration-200 placeholder-primary-400 @error('cpf') border-red-300 focus:border-red-500 focus:ring-red-500/20 @enderror"
+                               id="cpf"
+                               name="cpf"
+                               value="{{ old('cpf') }}"
+                               placeholder="000.000.000-00"
+                               maxlength="14"
                                required
                                autofocus>
                     </div>
-                    @error('email')
+                    @error('cpf')
                         <p class="text-red-600 text-xs mt-1 flex items-center">
                             <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
@@ -211,7 +212,7 @@
             const loginCard = document.querySelector('.bg-white\\/80');
             const logoContainer = document.querySelector('.text-center.mb-10');
             const form = document.querySelector('form');
-            const inputs = document.querySelectorAll('input[type="email"], input[type="password"]');
+            const inputs = document.querySelectorAll('input[name="cpf"], input[type="password"]');
             const submitButton = document.querySelector('button[type="submit"]');
             
             // Animação inicial de entrada
@@ -233,6 +234,20 @@
             inputs.forEach(input => {
                 const inputGroup = input.closest('.relative.group');
                 const icon = inputGroup?.querySelector('svg');
+                
+                // Máscara para CPF
+                if (input.name === 'cpf') {
+                    input.addEventListener('input', function(e) {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length <= 11) {
+                            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                            value = value.replace(/(\d{3})(\d{3})(\d{3})$/, '$1.$2.$3');
+                            value = value.replace(/(\d{3})(\d{3})$/, '$1.$2');
+                            value = value.replace(/(\d{3})$/, '$1');
+                        }
+                        e.target.value = value;
+                    });
+                }
                 
                 // Efeito de foco
                 input.addEventListener('focus', function() {

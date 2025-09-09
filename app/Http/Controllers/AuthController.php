@@ -33,28 +33,37 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'cpf' => 'required|string',
             'password' => 'required'
         ], [
-            'email.required' => 'O campo email é obrigatório.',
-            'email.email' => 'Digite um email válido.',
+            'cpf.required' => 'O campo CPF é obrigatório.',
             'password.required' => 'O campo senha é obrigatório.'
         ]);
 
-        $credentials = $request->only('email', 'password');
+        // Remove formatação do CPF (pontos e hífen)
+        $cpfLimpo = preg_replace('/[^0-9]/', '', $request->cpf);
+        $cpfFormatado = $request->cpf;
         
-        // Verifica se o usuário existe e está ativo
-        $usuario = Usuario::where('email', $credentials['email'])
+        // Verifica se o usuário existe e está ativo (tenta primeiro com formatação, depois sem)
+        $usuario = Usuario::where('cpf', $cpfFormatado)
                          ->where('ativo', true)
                          ->first();
+                         
+        if (!$usuario) {
+            $usuario = Usuario::where('cpf', $cpfLimpo)
+                             ->where('ativo', true)
+                             ->first();
+        }
 
         if (!$usuario) {
             return back()->withErrors([
-                'email' => 'Usuário não encontrado ou inativo.'
+                'cpf' => 'Usuário não encontrado ou inativo.'
             ])->withInput();
         }
 
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        // Verifica a senha manualmente
+        if (Hash::check($request->password, $usuario->password)) {
+            Auth::login($usuario, $request->filled('remember'));
             $request->session()->regenerate();
 
             // Atualiza último login
@@ -70,7 +79,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'As credenciais fornecidas não conferem com nossos registros.'
+            'cpf' => 'As credenciais fornecidas não conferem com nossos registros.'
         ])->withInput();
     }
 
