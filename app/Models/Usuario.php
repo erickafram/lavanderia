@@ -109,13 +109,6 @@ class Usuario extends Authenticatable
         });
     }
 
-    /**
-     * Define o campo usado para autenticação
-     */
-    public function getAuthIdentifierName()
-    {
-        return 'cpf';
-    }
 
     /**
      * Retorna CPF sem formatação
