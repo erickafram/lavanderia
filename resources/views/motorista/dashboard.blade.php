@@ -766,9 +766,28 @@ function showMainTab(tabName) {
 function confirmarSaidaSacola(codigoQR, tipoPeca, empacotamentoId) {
     if (!confirm(`Confirmar saída da sacola:\n🏷️ ${tipoPeca}\n📦 QR: ${codigoQR}\n\nEsta ação irá marcar apenas esta sacola como "em trânsito".`)) return;
     
-    // Por enquanto, vamos confirmar a saída do empacotamento inteiro
-    // TODO: Implementar lógica individual por sacola no futuro se necessário
-    confirmarSaidaCompleta(empacotamentoId);
+    // Confirmar saída apenas desta sacola individual
+    fetch('{{ route("motorista.confirmar-saida-sacola") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ codigo_qr: codigoQR })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ ' + data.message);
+            location.reload();
+        } else {
+            alert('❌ ' + data.message || 'Erro ao confirmar saída da sacola');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('❌ Erro ao confirmar saída da sacola');
+    });
 }
 
 // Função para confirmar saída de todas as sacolas do empacotamento
