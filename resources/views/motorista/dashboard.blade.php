@@ -243,9 +243,12 @@
                             <!-- Ação em lote para o empacotamento completo -->
                             <div class="mt-3 pt-3 border-t border-gray-300">
                                 <button onclick="confirmarSaidaCompleta({{ $empacotamento->id }})"
-                                        class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors">
-                                    ✅ Confirmar Saída de Todas as Sacolas do Empacotamento
+                                        class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                                    🚚 CONFIRMAR TODAS AS SACOLAS → EM TRÂNSITO
                                 </button>
+                                <p class="text-xs text-gray-500 mt-1 text-center">
+                                    Move todas as {{ $empacotamento->pecasIndividuais->count() }} sacola{{ $empacotamento->pecasIndividuais->count() > 1 ? 's' : '' }} para "Sacolas em Trânsito" de uma vez
+                                </p>
                             </div>
                         </div>
                     @else
@@ -792,9 +795,12 @@ function confirmarSaidaSacola(codigoQR, tipoPeca, empacotamentoId) {
 
 // Função para confirmar saída de todas as sacolas do empacotamento
 function confirmarSaidaCompleta(empacotamentoId) {
-    if (!confirm('Confirmar saída de TODAS as sacolas deste empacotamento para entrega?')) return;
+    if (!confirm('🚚 CONFIRMAR TODAS AS SACOLAS\n\nEsta ação irá:\n✅ Mover TODAS as sacolas para "Em Trânsito"\n✅ Mover o empacotamento completo para "Sacolas em Trânsito"\n\nDeseja continuar?')) return;
     
-    fetch('{{ route("motorista.confirmar-saida") }}', {
+    // Mostrar loading
+    const loadingMsg = mostrarMensagemCarregando("🚚 Confirmando todas as sacolas...");
+    
+    fetch('{{ route("motorista.confirmar-todas-sacolas") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -804,16 +810,25 @@ function confirmarSaidaCompleta(empacotamentoId) {
     })
     .then(response => response.json())
     .then(data => {
+        ocultarMensagemCarregando(loadingMsg);
+        
         if (data.success) {
-            alert('✅ ' + data.message + '\n\n🚚 Todas as sacolas do empacotamento estão agora em trânsito.');
-            location.reload();
+            // Tocar som de sucesso e mostrar toast
+            playSuccessSound();
+            mostrarToastSucesso(data.message);
+            
+            // Aguardar um pouco para o usuário ver o feedback e depois recarregar
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
         } else {
-            alert('❌ Erro ao confirmar saída');
+            alert('❌ ' + (data.message || 'Erro ao confirmar saída de todas as sacolas'));
         }
     })
     .catch(error => {
+        ocultarMensagemCarregando(loadingMsg);
         console.error('Erro:', error);
-        alert('❌ Erro ao confirmar saída');
+        alert('❌ Erro ao confirmar saída de todas as sacolas');
     });
 }
 

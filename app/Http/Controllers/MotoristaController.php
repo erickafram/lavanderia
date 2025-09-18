@@ -746,6 +746,90 @@ class MotoristaController extends Controller
     }
 
     /**
+     * Confirmar saída de todas as sacolas de um empacotamento de uma vez
+     */
+    public function confirmarTodasSacolas(Request $request)
+    {
+        $request->validate([
+            'empacotamento_id' => 'required|exists:empacotamento,id'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $empacotamento = Empacotamento::with(['pecasIndividuais', 'coleta.estabelecimento'])->findOrFail($request->empacotamento_id);
+
+            // Verificar se está disponível para saída
+            $statusPermitidos = ['Pronto para motorista'];
+            if (!in_array($empacotamento->status->nome, $statusPermitidos)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Este empacotamento não está disponível para saída. Status atual: ' . $empacotamento->status->nome
+                ]);
+            }
+
+            // Buscar status "Em trânsito"
+            $statusTransito = Status::where('nome', 'Em trânsito')->first();
+            if (!$statusTransito) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status "Em trânsito" não encontrado no sistema'
+                ]);
+            }
+
+            // Contar sacolas disponíveis para saída (status_saida = 'pronto')
+            $sacolasProntas = $empacotamento->pecasIndividuais()->where('status_saida', 'pronto')->count();
+            
+            if ($sacolasProntas === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Não há sacolas prontas para saída neste empacotamento!'
+                ]);
+            }
+
+            // Atualizar todas as sacolas prontas para "em_transito"
+            $sacolasAtualizadas = $empacotamento->pecasIndividuais()
+                ->where('status_saida', 'pronto')
+                ->update([
+                    'status_saida' => 'em_transito',
+                    'data_saida' => now(),
+                    'motorista_saida_id' => Auth::id()
+                ]);
+
+            // Atualizar status do empacotamento para "Em Trânsito"
+            $empacotamento->update(['status_id' => $statusTransito->id]);
+
+            // Criar ou atualizar entrega
+            Entrega::updateOrCreate(
+                ['empacotamento_id' => $empacotamento->id],
+                [
+                    'status_id' => $statusTransito->id,
+                    'data_saida' => now(),
+                    'motorista_saida_id' => Auth::id()
+                ]
+            );
+
+            DB::commit();
+
+            $nomeEstabelecimento = $empacotamento->coleta->estabelecimento->nome_fantasia ?? $empacotamento->coleta->estabelecimento->razao_social ?? 'Estabelecimento';
+            
+            return response()->json([
+                'success' => true,
+                'message' => "🎉 TODAS AS SACOLAS CONFIRMADAS!\n\n✅ {$sacolasAtualizadas} sacola(s) estão agora em trânsito\n🏢 Destino: {$nomeEstabelecimento}\n\n🚚 O empacotamento completo foi movido para 'Sacolas em Trânsito'.",
+                'sacolas_confirmadas' => $sacolasAtualizadas,
+                'estabelecimento' => $nomeEstabelecimento
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            \Log::error('Erro ao confirmar todas as sacolas:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao confirmar saída: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Obter estatísticas em tempo real para o motorista
      */
     public function getEstatisticasMotorista()

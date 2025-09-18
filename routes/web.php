@@ -166,6 +166,7 @@ Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
         // Rotas para sacolas individuais
         Route::post('/buscar-sacola', [MotoristaController::class, 'buscarSacola'])->name('buscar-sacola');
         Route::post('/confirmar-saida-sacola', [MotoristaController::class, 'confirmarSaidaSacola'])->name('confirmar-saida-sacola');
+        Route::post('/confirmar-todas-sacolas', [MotoristaController::class, 'confirmarTodasSacolas'])->name('confirmar-todas-sacolas');
         
         // Novas funcionalidades melhoradas
         Route::post('/validar-qr-entrega', [MotoristaController::class, 'validarQREntrega'])->name('validar-qr-entrega');
