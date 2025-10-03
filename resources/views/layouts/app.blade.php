@@ -137,92 +137,18 @@
                                 @endif
 
                                 @if(auth()->user()->temPermissao('coletas.visualizar'))
-                                <!-- Menu Coletas com Submenu -->
-                                <div class="relative">
-                                    <button onclick="toggleSubmenu('coletas')" class="group flex items-center w-full px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
-                                        <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('coletas.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200' }} transition-colors duration-200">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <div class="ml-4 flex-1">
-                                            <p class="font-semibold text-sm">Coletas</p>
-                                            <p class="text-xs text-gray-500">Agendar e gerenciar</p>
-                                        </div>
-                                        <svg id="chevron-coletas" class="w-4 h-4 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                <!-- Menu Coletas -->
+                                <a href="{{ route('coletas.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('coletas.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200' }} transition-colors duration-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
-                                    </button>
-                                    
-                                    <!-- Submenu Coletas -->
-                                    <div id="submenu-coletas" class="hidden mt-2 ml-6 space-y-1">
-                                        <a href="{{ route('coletas.index') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.index') && !request()->has('tipo') ? 'bg-gray-50 text-gray-900' : '' }}">
-                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 mr-3">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-sm">Coletas Normais</p>
-                                                <p class="text-xs text-gray-500">Coletas regulares do dia a dia</p>
-                                            </div>
-                                        </a>
-                                        
-                                        <a href="{{ route('coletas.index-tipo', 'desengoma') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.index-tipo') && request()->route('tipo') == 'desengoma' ? 'bg-gray-50 text-gray-900' : '' }}">
-                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100 text-green-600 mr-3">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-sm">DESENGOMA</p>
-                                                <p class="text-xs text-gray-500">Primeira lavagem - prazo maior</p>
-                                            </div>
-                                        </a>
-                                        
-                                        <a href="{{ route('coletas.index-tipo', 'relave') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.index-tipo') && request()->route('tipo') == 'relave' ? 'bg-gray-50 text-gray-900' : '' }}">
-                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 text-orange-600 mr-3">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="font-medium text-sm">RELAVE</p>
-                                                <p class="text-xs text-gray-500">Segunda lavagem - sem cobrança</p>
-                                            </div>
-                                        </a>
-                                        
-                                        @if(auth()->user()->temPermissao('coletas.criar'))
-                                        <div class="border-t border-gray-200 pt-2 mt-2">
-                                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-4">Nova Coleta</p>
-                                            <a href="{{ route('coletas.create') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600 mr-3">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                                    </svg>
-                                                </div>
-                                                <span class="font-medium text-sm">Normal</span>
-                                            </a>
-                                            <a href="{{ route('coletas.create-desengoma') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100 text-green-600 mr-3">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                                    </svg>
-                                                </div>
-                                                <span class="font-medium text-sm">Desengoma</span>
-                                            </a>
-                                            <a href="{{ route('coletas.create-relave') }}" class="group flex items-center px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200">
-                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 text-orange-600 mr-3">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                                    </svg>
-                                                </div>
-                                                <span class="font-medium text-sm">Relave</span>
-                                            </a>
-                                        </div>
-                                        @endif
                                     </div>
-                                </div>
+                                    <div class="ml-4">
+                                        <p class="font-semibold text-sm">Coletas</p>
+                                        <p class="text-xs text-gray-500">Agendar e gerenciar</p>
+                                    </div>
+                                </a>
                                 @endif
 
                                 @if(auth()->user()->temPermissao('pesagem.visualizar'))

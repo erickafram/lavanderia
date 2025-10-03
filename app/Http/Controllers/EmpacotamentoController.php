@@ -80,7 +80,11 @@ class EmpacotamentoController extends Controller
             'Entregue'
         ])->get();
 
+        // Buscar apenas motoristas (usuários com nível de acesso "Motorista")
         $motoristas = Usuario::where('ativo', true)
+                            ->whereHas('nivelAcesso', function($q) {
+                                $q->where('nome', 'Motorista');
+                            })
                             ->orderBy('nome')
                             ->get();
 
@@ -132,10 +136,10 @@ class EmpacotamentoController extends Controller
                 return back()->withErrors(['coleta_id' => 'Esta coleta já foi empacotada.']);
             }
 
-            // Buscar status "Pronto para motorista"
-            $statusProntoEntrega = Status::where('nome', 'Pronto para motorista')->first();
-            if (!$statusProntoEntrega) {
-                return back()->withErrors(['status' => 'Status "Pronto para motorista" não encontrado.']);
+            // Buscar status "Em empacotamento" para início (será mudado se tudo estiver empacotado)
+            $statusEmEmpacotamento = Status::where('nome', 'Em empacotamento')->first();
+            if (!$statusEmEmpacotamento) {
+                return back()->withErrors(['status' => 'Status "Em empacotamento" não encontrado.']);
             }
 
             // Criar empacotamento
@@ -143,7 +147,7 @@ class EmpacotamentoController extends Controller
                 'coleta_id' => $request->coleta_id,
                 'usuario_empacotamento_id' => Auth::id(),
                 'motorista_id' => null, // Motorista será definido na saída
-                'status_id' => $statusProntoEntrega->id,
+                'status_id' => $statusEmEmpacotamento->id,
                 'data_empacotamento' => $request->data_empacotamento,
                 'observacoes_empacotamento' => $request->observacoes_empacotamento
             ]);
@@ -163,6 +167,17 @@ class EmpacotamentoController extends Controller
                 $empacotamento->coleta->update(['status_id' => $statusEmpacotada->id]);
             }
 
+            // Verificar se a quantidade empacotada está completa
+            $empacotamento = $empacotamento->fresh(['coleta.pecas', 'pecasIndividuais']);
+            
+            if (!$empacotamento->estaEmAberto()) {
+                // Se tudo foi empacotado, mudar para "Pronto para motorista"
+                $statusProntoMotorista = Status::where('nome', 'Pronto para motorista')->first();
+                if ($statusProntoMotorista) {
+                    $empacotamento->update(['status_id' => $statusProntoMotorista->id]);
+                }
+            }
+
             DB::commit();
 
             // Se foi criação inicial (sem dados de peças), redirecionar para edição
@@ -171,8 +186,12 @@ class EmpacotamentoController extends Controller
                                ->with('success', 'Empacotamento criado! Agora você pode ajustar as quantidades e dividir as peças conforme necessário.');
             }
 
+            $mensagem = $empacotamento->estaEmAberto() 
+                ? 'Empacotamento criado! Atenção: ainda há peças pendentes de empacotamento.'
+                : 'Empacotamento criado com sucesso! Todas as peças foram empacotadas.';
+
             return redirect()->route('empacotamento.show', $empacotamento->id)
-                           ->with('success', 'Empacotamento criado com sucesso!');
+                           ->with('success', $mensagem);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -515,10 +534,31 @@ class EmpacotamentoController extends Controller
             // Processar peças individuais atualizadas
             $this->processarPecasIndividuaisEmpacotamento($request, $empacotamento);
 
+            // Verificar se quantidade empacotada está completa
+            $empacotamento = $empacotamento->fresh(['coleta.pecas', 'pecasIndividuais']);
+            
+            if ($empacotamento->estaEmAberto()) {
+                // Se ainda falta empacotar, manter em "Em empacotamento"
+                $statusEmEmpacotamento = Status::where('nome', 'Em empacotamento')->first();
+                if ($statusEmEmpacotamento) {
+                    $empacotamento->update(['status_id' => $statusEmEmpacotamento->id]);
+                }
+                
+                $mensagem = 'Empacotamento atualizado! Atenção: ainda há peças pendentes de empacotamento.';
+            } else {
+                // Se tudo foi empacotado, manter "Pronto para motorista"
+                $statusProntoMotorista = Status::where('nome', 'Pronto para motorista')->first();
+                if ($statusProntoMotorista) {
+                    $empacotamento->update(['status_id' => $statusProntoMotorista->id]);
+                }
+                
+                $mensagem = 'Empacotamento atualizado com sucesso! Todas as peças foram empacotadas.';
+            }
+
             DB::commit();
 
             return redirect()->route('empacotamento.show', $empacotamento->id)
-                           ->with('success', 'Empacotamento atualizado com sucesso!');
+                           ->with('success', $mensagem);
 
         } catch (\Exception $e) {
             DB::rollback();

@@ -118,6 +118,15 @@ class Coleta extends Model
     }
 
     /**
+     * Verifica se a coleta pode ser editada
+     */
+    public function podeSerEditada()
+    {
+        // Coleta pode ser editada se não estiver concluída, cancelada ou entregue
+        return !in_array($this->status->nome, ['Concluída', 'Cancelada', 'Entregue']);
+    }
+
+    /**
      * Calcula os totais da coleta baseado nas peças
      */
     public function calcularTotais()

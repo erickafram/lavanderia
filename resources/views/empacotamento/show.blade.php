@@ -110,6 +110,48 @@
                             <p class="text-yellow-700">{{ $empacotamento->observacoes_empacotamento }}</p>
                         </div>
                     @endif
+
+                    @if($empacotamento->estaEmAberto())
+                        @php
+                            $pecasFaltando = $empacotamento->getPecasFaltandoEmpacotar();
+                        @endphp
+                        <div class="mt-6 p-4 bg-orange-50 border border-orange-300 rounded-lg">
+                            <h4 class="font-semibold text-orange-800 mb-2 flex items-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                                ⚠️ Empacotamento em Aberto - Peças Pendentes
+                            </h4>
+                            <p class="text-orange-700 mb-3">Ainda há peças que não foram totalmente empacotadas:</p>
+                            <div class="space-y-2">
+                                @foreach($pecasFaltando as $peca)
+                                    <div class="flex items-center justify-between bg-white p-3 rounded-lg">
+                                        <div>
+                                            <span class="font-medium text-gray-900">{{ $peca['tipo']->nome }}</span>
+                                            <span class="text-sm text-gray-600">({{ $peca['tipo']->categoria }})</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-orange-700 font-semibold">
+                                                Faltam: {{ $peca['quantidade_faltando'] }} peça(s)
+                                            </div>
+                                            <div class="text-xs text-gray-600">
+                                                Coletadas: {{ $peca['quantidade_coletada'] }} | Empacotadas: {{ $peca['quantidade_empacotada'] }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="mt-4">
+                                <a href="{{ route('empacotamento.edit', $empacotamento->id) }}" 
+                                   class="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    </svg>
+                                    Continuar Empacotamento
+                                </a>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
 

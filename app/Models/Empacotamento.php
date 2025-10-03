@@ -324,4 +324,64 @@ class Empacotamento extends Model
             ->pluck('responsavelEmpacotamento')
             ->unique('id');
     }
+
+    /**
+     * Verifica se a quantidade empacotada está completa
+     * Retorna true se todas as peças coletadas foram completamente empacotadas
+     */
+    public function quantidadeEmpacotadaCompleta()
+    {
+        $pecasColeta = $this->coleta->pecas;
+        $pecasEmpacotadas = $this->pecasIndividuais;
+        
+        foreach ($pecasColeta as $pecaColeta) {
+            $quantidadeEmpacotadaTipo = $pecasEmpacotadas
+                ->where('tipo_id', $pecaColeta->tipo_id)
+                ->sum('quantidade');
+            
+            if ($quantidadeEmpacotadaTipo < $pecaColeta->quantidade) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Calcula a diferença entre quantidade coletada e empacotada por tipo
+     * Retorna array com tipos que ainda faltam empacotar
+     */
+    public function getPecasFaltandoEmpacotar()
+    {
+        $pecasColeta = $this->coleta->pecas;
+        $pecasEmpacotadas = $this->pecasIndividuais;
+        $pecasFaltando = [];
+        
+        foreach ($pecasColeta as $pecaColeta) {
+            $quantidadeEmpacotadaTipo = $pecasEmpacotadas
+                ->where('tipo_id', $pecaColeta->tipo_id)
+                ->sum('quantidade');
+            
+            $diferenca = $pecaColeta->quantidade - $quantidadeEmpacotadaTipo;
+            
+            if ($diferenca > 0) {
+                $pecasFaltando[] = [
+                    'tipo' => $pecaColeta->tipo,
+                    'quantidade_coletada' => $pecaColeta->quantidade,
+                    'quantidade_empacotada' => $quantidadeEmpacotadaTipo,
+                    'quantidade_faltando' => $diferenca
+                ];
+            }
+        }
+        
+        return $pecasFaltando;
+    }
+
+    /**
+     * Verifica se o empacotamento está em aberto (com peças pendentes)
+     */
+    public function estaEmAberto()
+    {
+        return !$this->quantidadeEmpacotadaCompleta();
+    }
 }

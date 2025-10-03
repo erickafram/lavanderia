@@ -38,79 +38,117 @@
     </div>
 </div>
 
-<!-- Filtros -->
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-    <form method="GET" action="{{ route('coletas.index') }}" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Busca -->
-            <div>
-                <label for="busca" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                <input type="text" 
-                       id="busca" 
-                       name="busca" 
-                       value="{{ request('busca') }}"
-                       placeholder="Número da coleta ou estabelecimento"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-            </div>
-
-            <!-- Estabelecimento -->
-            <div>
-                <label for="estabelecimento_id" class="block text-sm font-medium text-gray-700 mb-1">Estabelecimento</label>
-                <select id="estabelecimento_id" 
-                        name="estabelecimento_id" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                    <option value="">Todos</option>
-                    @foreach($estabelecimentos as $estabelecimento)
-                        <option value="{{ $estabelecimento->id }}" {{ request('estabelecimento_id') == $estabelecimento->id ? 'selected' : '' }}>
-                            {{ $estabelecimento->razao_social }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Status -->
-            <div>
-                <label for="status_id" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select id="status_id" 
-                        name="status_id" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-                    <option value="">Todos</option>
-                    @foreach($status as $st)
-                        <option value="{{ $st->id }}" {{ request('status_id') == $st->id ? 'selected' : '' }}>
-                            {{ $st->nome }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Data Início -->
-            <div>
-                <label for="data_inicio" class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
-                <input type="date" 
-                       id="data_inicio" 
-                       name="data_inicio" 
-                       value="{{ request('data_inicio') }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
-            </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row gap-2">
-            <button type="submit" 
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+<!-- Abas de Tipo de Coleta -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+    <div class="border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+            <a href="{{ route('coletas.index', array_merge(request()->except('tipo_coleta'), ['tipo_coleta' => 'todas'])) }}" 
+               class="group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 {{ (request('tipo_coleta', 'todas') == 'todas') ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                <svg class="w-5 h-5 mr-2 {{ (request('tipo_coleta', 'todas') == 'todas') ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
-                Filtrar
-            </button>
-            <a href="{{ route('coletas.index') }}" 
-               class="inline-flex items-center px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                Todas as Coletas
+            </a>
+            <a href="{{ route('coletas.index', array_merge(request()->except('tipo_coleta'), ['tipo_coleta' => 'normal'])) }}" 
+               class="group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 {{ request('tipo_coleta') == 'normal' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                <svg class="w-5 h-5 mr-2 {{ request('tipo_coleta') == 'normal' ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Coletas Normais
+            </a>
+            <a href="{{ route('coletas.index', array_merge(request()->except('tipo_coleta'), ['tipo_coleta' => 'desengoma'])) }}" 
+               class="group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 {{ request('tipo_coleta') == 'desengoma' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                <svg class="w-5 h-5 mr-2 {{ request('tipo_coleta') == 'desengoma' ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Desengoma
+            </a>
+            <a href="{{ route('coletas.index', array_merge(request()->except('tipo_coleta'), ['tipo_coleta' => 'relave'])) }}" 
+               class="group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 {{ request('tipo_coleta') == 'relave' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}">
+                <svg class="w-5 h-5 mr-2 {{ request('tipo_coleta') == 'relave' ? 'text-orange-600' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                Limpar
+                Relave
             </a>
-        </div>
-    </form>
+        </nav>
+    </div>
+
+    <!-- Filtros -->
+    <div class="p-6">
+        <form method="GET" action="{{ route('coletas.index') }}" class="space-y-4">
+            <input type="hidden" name="tipo_coleta" value="{{ request('tipo_coleta', 'todas') }}">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Busca -->
+                <div>
+                    <label for="busca" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                    <input type="text" 
+                           id="busca" 
+                           name="busca" 
+                           value="{{ request('busca') }}"
+                           placeholder="Número da coleta ou estabelecimento"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                </div>
+
+                <!-- Estabelecimento -->
+                <div>
+                    <label for="estabelecimento_id" class="block text-sm font-medium text-gray-700 mb-1">Estabelecimento</label>
+                    <select id="estabelecimento_id" 
+                            name="estabelecimento_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                        <option value="">Todos</option>
+                        @foreach($estabelecimentos as $estabelecimento)
+                            <option value="{{ $estabelecimento->id }}" {{ request('estabelecimento_id') == $estabelecimento->id ? 'selected' : '' }}>
+                                {{ $estabelecimento->razao_social }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="status_id" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="status_id" 
+                            name="status_id" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                        <option value="">Todos</option>
+                        @foreach($status as $st)
+                            <option value="{{ $st->id }}" {{ request('status_id') == $st->id ? 'selected' : '' }}>
+                                {{ $st->nome }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Data Início -->
+                <div>
+                    <label for="data_inicio" class="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
+                    <input type="date" 
+                           id="data_inicio" 
+                           name="data_inicio" 
+                           value="{{ request('data_inicio') }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm">
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2">
+                <button type="submit" 
+                        class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Filtrar
+                </button>
+                <a href="{{ route('coletas.index', ['tipo_coleta' => request('tipo_coleta', 'todas')]) }}" 
+                   class="inline-flex items-center px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 text-sm font-medium rounded-lg transition-colors duration-200">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Limpar
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Tabela Desktop -->
@@ -122,6 +160,7 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coleta</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estabelecimento</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Agendamento</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso/Valor</th>
                 </tr>
@@ -144,6 +183,24 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @php
+                                $tipoColors = [
+                                    'normal' => 'bg-blue-100 text-blue-800',
+                                    'desengoma' => 'bg-green-100 text-green-800',
+                                    'relave' => 'bg-orange-100 text-orange-800',
+                                ];
+                                $tipoColorClass = $tipoColors[$coleta->tipo_coleta] ?? 'bg-gray-100 text-gray-800';
+                                $tipoLabel = [
+                                    'normal' => 'Normal',
+                                    'desengoma' => 'Desengoma',
+                                    'relave' => 'Relave',
+                                ];
+                            @endphp
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $tipoColorClass }}">
+                                {{ $tipoLabel[$coleta->tipo_coleta] ?? 'Normal' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
                                 $statusColors = [
                                     'Agendada' => 'bg-blue-100 text-blue-800',
                                     'Em andamento' => 'bg-yellow-100 text-yellow-800',
@@ -163,7 +220,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="6" class="px-6 py-12 text-center">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1m-6 0h8m-8 0H6a2 2 0 00-2 2v10a2 2 0 002 2h1m5 0h8a2 2 0 002-2V9a2 2 0 00-2-2h-1"></path>
                             </svg>

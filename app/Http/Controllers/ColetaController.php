@@ -23,6 +23,12 @@ class ColetaController extends Controller
         $query = Coleta::with(['estabelecimento', 'usuario', 'status'])
                       ->orderBy('created_at', 'desc');
 
+        // Filtro por tipo de coleta
+        $tipoColeta = $request->get('tipo_coleta', 'todas');
+        if ($tipoColeta && $tipoColeta !== 'todas') {
+            $query->where('tipo_coleta', $tipoColeta);
+        }
+
         // Filtros
         if ($request->filled('estabelecimento_id')) {
             $query->where('estabelecimento_id', $request->estabelecimento_id);

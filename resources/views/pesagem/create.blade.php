@@ -74,33 +74,80 @@
                             @enderror
                         </div>
 
-                        <!-- Campos de Pesagem -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <label for="peso" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Peso Total (kg) <span class="text-red-500">*</span>
+                        <!-- Lista de Pesagens -->
+                        <div class="mt-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Pesagens <span class="text-red-500">*</span>
                                 </label>
-                                <input type="number" step="0.01" min="0.01" max="999.99"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('peso') border-red-500 @enderror"
-                                       id="peso" name="peso" value="{{ old('peso') }}"
-                                       placeholder="0,00" required>
-                                @error('peso')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                                <button type="button" onclick="adicionarPesagem()" 
+                                        class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors duration-200">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Adicionar Pesagem
+                                </button>
                             </div>
-                            <div>
-                                <label for="quantidade" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Quantidade Total <span class="text-red-500">*</span>
-                                </label>
-                                <input type="number" min="1" max="999"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm @error('quantidade') border-red-500 @enderror"
-                                       id="quantidade" name="quantidade" value="{{ old('quantidade', 1) }}"
-                                       required>
-                                @error('quantidade')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+
+                            <div id="pesagens-container" class="space-y-3">
+                                <!-- Primeira pesagem (modelo) -->
+                                <div class="pesagem-item border border-gray-200 rounded-lg p-4 bg-gray-50" data-index="0">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h4 class="text-sm font-semibold text-gray-700">Pesagem #<span class="pesagem-numero">1</span></h4>
+                                        <button type="button" onclick="removerPesagem(this)" class="text-red-600 hover:text-red-800 hidden remove-btn">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                Peso (kg) <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="number" step="0.01" min="0.01" max="999.99"
+                                                   class="peso-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                   name="pesagens[0][peso]" 
+                                                   placeholder="0,00" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                Quantidade <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="number" min="1" max="999"
+                                                   class="quantidade-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                                   name="pesagens[0][quantidade]" 
+                                                   value="1" required>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Observação (opcional)</label>
+                                        <input type="text" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                               name="pesagens[0][observacao]" 
+                                               placeholder="Ex: Peças molhadas, danificadas...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Totalizador -->
+                            <div class="mt-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="text-sm font-semibold text-blue-900">Total Geral</h4>
+                                        <p class="text-xs text-blue-700">Soma de todas as pesagens</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold text-blue-900" id="peso-total-geral">0,00 kg</div>
+                                        <div class="text-sm text-blue-700"><span id="quantidade-total-geral">0</span> peças</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Campos ocultos para compatibilidade -->
+                        <input type="hidden" id="peso" name="peso" value="0">
+                        <input type="hidden" id="quantidade" name="quantidade" value="0">
 
                         <!-- Informações da Coleta -->
                         <div id="info-coleta-pesagem" style="display: none;" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -262,53 +309,171 @@
 
 @push('scripts')
 <script>
+let pesagemIndex = 1;
+let coletaAtual = null;
+
+// Função para adicionar nova pesagem
+function adicionarPesagem() {
+    const container = document.getElementById('pesagens-container');
+    const novaPesagem = document.createElement('div');
+    novaPesagem.className = 'pesagem-item border border-gray-200 rounded-lg p-4 bg-gray-50';
+    novaPesagem.dataset.index = pesagemIndex;
+    
+    novaPesagem.innerHTML = `
+        <div class="flex justify-between items-start mb-3">
+            <h4 class="text-sm font-semibold text-gray-700">Pesagem #<span class="pesagem-numero">${pesagemIndex + 1}</span></h4>
+            <button type="button" onclick="removerPesagem(this)" class="text-red-600 hover:text-red-800 remove-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">
+                    Peso (kg) <span class="text-red-500">*</span>
+                </label>
+                <input type="number" step="0.01" min="0.01" max="999.99"
+                       class="peso-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                       name="pesagens[${pesagemIndex}][peso]" 
+                       placeholder="0,00" required>
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-600 mb-1">
+                    Quantidade <span class="text-red-500">*</span>
+                </label>
+                <input type="number" min="1" max="999"
+                       class="quantidade-input w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                       name="pesagens[${pesagemIndex}][quantidade]" 
+                       value="1" required>
+            </div>
+        </div>
+        <div class="mt-2">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Observação (opcional)</label>
+            <input type="text" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                   name="pesagens[${pesagemIndex}][observacao]" 
+                   placeholder="Ex: Peças molhadas, danificadas...">
+        </div>
+    `;
+    
+    container.appendChild(novaPesagem);
+    pesagemIndex++;
+    
+    // Adicionar event listeners nos novos inputs
+    const pesoInputs = novaPesagem.querySelectorAll('.peso-input');
+    const qtdInputs = novaPesagem.querySelectorAll('.quantidade-input');
+    
+    pesoInputs.forEach(input => input.addEventListener('input', calcularTotais));
+    qtdInputs.forEach(input => input.addEventListener('input', calcularTotais));
+    
+    // Atualizar botões de remover
+    atualizarBotoesRemover();
+    calcularTotais();
+}
+
+// Função para remover pesagem
+function removerPesagem(btn) {
+    const pesagemItem = btn.closest('.pesagem-item');
+    pesagemItem.remove();
+    
+    // Renumerar pesagens
+    const pesagens = document.querySelectorAll('.pesagem-item');
+    pesagens.forEach((item, index) => {
+        const numero = item.querySelector('.pesagem-numero');
+        if (numero) numero.textContent = index + 1;
+    });
+    
+    atualizarBotoesRemover();
+    calcularTotais();
+}
+
+// Função para atualizar visibilidade dos botões de remover
+function atualizarBotoesRemover() {
+    const pesagens = document.querySelectorAll('.pesagem-item');
+    const botoes = document.querySelectorAll('.remove-btn');
+    
+    if (pesagens.length <= 1) {
+        botoes.forEach(btn => btn.classList.add('hidden'));
+    } else {
+        botoes.forEach(btn => btn.classList.remove('hidden'));
+    }
+}
+
+// Função para calcular totais
+function calcularTotais() {
+    let pesoTotal = 0;
+    let quantidadeTotal = 0;
+    
+    const pesagens = document.querySelectorAll('.pesagem-item');
+    pesagens.forEach(pesagem => {
+        const pesoInput = pesagem.querySelector('.peso-input');
+        const qtdInput = pesagem.querySelector('.quantidade-input');
+        
+        const peso = parseFloat(pesoInput.value) || 0;
+        const qtd = parseInt(qtdInput.value) || 0;
+        
+        pesoTotal += peso;
+        quantidadeTotal += qtd;
+    });
+    
+    // Atualizar displays
+    document.getElementById('peso-total-geral').textContent = pesoTotal.toFixed(2) + ' kg';
+    document.getElementById('quantidade-total-geral').textContent = quantidadeTotal;
+    
+    // Atualizar campos ocultos
+    document.getElementById('peso').value = pesoTotal.toFixed(2);
+    document.getElementById('quantidade').value = quantidadeTotal;
+    
+    // Calcular diferença com a coleta
+    calcularDiferencaPesoTotal(pesoTotal);
+}
+
+// Função para calcular diferença de peso total
+function calcularDiferencaPesoTotal(pesoInserido) {
+    const diferencaPeso = document.getElementById('diferenca-peso');
+    if (!coletaAtual || !diferencaPeso) return;
+
+    const pesoColeta = coletaAtual.peso_total || 0;
+
+    if (pesoColeta > 0) {
+        const diferenca = pesoInserido - pesoColeta;
+        let htmlDiferenca = '';
+
+        if (Math.abs(diferenca) > 0.01) {
+            const sinal = diferenca > 0 ? '+' : '';
+            const cor = diferenca > 0 ? 'text-green-600' : 'text-red-600';
+            const texto = diferenca > 0 ? 'a mais' : 'a menos';
+            htmlDiferenca = `<div class="${cor}">Diferença: ${sinal}${Math.abs(diferenca).toFixed(2)} kg ${texto}</div>`;
+        } else {
+            htmlDiferenca = '<div class="text-green-600">✓ Peso confere com a coleta</div>';
+        }
+
+        diferencaPeso.innerHTML = htmlDiferenca;
+    } else {
+        if (pesoInserido > 0) {
+            diferencaPeso.innerHTML = `<div class="text-blue-600">Peso da pesagem: ${pesoInserido.toFixed(2)} kg</div>`;
+        } else {
+            diferencaPeso.innerHTML = '';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const coletaSelect = document.getElementById('coleta_id');
-    const pesoInput = document.getElementById('peso');
-    const quantidadeInput = document.getElementById('quantidade');
     const infoColeta = document.getElementById('infoColeta');
     const dadosColeta = document.getElementById('dadosColeta');
     const infoColetaPesagem = document.getElementById('info-coleta-pesagem');
     const dadosColetaPesagem = document.getElementById('dados-coleta-pesagem');
-    const diferencaPeso = document.getElementById('diferenca-peso');
 
-    // URL base para as requisições
     const baseUrl = '{{ url("coletas") }}';
 
-    // Dados da coleta atual
-    let coletaAtual = null;
-
-    // Função para calcular diferença de peso total
-    function calcularDiferencaPesoTotal() {
-        if (!coletaAtual) return;
-
-        const pesoInserido = parseFloat(pesoInput.value) || 0;
-        const pesoColeta = coletaAtual.peso_total || 0;
-
-        if (pesoColeta > 0) {
-            // Coleta tem peso - calcular diferença
-            const diferenca = pesoInserido - pesoColeta;
-            let htmlDiferenca = '';
-
-            if (Math.abs(diferenca) > 0.01) {
-                const sinal = diferenca > 0 ? '+' : '';
-                const cor = diferenca > 0 ? 'text-green-600' : 'text-red-600';
-                const texto = diferenca > 0 ? 'a mais' : 'a menos';
-                htmlDiferenca = `<div class="${cor}">Diferença: ${sinal}${Math.abs(diferenca).toFixed(2)} kg ${texto}</div>`;
-            } else {
-                htmlDiferenca = '<div class="text-green-600">✓ Peso confere com a coleta</div>';
-            }
-
-            diferencaPeso.innerHTML = htmlDiferenca;
-        } else {
-            // Coleta não tem peso - só mostrar peso inserido
-            if (pesoInserido > 0) {
-                diferencaPeso.innerHTML = `<div class="text-blue-600">Peso da pesagem: ${pesoInserido.toFixed(2)} kg</div>`;
-            } else {
-                diferencaPeso.innerHTML = '';
-            }
-        }
-    }
+    // Adicionar event listeners nos inputs iniciais
+    const pesoInputs = document.querySelectorAll('.peso-input');
+    const qtdInputs = document.querySelectorAll('.quantidade-input');
+    
+    pesoInputs.forEach(input => input.addEventListener('input', calcularTotais));
+    qtdInputs.forEach(input => input.addEventListener('input', calcularTotais));
 
     // Função para carregar dados da coleta
     function carregarDadosColeta() {
@@ -320,13 +485,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Fazer requisição AJAX para buscar dados da coleta
         fetch(`${baseUrl}/${coletaId}/pecas`)
             .then(response => response.json())
             .then(data => {
                 coletaAtual = data.coleta;
 
-                // Atualizar informações da coleta no card principal
                 const coletaOption = coletaSelect.options[coletaSelect.selectedIndex];
                 const estabelecimento = coletaOption.dataset.estabelecimento;
 
@@ -351,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
 
-                // Atualizar informações da coleta para pesagem
                 let infoPesagem = '';
                 if (data.coleta.peso_total > 0) {
                     infoPesagem = `<strong>Peso da Coleta:</strong> ${data.coleta.peso_total} kg`;
@@ -368,8 +530,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 infoColeta.classList.remove('hidden');
                 infoColetaPesagem.style.display = 'block';
 
-                // Calcular diferença inicial
-                calcularDiferencaPesoTotal();
+                calcularTotais();
             })
             .catch(error => {
                 console.error('Erro ao carregar dados da coleta:', error);
@@ -377,14 +538,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // Event listeners
     coletaSelect.addEventListener('change', carregarDadosColeta);
-    pesoInput.addEventListener('input', calcularDiferencaPesoTotal);
 
-    // Carregar dados iniciais se houver coleta selecionada
     if (coletaSelect.value) {
         carregarDadosColeta();
     }
+    
+    // Calcular totais iniciais
+    calcularTotais();
 });
 </script>
 @endpush
