@@ -91,7 +91,10 @@ class StatusSeeder extends Seeder
         ];
 
         foreach ($status as $item) {
-            Status::create($item);
+            Status::updateOrCreate(
+                ['nome' => $item['nome'], 'tipo' => $item['tipo']], // Busca por nome e tipo
+                $item // Atualiza ou cria com esses dados
+            );
         }
     }
 }

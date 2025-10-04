@@ -16,15 +16,23 @@ class UsuarioAdminSeeder extends Seeder
     {
         $nivelAdmin = NivelAcesso::where('nome', 'Administrador')->first();
         
-        Usuario::create([
-            'nome' => 'Administrador do Sistema',
-            'email' => 'admin@lavanderia.com',
-            'password' => Hash::make('admin123'),
-            'telefone' => '(11) 99999-9999',
-            'cpf' => '000.000.000-00',
-            'nivel_acesso_id' => $nivelAdmin->id,
-            'ativo' => true,
-            'email_verified_at' => now()
-        ]);
+        if (!$nivelAdmin) {
+            $this->command->error('Nível de acesso Administrador não encontrado. Execute NiveisAcessoSeeder primeiro.');
+            return;
+        }
+        
+        Usuario::updateOrCreate(
+            ['email' => 'admin@lavanderia.com'], // Busca por email
+            [
+                'nome' => 'Administrador do Sistema',
+                'email' => 'admin@lavanderia.com',
+                'password' => Hash::make('admin123'),
+                'telefone' => '(11) 99999-9999',
+                'cpf' => '000.000.000-00',
+                'nivel_acesso_id' => $nivelAdmin->id,
+                'ativo' => true,
+                'email_verified_at' => now()
+            ]
+        );
     }
 }

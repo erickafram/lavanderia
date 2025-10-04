@@ -22,7 +22,7 @@ class EmpacotamentoSeeder extends Seeder
         $statusTransito = Status::where('nome', 'Em Trânsito')->first();
         $statusEntregue = Status::where('nome', 'Entregue')->first();
         $operador = Usuario::whereHas('nivelAcesso', function($q) {
-            $q->where('nome', 'Operador');
+            $q->whereIn('nome', ['Gestor', 'Empacotamento']);
         })->first();
         $motorista = Usuario::whereHas('nivelAcesso', function($q) {
             $q->where('nome', 'Motorista');

@@ -83,9 +83,16 @@
                 <!-- Menu Principal -->
                 <div class="flex-1 px-4 py-6 overflow-y-auto bg-white">
                     <div class="space-y-3">
+                        @php
+                            $nivelAcesso = auth()->user()->nivelAcesso->nome ?? null;
+                            $isAdmin = in_array($nivelAcesso, ['Administrador', 'Gestor']);
+                            $isMotorista = $nivelAcesso === 'Motorista';
+                            $isPesagem = $nivelAcesso === 'Pesagem';
+                            $isEmpacotamento = $nivelAcesso === 'Empacotamento';
+                        @endphp
 
-                        <!-- Dashboard - Não mostrar para motoristas -->
-                        @if(!auth()->user()->nivelAcesso || auth()->user()->nivelAcesso->nome !== 'Motorista')
+                        <!-- Dashboard e Acompanhamento - Apenas Admin e Gestor -->
+                        @if($isAdmin)
                         <div class="mb-6">
                             <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Principal</h3>
                             <div class="space-y-1">
@@ -117,12 +124,18 @@
                         </div>
                         @endif
 
-                        <!-- Operações - Não mostrar para motoristas -->
-                        @if(!auth()->user()->nivelAcesso || auth()->user()->nivelAcesso->nome !== 'Motorista')
+                        <!-- Operações -->
                         <div class="mb-6">
-                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">Operações</h3>
+                            <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                                @if($isMotorista) Minhas Operações
+                                @elseif($isPesagem) Pesagem
+                                @elseif($isEmpacotamento) Empacotamento
+                                @else Operações
+                                @endif
+                            </h3>
                             <div class="space-y-1">
-                                @if(auth()->user()->temPermissao('estabelecimentos.visualizar'))
+                                <!-- Estabelecimentos - Apenas Admin e Gestor -->
+                                @if($isAdmin && auth()->user()->temPermissao('estabelecimentos.visualizar'))
                                 <a href="{{ route('estabelecimentos.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('estabelecimentos.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('estabelecimentos.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200' }} transition-colors duration-200">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,8 +149,8 @@
                                 </a>
                                 @endif
 
-                                @if(auth()->user()->temPermissao('coletas.visualizar'))
-                                <!-- Menu Coletas -->
+                                <!-- Coletas - Admin, Gestor, Motorista e Pesagem -->
+                                @if(($isAdmin || $isMotorista || $isPesagem) && auth()->user()->temPermissao('coletas.visualizar'))
                                 <a href="{{ route('coletas.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('coletas.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200' }} transition-colors duration-200">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +164,8 @@
                                 </a>
                                 @endif
 
-                                @if(auth()->user()->temPermissao('pesagem.visualizar'))
+                                <!-- Pesagem - Admin, Gestor e Pesagem -->
+                                @if(($isAdmin || $isPesagem) && auth()->user()->temPermissao('pesagem.visualizar'))
                                 <a href="{{ route('pesagem.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('pesagem.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('pesagem.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -168,7 +182,8 @@
                                 </a>
                                 @endif
 
-                                @if(auth()->user()->temPermissao('empacotamento.visualizar'))
+                                <!-- Empacotamento - Admin, Gestor e Empacotamento -->
+                                @if(($isAdmin || $isEmpacotamento) && auth()->user()->temPermissao('empacotamento.visualizar'))
                                 <a href="{{ route('empacotamento.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('empacotamento.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('empacotamento.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,16 +200,17 @@
                                 </a>
                                 @endif
 
-                                @if(auth()->user()->temPermissao('motorista.visualizar'))
+                                <!-- Entregas - Admin, Gestor e Motorista -->
+                                @if(($isAdmin || $isMotorista) && auth()->user()->temPermissao('motorista.visualizar'))
                                 <a href="{{ route('motorista.dashboard') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('motorista.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('motorista.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                                         </svg>
                                     </div>
                                     <div class="ml-4">
-                                        <p class="font-semibold text-sm">Motorista</p>
-                                        <p class="text-xs text-gray-500">Entregas e QR Code</p>
+                                        <p class="font-semibold text-sm">Entregas</p>
+                                        <p class="text-xs text-gray-500">Gestão de entregas</p>
                                     </div>
                                     @if(request()->routeIs('motorista.*'))
                                     <div class="ml-auto w-2 h-2 bg-green-600 rounded-full"></div>
@@ -203,28 +219,6 @@
                                 @endif
                             </div>
                         </div>
-                        @endif
-
-                        <!-- Menu específico para Motoristas -->
-                        @if(auth()->user()->nivelAcesso && auth()->user()->nivelAcesso->nome === 'Motorista')
-                        <div class="mb-4">
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Entregas</h3>
-                            <a href="{{ route('motorista.dashboard') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('motorista.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('motorista.*') ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
-                                    </svg>
-                                </div>
-                                <div class="ml-4">
-                                    <p class="font-semibold text-sm">Dashboard</p>
-                                    <p class="text-xs text-gray-500">Gerenciar entregas</p>
-                                </div>
-                                @if(request()->routeIs('motorista.*'))
-                                <div class="ml-auto w-2 h-2 bg-green-600 rounded-full"></div>
-                                @endif
-                            </a>
-                        </div>
-                        @endif
 
 
 

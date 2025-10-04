@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>@yield('title', 'Dashboard do Motorista - Lavanderia')</title>
+    <title>@yield('title', 'Entregas - Lavanderia')</title>
 
     <!-- TailwindCSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -78,25 +78,46 @@
                         </div>
                         <div>
                             <h2 class="text-lg font-bold text-gray-900">Lavanderia</h2>
-                            <p class="text-gray-500 text-xs">Dashboard do Motorista</p>
+                            <p class="text-gray-500 text-xs">Gestão de Entregas</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Menu do Motorista -->
                 <div class="flex-1 px-3 py-4 overflow-y-auto">
-                    <div class="space-y-2">
-                        <!-- Dashboard do Motorista -->
+                    <div class="space-y-4">
+                        @if(auth()->user()->temPermissao('coletas.visualizar'))
+                        <!-- Coletas -->
+                        <div class="mb-4" id="menu-coletas">
+                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Coletas</h3>
+                            <a href="{{ route('coletas.index') }}" class="group flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-green-50 text-green-700 border-r-2 border-green-600' : '' }}">
+                                <div class="flex items-center justify-center w-8 h-8 rounded-lg {{ request()->routeIs('coletas.*') ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium">Coletas</p>
+                                    <p class="text-xs text-gray-400 group-hover:text-gray-500">Registrar e acompanhar</p>
+                                </div>
+                                @if(request()->routeIs('coletas.*'))
+                                <div class="ml-auto w-2 h-2 bg-green-600 rounded-full"></div>
+                                @endif
+                            </a>
+                        </div>
+                        @endif
+
+                        <!-- Gestão de Entregas -->
                         <div class="mb-4">
                             <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Entregas</h3>
                             <a href="{{ route('motorista.dashboard') }}" class="group flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('motorista.dashboard') ? 'bg-green-50 text-green-700 border-r-2 border-green-600' : '' }}">
                                 <div class="flex items-center justify-center w-8 h-8 rounded-lg {{ request()->routeIs('motorista.dashboard') ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <p class="font-medium">Dashboard</p>
+                                    <p class="font-medium">Entregas</p>
                                     <p class="text-xs text-gray-400 group-hover:text-gray-500">Gerenciar entregas</p>
                                 </div>
                                 @if(request()->routeIs('motorista.dashboard'))

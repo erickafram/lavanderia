@@ -61,7 +61,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/logout', [AuthController::class, 'logoutGet'])->name('logout.redirect');
 
 // Rotas protegidas por autenticação
-Route::middleware(['auth', 'redirecionar.motorista'])->group(function () {
+Route::middleware(['auth', 'ensure.redirects'])->group(function () {
     
     // Dashboard/Painel
     Route::get('/painel', [PainelController::class, 'index'])->name('painel');

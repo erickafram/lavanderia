@@ -20,7 +20,7 @@ class ColetaSeeder extends Seeder
         $estabelecimentos = Estabelecimento::where('ativo', true)->get();
         $statusConcluida = Status::where('nome', 'Concluída')->first();
         $operador = Usuario::whereHas('nivelAcesso', function($q) {
-            $q->where('nome', 'Operador');
+            $q->whereIn('nome', ['Gestor', 'Pesagem']);
         })->first();
 
         if (!$estabelecimentos->count() || !$statusConcluida || !$operador) {

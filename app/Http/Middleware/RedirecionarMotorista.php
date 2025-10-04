@@ -15,31 +15,6 @@ class RedirecionarMotorista
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
-            return $next($request);
-        }
-
-        $usuario = auth()->user();
-
-        // Verifica se o usuário é motorista
-        if ($usuario->nivelAcesso && $usuario->nivelAcesso->nome === 'Motorista') {
-            // Lista de rotas permitidas para motoristas
-            $rotasPermitidas = [
-                'motorista.dashboard',
-                'motorista.buscar-empacotamento',
-                'motorista.confirmar-saida',
-                'motorista.confirmar-entrega',
-                'logout'
-            ];
-
-            $rotaAtual = $request->route()->getName();
-
-            // Se não está em uma rota permitida, redireciona para o dashboard do motorista
-            if (!in_array($rotaAtual, $rotasPermitidas)) {
-                return redirect()->route('motorista.dashboard');
-            }
-        }
-
         return $next($request);
     }
 }

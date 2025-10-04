@@ -70,6 +70,9 @@ class NiveisAcessoSeeder extends Seeder
                 'nome' => 'Motorista',
                 'descricao' => 'Acesso específico para confirmação de entregas',
                 'permissoes' => [
+                    'coletas.visualizar',
+                    'coletas.criar',
+                    'coletas.editar',
                     'empacotamento.visualizar',
                     'empacotamento.confirmar_entrega',
                     'motorista.visualizar',
@@ -92,7 +95,10 @@ class NiveisAcessoSeeder extends Seeder
         ];
 
         foreach ($niveis as $nivel) {
-            NivelAcesso::create($nivel);
+            NivelAcesso::updateOrCreate(
+                ['nome' => $nivel['nome']],
+                $nivel
+            );
         }
     }
 }

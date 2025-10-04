@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard do Motorista')
+@section('title', 'Gestão de Entregas')
 
 @section('content')
 <div class="container mx-auto px-4 py-6">
@@ -8,9 +8,9 @@
     <div class="mb-6">
         <h1 class="text-3xl font-bold text-gray-900 flex items-center">
             <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
             </svg>
-            Dashboard do Motorista
+            Gestão de Entregas
         </h1>
         <p class="text-gray-600 mt-2">Gerencie suas entregas e confirme recebimentos</p>
     </div>

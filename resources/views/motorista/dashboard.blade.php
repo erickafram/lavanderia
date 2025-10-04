@@ -1,6 +1,6 @@
 @extends(auth()->user()->nivelAcesso && auth()->user()->nivelAcesso->nome === 'Motorista' ? 'layouts.motorista' : 'layouts.app')
 
-@section('title', 'Dashboard do Motorista')
+@section('title', 'Gestão de Entregas')
 
 @push('styles')
 <style>
@@ -64,7 +64,7 @@
     <div class="mb-4">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div class="flex-1">
-                <h1 class="text-2xl font-bold text-gray-900">Dashboard do Motorista</h1>
+                <h1 class="text-2xl font-bold text-gray-900">Gestão de Entregas</h1>
                 <p class="text-gray-600 text-sm">Gerencie as sacolas individuais para entrega</p>
             </div>
             <div class="mt-3 sm:mt-0 sm:ml-4">

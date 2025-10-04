@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(auth()->user()->nivelAcesso && auth()->user()->nivelAcesso->nome === 'Motorista' ? 'layouts.motorista' : 'layouts.app')
 
 @section('title', 'Detalhes da Coleta - Sistema de Gestão de Lavanderia')
 

@@ -115,7 +115,10 @@ class TiposSeeder extends Seeder
         ];
 
         foreach ($tipos as $tipo) {
-            Tipo::create($tipo);
+            Tipo::updateOrCreate(
+                ['nome' => $tipo['nome']], // Busca por nome
+                $tipo // Atualiza ou cria com esses dados
+            );
         }
     }
 }

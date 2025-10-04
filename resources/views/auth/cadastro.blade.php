@@ -129,7 +129,8 @@
                                id="telefone"
                                name="telefone"
                                value="{{ old('telefone') }}"
-                               placeholder="(11) 99999-9999">
+                               placeholder="(11) 99999-9999"
+                               maxlength="15">
                         @error('telefone')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -148,7 +149,8 @@
                                id="cpf"
                                name="cpf"
                                value="{{ old('cpf') }}"
-                               placeholder="000.000.000-00">
+                               placeholder="000.000.000-00"
+                               maxlength="14">
                         @error('cpf')
                             <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -269,26 +271,47 @@
                 });
             });
 
-            // Máscara para CPF
+            // Máscara para CPF - Limita a 11 dígitos
             const cpfInput = document.getElementById('cpf');
             if (cpfInput) {
                 cpfInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                    value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                    value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                    e.target.value = value;
+                    let value = e.target.value.replace(/\D/g, ''); // Remove não numéricos
+                    
+                    // Limita a 11 dígitos
+                    value = value.substring(0, 11);
+                    
+                    // Aplica a máscara progressivamente
+                    if (value.length <= 3) {
+                        e.target.value = value;
+                    } else if (value.length <= 6) {
+                        e.target.value = value.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+                    } else if (value.length <= 9) {
+                        e.target.value = value.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+                    } else {
+                        e.target.value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+                    }
                 });
             }
 
-            // Máscara para telefone
+            // Máscara para telefone - Limita a 11 dígitos
             const telefoneInput = document.getElementById('telefone');
             if (telefoneInput) {
                 telefoneInput.addEventListener('input', function(e) {
-                    let value = e.target.value.replace(/\D/g, '');
-                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
-                    value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
-                    e.target.value = value;
+                    let value = e.target.value.replace(/\D/g, ''); // Remove não numéricos
+                    
+                    // Limita a 11 dígitos
+                    value = value.substring(0, 11);
+                    
+                    // Aplica a máscara progressivamente
+                    if (value.length <= 2) {
+                        e.target.value = value;
+                    } else if (value.length <= 6) {
+                        e.target.value = value.replace(/(\d{2})(\d{1,4})/, '($1) $2');
+                    } else if (value.length <= 10) {
+                        e.target.value = value.replace(/(\d{2})(\d{4})(\d{1,4})/, '($1) $2-$3');
+                    } else {
+                        e.target.value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                    }
                 });
             }
         });
