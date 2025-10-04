@@ -63,36 +63,36 @@
         </div>
 
         <!-- Sidebar -->
-        <nav id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-100 shadow-sm transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+        <nav id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-60 bg-white border-r border-gray-100 shadow-sm transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="flex flex-col h-full">
                 <!-- Logo -->
-                <div class="p-6 border-b border-gray-100">
-                    <div class="flex items-center space-x-3">
+                <div class="px-4 py-4 border-b border-gray-100">
+                    <div class="flex items-center space-x-2">
                         <div class="relative">
-                            <div class="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl flex items-center justify-center shadow-sm">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center shadow-sm">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
                                 </svg>
                             </div>
-                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+                            <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
                         </div>
                         <div>
-                            <h2 class="text-lg font-bold text-gray-900">Lavanderia</h2>
-                            <p class="text-gray-500 text-xs">Gestão de Entregas</p>
+                            <h2 class="text-base font-semibold text-gray-900 leading-tight">Lavanderia</h2>
+                            <p class="text-gray-500 text-[11px]">Gestão de Entregas</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Menu do Motorista -->
-                <div class="flex-1 px-3 py-4 overflow-y-auto">
-                    <div class="space-y-4">
+                <div class="flex-1 px-3 py-3 overflow-y-auto">
+                    <div class="space-y-3">
                         @if(auth()->user()->temPermissao('coletas.visualizar'))
                         <!-- Coletas -->
-                        <div class="mb-4" id="menu-coletas">
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Coletas</h3>
-                            <a href="{{ route('coletas.index') }}" class="group flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-green-50 text-green-700 border-r-2 border-green-600' : '' }}">
-                                <div class="flex items-center justify-center w-8 h-8 rounded-lg {{ request()->routeIs('coletas.*') ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="mb-3" id="menu-coletas">
+                            <h3 class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">Coletas</h3>
+                            <a href="{{ route('coletas.index') }}" class="group flex items-center px-2.5 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200 {{ request()->routeIs('coletas.*') ? 'bg-green-50 text-green-700 border-r-2 border-green-600' : '' }}">
+                                <div class="flex items-center justify-center w-7 h-7 rounded-lg {{ request()->routeIs('coletas.*') ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duração-200">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 </div>
