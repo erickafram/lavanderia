@@ -16,6 +16,25 @@
     </div>
 </div>
 
+@php
+    $tipoSelecionado = request('tipo_coleta', 'todas');
+    $acoesNovaColeta = [
+        'normal' => [
+            'rota' => 'coletas.create',
+            'label' => 'Nova Coleta',
+        ],
+        'desengoma' => [
+            'rota' => 'coletas.create-desengoma',
+            'label' => 'Nova Coleta de Desengoma',
+        ],
+        'relave' => [
+            'rota' => 'coletas.create-relave',
+            'label' => 'Nova Coleta de Relave',
+        ],
+    ];
+    $acaoPadrao = $acoesNovaColeta['normal'];
+    $acaoAtual = $acoesNovaColeta[$tipoSelecionado] ?? ($tipoSelecionado === 'todas' ? $acaoPadrao : $acaoPadrao);
+@endphp
 <!-- Header -->
 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
     <div>
@@ -28,12 +47,12 @@
         <p class="text-sm text-gray-600">Gerencie as coletas de roupas dos estabelecimentos</p>
     </div>
     <div class="flex gap-2 mt-3 sm:mt-0">
-        <a href="{{ route('coletas.create') }}"
+        <a href="{{ route($acaoAtual['rota']) }}"
            class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-xl transition-colors duration-200">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            Nova Coleta
+            {{ $acaoAtual['label'] }}
         </a>
     </div>
 </div>
@@ -227,12 +246,12 @@
                             <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhuma coleta encontrada</h3>
                             <p class="mt-1 text-sm text-gray-500">Comece agendando uma nova coleta.</p>
                             <div class="mt-6">
-                                <a href="{{ route('coletas.create') }}" 
+                                <a href="{{ route($acaoAtual['rota']) }}" 
                                    class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                     </svg>
-                                    Nova Coleta
+                                    {{ $acaoAtual['label'] }}
                                 </a>
                             </div>
                         </td>
@@ -290,12 +309,12 @@
             </svg>
             <h3 class="text-sm font-medium text-gray-900 mb-2">Nenhuma coleta encontrada</h3>
             <p class="text-sm text-gray-500 mb-4">Comece agendando uma nova coleta.</p>
-            <a href="{{ route('coletas.create') }}" 
+            <a href="{{ route($acaoAtual['rota']) }}" 
                class="inline-flex items-center px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                Nova Coleta
+                {{ $acaoAtual['label'] }}
             </a>
         </div>
     @endforelse
