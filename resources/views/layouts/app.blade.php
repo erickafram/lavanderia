@@ -422,9 +422,6 @@
         });
     </script>
 
-    <!-- Caixa de Anotações Flutuante -->
-    @include('components.notes-box')
-
     @stack('scripts')
 </body>
 </html>

@@ -8,36 +8,54 @@ use Illuminate\Http\Request;
 class TipoController extends Controller
 {
     /**
+     * Lista de categorias disponíveis
+     */
+    private function getCategorias()
+    {
+        return [
+            'roupa_cama' => 'Roupa de Cama',
+            'roupa_banho' => 'Roupa de Banho',
+            'vestuario' => 'Vestuário',
+            'mesa_copa' => 'Mesa e Copa',
+            'cortina' => 'Cortinas',
+            'hospitalar' => 'Hospitalar',
+            'hotelaria' => 'Hotelaria',
+            'restaurante' => 'Restaurante',
+            'uniforme' => 'Uniformes',
+            'epi' => 'EPI / Segurança',
+            'industrial' => 'Industrial',
+        ];
+    }
+
+    /**
+     * Lista de categorias para validação
+     */
+    private function getCategoriasKeys()
+    {
+        return implode(',', array_keys($this->getCategorias()));
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $query = Tipo::query();
 
-        // Filtro por categoria
         if ($request->filled('categoria')) {
             $query->where('categoria', $request->categoria);
         }
 
-        // Filtro por status
         if ($request->filled('status')) {
             $query->where('ativo', $request->status === 'ativo');
         }
 
-        // Busca por nome
         if ($request->filled('busca')) {
             $query->where('nome', 'like', '%' . $request->busca . '%');
         }
 
         $tipos = $query->orderBy('categoria')->orderBy('nome')->paginate(15);
-        
-        $categorias = [
-            'roupa_cama' => 'Roupa de Cama',
-            'roupa_banho' => 'Roupa de Banho',
-            'vestuario' => 'Vestuário',
-            'mesa_copa' => 'Mesa e Copa',
-            'cortina' => 'Cortinas',
-        ];
+        $categorias = $this->getCategorias();
 
         return view('tipos.index', compact('tipos', 'categorias'));
     }
@@ -47,14 +65,7 @@ class TipoController extends Controller
      */
     public function create()
     {
-        $categorias = [
-            'roupa_cama' => 'Roupa de Cama',
-            'roupa_banho' => 'Roupa de Banho',
-            'vestuario' => 'Vestuário',
-            'mesa_copa' => 'Mesa e Copa',
-            'cortina' => 'Cortinas',
-        ];
-
+        $categorias = $this->getCategorias();
         return view('tipos.create', compact('categorias'));
     }
 
@@ -66,7 +77,7 @@ class TipoController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255|unique:tipos,nome',
             'descricao' => 'nullable|string|max:500',
-            'categoria' => 'required|string|in:roupa_cama,roupa_banho,vestuario,mesa_copa,cortina',
+            'categoria' => 'required|string|in:' . $this->getCategoriasKeys(),
         ], [
             'nome.required' => 'O nome é obrigatório.',
             'nome.unique' => 'Já existe um tipo com este nome.',
@@ -91,14 +102,7 @@ class TipoController extends Controller
     public function edit($id)
     {
         $tipo = Tipo::findOrFail($id);
-        
-        $categorias = [
-            'roupa_cama' => 'Roupa de Cama',
-            'roupa_banho' => 'Roupa de Banho',
-            'vestuario' => 'Vestuário',
-            'mesa_copa' => 'Mesa e Copa',
-            'cortina' => 'Cortinas',
-        ];
+        $categorias = $this->getCategorias();
 
         return view('tipos.edit', compact('tipo', 'categorias'));
     }
@@ -113,7 +117,7 @@ class TipoController extends Controller
         $request->validate([
             'nome' => 'required|string|max:255|unique:tipos,nome,' . $id,
             'descricao' => 'nullable|string|max:500',
-            'categoria' => 'required|string|in:roupa_cama,roupa_banho,vestuario,mesa_copa,cortina',
+            'categoria' => 'required|string|in:' . $this->getCategoriasKeys(),
         ], [
             'nome.required' => 'O nome é obrigatório.',
             'nome.unique' => 'Já existe um tipo com este nome.',
@@ -138,7 +142,6 @@ class TipoController extends Controller
     {
         $tipo = Tipo::findOrFail($id);
 
-        // Verificar se há peças associadas
         if ($tipo->coletaPecas()->count() > 0) {
             return redirect()->route('tipos.index')
                 ->with('error', 'Não é possível excluir este tipo pois há peças associadas.');
