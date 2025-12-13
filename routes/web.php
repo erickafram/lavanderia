@@ -15,6 +15,7 @@ use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\AcompanhamentoPublicoController;
+use App\Http\Controllers\TipoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -201,6 +202,17 @@ Route::middleware(['auth', 'ensure.redirects'])->group(function () {
         Route::put('/{id}', [UsuarioController::class, 'update'])->middleware(['nivel.acesso:usuarios.editar'])->name('update');
         Route::delete('/{id}', [UsuarioController::class, 'destroy'])->middleware(['nivel.acesso:usuarios.excluir'])->name('destroy');
         Route::post('/{id}/toggle-status', [UsuarioController::class, 'toggleStatus'])->middleware(['nivel.acesso:usuarios.editar'])->name('toggle-status');
+    });
+
+    // Tipos de Peças
+    Route::prefix('tipos')->name('tipos.')->middleware(['nivel.acesso:tipos.visualizar'])->group(function () {
+        Route::get('/', [TipoController::class, 'index'])->name('index');
+        Route::get('/cadastro', [TipoController::class, 'create'])->middleware(['nivel.acesso:tipos.criar'])->name('create');
+        Route::post('/cadastro', [TipoController::class, 'store'])->middleware(['nivel.acesso:tipos.criar'])->name('store');
+        Route::get('/{id}/editar', [TipoController::class, 'edit'])->middleware(['nivel.acesso:tipos.editar'])->name('edit');
+        Route::put('/{id}', [TipoController::class, 'update'])->middleware(['nivel.acesso:tipos.editar'])->name('update');
+        Route::delete('/{id}', [TipoController::class, 'destroy'])->middleware(['nivel.acesso:tipos.excluir'])->name('destroy');
+        Route::post('/{id}/toggle-status', [TipoController::class, 'toggleStatus'])->middleware(['nivel.acesso:tipos.editar'])->name('toggle-status');
     });
 
     // Entrega routes - Para motoristas com acesso às funcionalidades de entrega

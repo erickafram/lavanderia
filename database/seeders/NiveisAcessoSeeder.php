@@ -38,6 +38,7 @@ class NiveisAcessoSeeder extends Seeder
                     'motorista.visualizar',
                     'relatorios.visualizar',
                     'relatorios.exportar',
+                    'tipos.visualizar',
                     'tipos.criar',
                     'tipos.editar',
                     'tipos.excluir',

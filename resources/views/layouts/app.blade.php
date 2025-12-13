@@ -222,10 +222,27 @@
 
 
                         <!-- Administração -->
-                        @if(auth()->user()->temPermissao('usuarios.visualizar') || auth()->user()->temPermissao('relatorios.visualizar'))
+                        @if(auth()->user()->temPermissao('usuarios.visualizar') || auth()->user()->temPermissao('relatorios.visualizar') || auth()->user()->temPermissao('tipos.visualizar'))
                         <div class="mb-4">
                             <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-3">Administração</h3>
                             <div class="space-y-1">
+                                @if(auth()->user()->temPermissao('tipos.visualizar'))
+                                <a href="{{ route('tipos.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('tipos.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('tipos.*') ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <p class="font-semibold text-sm">Tipos de Peças</p>
+                                        <p class="text-xs text-gray-500">Gerenciar tipos</p>
+                                    </div>
+                                    @if(request()->routeIs('tipos.*'))
+                                    <div class="ml-auto w-2 h-2 bg-amber-600 rounded-full"></div>
+                                    @endif
+                                </a>
+                                @endif
+
                                 @if(auth()->user()->temPermissao('usuarios.visualizar'))
                                 <a href="{{ route('usuarios.index') }}" class="group flex items-center px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 {{ request()->routeIs('usuarios.*') ? 'bg-gray-100 text-gray-900 shadow-sm' : '' }}">
                                     <div class="flex items-center justify-center w-10 h-10 rounded-xl {{ request()->routeIs('usuarios.*') ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200' }} transition-colors duration-200">
