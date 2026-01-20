@@ -341,4 +341,41 @@ class Coleta extends Model
     {
         return $this->data_prazo_entrega !== null;
     }
+
+    /**
+     * Calcula o valor total da coleta baseado no tipo de precificação
+     */
+    public function getValorTotalAttribute()
+    {
+        if (!$this->estabelecimento) {
+            return 0;
+        }
+
+        $estabelecimento = $this->estabelecimento;
+
+        // Se for por peso, calcula baseado nas pesagens
+        if ($estabelecimento->tipo_precificacao === 'peso') {
+            $pesoTotal = $this->pesagens()->sum('peso');
+            return $pesoTotal * $estabelecimento->preco_kg;
+        }
+
+        // Se for por peça, calcula baseado no empacotamento
+        if ($estabelecimento->tipo_precificacao === 'peca') {
+            $empacotamento = $this->empacotamento;
+            if ($empacotamento) {
+                $totalPecas = $empacotamento->pecasIndividuais()->sum('quantidade');
+                return $totalPecas * $estabelecimento->preco_peca;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Retorna o valor total formatado
+     */
+    public function getValorTotalFormatadoAttribute()
+    {
+        return 'R$ ' . number_format($this->valor_total, 2, ',', '.');
+    }
 }

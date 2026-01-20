@@ -172,7 +172,7 @@ class ColetaController extends Controller
                 'data_prazo_entrega' => $dataPrazoEntrega,
             ]);
 
-            return redirect()->route('coletas.index')
+            return redirect()->route('coletas.show', $coleta->id)
                            ->with('success', $mensagemSucesso);
 
         } catch (\Exception $e) {
@@ -421,7 +421,15 @@ class ColetaController extends Controller
         $coleta = Coleta::with(['estabelecimento', 'usuario', 'status', 'pecas.tipo'])
                        ->findOrFail($id);
 
-        return response()->json($coleta);
+        // Garantir que os campos de preço estão sendo retornados
+        if ($coleta->estabelecimento) {
+            $coleta->estabelecimento->makeVisible(['tipo_precificacao', 'preco_kg', 'preco_peca']);
+        }
+
+        return response()->json([
+            'coleta' => $coleta,
+            'estabelecimento' => $coleta->estabelecimento
+        ]);
     }
 
     /**

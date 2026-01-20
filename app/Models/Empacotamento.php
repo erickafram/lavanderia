@@ -384,4 +384,32 @@ class Empacotamento extends Model
     {
         return !$this->quantidadeEmpacotadaCompleta();
     }
+
+    /**
+     * Calcula o valor total do empacotamento quando for por peça
+     */
+    public function getValorCalculadoAttribute()
+    {
+        if (!$this->coleta || !$this->coleta->estabelecimento) {
+            return 0;
+        }
+
+        $estabelecimento = $this->coleta->estabelecimento;
+
+        // Só calcula se for por peça (no empacotamento)
+        if ($estabelecimento->tipo_precificacao === 'peca') {
+            $totalPecas = $this->pecasIndividuais()->sum('quantidade');
+            return $totalPecas * $estabelecimento->preco_peca;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Retorna o valor formatado
+     */
+    public function getValorFormatadoAttribute()
+    {
+        return 'R$ ' . number_format($this->valor_calculado, 2, ',', '.');
+    }
 }

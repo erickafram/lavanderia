@@ -120,6 +120,40 @@ class EstabelecimentoController extends Controller
     }
 
     /**
+     * Mostrar formulário de configuração de preços
+     */
+    public function editPrecos($id)
+    {
+        $estabelecimento = Estabelecimento::findOrFail($id);
+        
+        return view('estabelecimentos.precos', compact('estabelecimento'));
+    }
+
+    /**
+     * Atualizar preços do estabelecimento
+     */
+    public function updatePrecos(Request $request, $id)
+    {
+        $estabelecimento = Estabelecimento::findOrFail($id);
+
+        $request->validate([
+            'tipo_precificacao' => 'required|in:peso,peca',
+            'preco_kg' => 'nullable|numeric|min:0',
+            'preco_peca' => 'nullable|numeric|min:0',
+        ]);
+
+        $estabelecimento->update([
+            'tipo_precificacao' => $request->tipo_precificacao,
+            'preco_kg' => $request->preco_kg ?? 0,
+            'preco_peca' => $request->preco_peca ?? 0,
+            'observacoes_preco' => $request->observacoes_preco,
+        ]);
+
+        return redirect()->route('estabelecimentos.show', $estabelecimento->id)
+            ->with('success', 'Preços atualizados com sucesso!');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      */
     public function edit($id)

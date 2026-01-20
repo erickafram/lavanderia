@@ -26,13 +26,19 @@ class Estabelecimento extends Model
         'emails',
         'contatos_responsaveis',
         'observacoes',
-        'ativo'
+        'ativo',
+        'tipo_precificacao',
+        'preco_kg',
+        'preco_peca',
+        'observacoes_preco',
     ];
 
     protected $casts = [
         'emails' => 'array',
         'contatos_responsaveis' => 'array',
         'ativo' => 'boolean',
+        'preco_kg' => 'decimal:2',
+        'preco_peca' => 'decimal:2',
     ];
 
     /**

@@ -240,4 +240,36 @@ class Pesagem extends Model
 
         return (($this->peso - $pesoEsperado) / $pesoEsperado) * 100;
     }
+
+    /**
+     * Calcula o valor da pesagem baseado no preço do estabelecimento
+     */
+    public function getValorCalculadoAttribute()
+    {
+        if (!$this->coleta || !$this->coleta->estabelecimento) {
+            return 0;
+        }
+
+        $estabelecimento = $this->coleta->estabelecimento;
+
+        // Se for por peso
+        if ($estabelecimento->tipo_precificacao === 'peso') {
+            return $this->peso * $estabelecimento->preco_kg;
+        }
+
+        // Se for por peça
+        if ($estabelecimento->tipo_precificacao === 'peca') {
+            return $this->quantidade * $estabelecimento->preco_peca;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Retorna o valor formatado
+     */
+    public function getValorFormatadoAttribute()
+    {
+        return 'R$ ' . number_format($this->valor_calculado, 2, ',', '.');
+    }
 }

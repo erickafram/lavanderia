@@ -3,7 +3,7 @@
 @section('title', 'Detalhes do Empacotamento')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
@@ -194,6 +194,16 @@
                             <div class="text-sm text-gray-600">Valor Total</div>
                         </div>
                     </div>
+
+                    @if($empacotamento->coleta->estabelecimento && $empacotamento->coleta->estabelecimento->tipo_precificacao === 'peca')
+                    <div class="mt-4 p-4 bg-amber-50 border-2 border-amber-200 rounded-lg text-center">
+                        <div class="text-sm font-medium text-gray-700 mb-2">💰 Valor Calculado (Por Peça)</div>
+                        <div class="text-3xl font-bold text-amber-600">{{ $empacotamento->valor_formatado }}</div>
+                        <div class="text-sm text-gray-600 mt-2">
+                            {{ $empacotamento->pecasIndividuais->sum('quantidade') }} peças × R$ {{ number_format($empacotamento->coleta->estabelecimento->preco_peca, 2, ',', '.') }}/peça
+                        </div>
+                    </div>
+                    @endif
 
                     @if($empacotamento->coleta->estabelecimento->endereco)
                         <div class="mt-4 p-3 bg-gray-50 rounded-lg">

@@ -216,7 +216,11 @@
                         </tbody>
                     </table>
                     <div style="font-size: 5px; text-align: center;">
-                        Total: {{ $empacotamento->coleta->pecas->sum(function($p) { return $p->quantidade_empacotada > 0 ? $p->quantidade_empacotada : $p->quantidade; }) }} peças
+                        @if($empacotamento->coleta->estabelecimento && $empacotamento->coleta->estabelecimento->tipo_precificacao === 'peso')
+                            Peso: {{ number_format($empacotamento->coleta->pesagens->sum('peso'), 1, ',', '.') }} kg
+                        @else
+                            Total: {{ $empacotamento->coleta->pecas->sum(function($p) { return $p->quantidade_empacotada > 0 ? $p->quantidade_empacotada : $p->quantidade; }) }} peças
+                        @endif
                     </div>
                 @else
                     <div class="info-content">Sem peças</div>

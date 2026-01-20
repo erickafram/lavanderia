@@ -82,6 +82,10 @@ Route::middleware(['auth', 'ensure.redirects'])->group(function () {
         Route::put('/{id}', [EstabelecimentoController::class, 'update'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('update');
         Route::delete('/{id}', [EstabelecimentoController::class, 'destroy'])->middleware(['nivel.acesso:estabelecimentos.excluir'])->name('destroy');
         Route::post('/{id}/toggle-status', [EstabelecimentoController::class, 'toggleStatus'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('toggle-status');
+        
+        // Rotas de preços
+        Route::get('/{id}/precos', [EstabelecimentoController::class, 'editPrecos'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('precos');
+        Route::put('/{id}/precos', [EstabelecimentoController::class, 'updatePrecos'])->middleware(['nivel.acesso:estabelecimentos.editar'])->name('update-precos');
     });
 
     // Coletas

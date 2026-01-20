@@ -417,9 +417,24 @@ function calcularTotais() {
         quantidadeTotal += qtd;
     });
     
-    // Atualizar displays
+    // Atualizar displays principais
     document.getElementById('peso-total-geral').textContent = pesoTotal.toFixed(2) + ' kg';
     document.getElementById('quantidade-total-geral').textContent = quantidadeTotal;
+    
+    // Atualizar calculadora lateral
+    const calcPesoTotal = document.getElementById('calcPesoTotal');
+    const calcPesoUnitario = document.getElementById('calcPesoUnitario');
+    
+    if (calcPesoTotal) {
+        calcPesoTotal.textContent = pesoTotal.toFixed(2).replace('.', ',') + ' kg';
+    }
+    
+    if (calcPesoUnitario && quantidadeTotal > 0) {
+        const pesoUnitario = pesoTotal / quantidadeTotal;
+        calcPesoUnitario.textContent = pesoUnitario.toFixed(2).replace('.', ',') + ' kg';
+    } else if (calcPesoUnitario) {
+        calcPesoUnitario.textContent = '0,00 kg';
+    }
     
     // Atualizar campos ocultos
     document.getElementById('peso').value = pesoTotal.toFixed(2);
@@ -427,6 +442,39 @@ function calcularTotais() {
     
     // Calcular diferença com a coleta
     calcularDiferencaPesoTotal(pesoTotal);
+    
+    // Calcular valor estimado
+    calcularValorEstimado(pesoTotal, quantidadeTotal);
+}
+
+// Função para calcular valor estimado
+function calcularValorEstimado(pesoTotal, quantidadeTotal) {
+    const valorDisplay = document.getElementById('calcValorEstimado');
+    if (!valorDisplay || !coletaAtual || !coletaAtual.estabelecimento) {
+        if (valorDisplay) valorDisplay.textContent = 'R$ 0,00';
+        return;
+    }
+
+    const estabelecimento = coletaAtual.estabelecimento;
+    let valorEstimado = 0;
+
+    console.log('Estabelecimento:', estabelecimento);
+    console.log('Tipo precificação:', estabelecimento.tipo_precificacao);
+    console.log('Preço kg:', estabelecimento.preco_kg);
+    console.log('Peso total:', pesoTotal);
+
+    // Só calcula valor se for por peso (na pesagem)
+    if (estabelecimento.tipo_precificacao === 'peso') {
+        valorEstimado = pesoTotal * parseFloat(estabelecimento.preco_kg || 0);
+        valorDisplay.textContent = 'R$ ' + valorEstimado.toFixed(2).replace('.', ',');
+        valorDisplay.classList.remove('text-gray-400');
+        valorDisplay.classList.add('text-green-600');
+    } else {
+        // Se for por peça, mostra mensagem
+        valorDisplay.textContent = 'No empacotamento';
+        valorDisplay.classList.remove('text-green-600');
+        valorDisplay.classList.add('text-gray-400');
+    }
 }
 
 // Função para calcular diferença de peso total
