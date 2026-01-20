@@ -252,17 +252,8 @@ class Pesagem extends Model
 
         $estabelecimento = $this->coleta->estabelecimento;
 
-        // Se for por peso
-        if ($estabelecimento->tipo_precificacao === 'peso') {
-            return $this->peso * $estabelecimento->preco_kg;
-        }
-
-        // Se for por peça
-        if ($estabelecimento->tipo_precificacao === 'peca') {
-            return $this->quantidade * $estabelecimento->preco_peca;
-        }
-
-        return 0;
+        // Para pesagem, sempre usar preço por kg
+        return $this->peso * $estabelecimento->preco_kg;
     }
 
     /**

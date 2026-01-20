@@ -3,7 +3,7 @@
 @section('title', 'Usuários - Sistema de Gestão de Lavanderia')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-8xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">

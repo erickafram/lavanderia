@@ -22,6 +22,7 @@ class Coleta extends Model
         'acompanhante',
         'motivo_cancelamento',
         'peso_total',
+        'valor_total',
         'numero_coleta',
         'tipo_coleta',
         'data_prazo_entrega'
@@ -32,6 +33,7 @@ class Coleta extends Model
         'data_coleta' => 'datetime',
         'data_conclusao' => 'datetime',
         'peso_total' => 'decimal:2',
+        'valor_total' => 'decimal:2',
         'data_prazo_entrega' => 'date'
     ];
 
@@ -127,15 +129,38 @@ class Coleta extends Model
     }
 
     /**
-     * Calcula os totais da coleta baseado nas peças
+     * Calcula os totais da coleta baseado nas peças e pesagens
      */
     public function calcularTotais()
     {
-        $pesoTotal = $this->pecas->sum('peso');
+        // Carregar relacionamentos necessários
+        $this->load(['estabelecimento', 'pesagens']);
+        
+        // Calcular peso total (peças + pesagens)
+        $pesoTotalPecas = $this->pecas->sum('peso');
+        $pesoTotalPesagens = $this->pesagens->sum('peso');
+        $pesoTotal = $pesoTotalPecas + $pesoTotalPesagens;
+        
+        $valorTotal = 0;
+
+        // Calcular valor total baseado no tipo de precificação do estabelecimento
+        if ($this->estabelecimento) {
+            // Valor das peças
+            if ($this->estabelecimento->tipo_precificacao === 'peso') {
+                $valorTotal += $pesoTotalPecas * $this->estabelecimento->preco_kg;
+            } elseif ($this->estabelecimento->tipo_precificacao === 'peca') {
+                $quantidadeTotal = $this->pecas->sum('quantidade');
+                $valorTotal += $quantidadeTotal * $this->estabelecimento->preco_peca;
+            }
+            
+            // Valor das pesagens (sempre por peso)
+            $valorTotal += $pesoTotalPesagens * $this->estabelecimento->preco_kg;
+        }
 
         // Usar updateQuietly para evitar disparar eventos e loop infinito
         $this->updateQuietly([
             'peso_total' => $pesoTotal,
+            'valor_total' => $valorTotal,
         ]);
     }
 
@@ -344,31 +369,37 @@ class Coleta extends Model
 
     /**
      * Calcula o valor total da coleta baseado no tipo de precificação
+     * Agora usa o valor salvo no banco, calculado pelo método calcularTotais()
      */
-    public function getValorTotalAttribute()
+    public function getValorTotalAttribute($value)
     {
+        // Se há um valor salvo no banco, usar ele
+        if (isset($this->attributes['valor_total']) && $this->attributes['valor_total'] > 0) {
+            return $this->attributes['valor_total'];
+        }
+
+        // Caso contrário, calcular dinamicamente (fallback)
         if (!$this->estabelecimento) {
             return 0;
         }
 
         $estabelecimento = $this->estabelecimento;
+        $valorTotal = 0;
 
-        // Se for por peso, calcula baseado nas pesagens
+        // Valor das peças
         if ($estabelecimento->tipo_precificacao === 'peso') {
-            $pesoTotal = $this->pesagens()->sum('peso');
-            return $pesoTotal * $estabelecimento->preco_kg;
+            $pesoTotalPecas = $this->pecas()->sum('peso');
+            $valorTotal += $pesoTotalPecas * $estabelecimento->preco_kg;
+        } elseif ($estabelecimento->tipo_precificacao === 'peca') {
+            $quantidadeTotalPecas = $this->pecas()->sum('quantidade');
+            $valorTotal += $quantidadeTotalPecas * $estabelecimento->preco_peca;
         }
 
-        // Se for por peça, calcula baseado no empacotamento
-        if ($estabelecimento->tipo_precificacao === 'peca') {
-            $empacotamento = $this->empacotamento;
-            if ($empacotamento) {
-                $totalPecas = $empacotamento->pecasIndividuais()->sum('quantidade');
-                return $totalPecas * $estabelecimento->preco_peca;
-            }
-        }
+        // Valor das pesagens (sempre por peso)
+        $pesoTotalPesagens = $this->pesagens()->sum('peso');
+        $valorTotal += $pesoTotalPesagens * $estabelecimento->preco_kg;
 
-        return 0;
+        return $valorTotal;
     }
 
     /**
