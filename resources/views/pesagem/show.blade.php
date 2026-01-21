@@ -94,7 +94,7 @@
                         </div>
                     </div>
 
-                    @if($pesagem->coleta && $pesagem->coleta->estabelecimento && $pesagem->coleta->estabelecimento->tipo_precificacao === 'peso')
+                    @if($pesagem->coleta && $pesagem->coleta->estabelecimento && $pesagem->coleta->estabelecimento->preco_kg > 0)
                     <div class="mb-6">
                         <div class="text-center p-4 bg-amber-50 border-2 border-amber-200 rounded-lg">
                             <label class="block text-sm font-medium text-gray-700 mb-2">💰 Valor Calculado (Por Peso):</label>
@@ -200,20 +200,32 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Peso</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço/kg</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço Unitário</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($pesagem->coleta->pecas as $peca)
+                                    @php
+                                        $estabelecimento = $pesagem->coleta->estabelecimento;
+                                        if ($estabelecimento->tipo_precificacao === 'peso') {
+                                            $precoUnitario = $estabelecimento->preco_kg;
+                                            $subtotal = $peca->peso * $precoUnitario;
+                                            $precoLabel = 'kg';
+                                        } else {
+                                            $precoUnitario = $estabelecimento->preco_peca;
+                                            $subtotal = $peca->quantidade * $precoUnitario;
+                                            $precoLabel = 'peça';
+                                        }
+                                    @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {{ $peca->tipo ? $peca->tipo->nome : 'Tipo não definido' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $peca->quantidade }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ number_format($peca->peso, 2, ',', '.') }} kg</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">R$ {{ number_format($peca->preco_unitario ?? 0, 2, ',', '.') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R$ {{ number_format($peca->subtotal ?? 0, 2, ',', '.') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">R$ {{ number_format($precoUnitario, 2, ',', '.') }}/{{ $precoLabel }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">R$ {{ number_format($subtotal, 2, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -294,7 +306,32 @@
                     </h3>
                 </div>
                 <div class="p-4 space-y-3">
-                    @if($pesagem->tipo)
+                    @if($pesagem->coleta && $pesagem->coleta->estabelecimento && $pesagem->coleta->estabelecimento->preco_kg > 0)
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Valor Calculado:</span>
+                            <span class="text-lg font-bold text-green-600">
+                                {{ $pesagem->valor_formatado }}
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Preço por kg:</span>
+                            <span class="text-sm font-medium text-blue-600">R$ {{ number_format($pesagem->coleta->estabelecimento->preco_kg, 2, ',', '.') }}</span>
+                        </div>
+                        
+                        <div class="text-xs text-gray-500 text-center">
+                            {{ $pesagem->peso_formatado }} × R$ {{ number_format($pesagem->coleta->estabelecimento->preco_kg, 2, ',', '.') }}/kg
+                        </div>
+                        
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Tipo de Precificação:</span>
+                            <div class="mt-1">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Por Peso (kg) - Pesagem
+                                </span>
+                            </div>
+                        </div>
+                    @elseif($pesagem->tipo)
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium text-gray-700">Valor Estimado:</span>
                             <span class="text-lg font-bold text-green-600">

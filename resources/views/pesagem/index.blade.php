@@ -3,7 +3,7 @@
 @section('title', 'Pesagens')
 
 @section('content')
-<div class="max-w-7xl mx-auto">
+<div class="max-w-8xl mx-auto">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>

@@ -1,7 +1,9 @@
 cd /home/lavanderia/htdocs/212lavanderia.com.br/public/lavanderia
 git pull origin main
 
+php artisan migrate
 php artisan db:seed --class=NiveisAcessoSeeder
+
 
 
 php artisan config:clear
