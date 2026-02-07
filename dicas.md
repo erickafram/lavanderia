@@ -20,6 +20,17 @@ php artisan route:clear
 php artisan view:clear
 php artisan config:cache
 php artisan route:cache
+git pull origin main
+
+php artisan migrate
+php artisan db:seed --class=NiveisAcessoSeeder
+
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+php artisan config:cache
+php artisan route:cache
 
 logs
 # Ver logs do Laravel em tempo real

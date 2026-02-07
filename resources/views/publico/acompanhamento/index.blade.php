@@ -30,27 +30,29 @@
             </div>
 
             <!-- Estabelecimento Info -->
-            <div class="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 backdrop-blur-lg rounded-2xl p-4 border border-blue-200/30 animate-fade-in-delay">
-                <div class="flex items-center space-x-3">
+            <div class="mb-5 bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-lg rounded-xl p-3 border border-blue-200/30 animate-fade-in-delay">
+                <div class="flex items-center space-x-2">
                     <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
                         </div>
                     </div>
                     <div class="flex-1">
-                        <h3 class="text-sm font-bold text-gray-900 mb-1">🏢 Para Estabelecimentos</h3>
-                        <p class="text-xs text-gray-700 leading-relaxed">
-                            Digite seu <strong>CNPJ</strong> para ver todas as coletas do seu estabelecimento
+                        <h3 class="text-xs font-bold text-gray-900 mb-0.5 flex items-center">
+                            <span class="mr-1">🏢</span> Para Estabelecimentos
+                        </h3>
+                        <p class="text-[11px] text-gray-700 leading-relaxed">
+                            Digite seu <strong>CNPJ</strong> para ver todas as coletas
                         </p>
                     </div>
                 </div>
             </div>
 
             <!-- Search Form -->
-            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-slide-up">
-                <form method="POST" action="{{ route('acompanhamento.buscar') }}" class="space-y-6">
+            <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-6 border border-white/20 animate-slide-up">
+                <form method="POST" action="{{ route('acompanhamento.buscar') }}" class="space-y-5">
                     @csrf
 
                     <!-- Messages -->
@@ -77,10 +79,10 @@
                     @endif
 
                     <!-- Input Field -->
-                    <div class="space-y-3">
-                        <label for="busca" class="block text-sm font-semibold text-gray-900">
+                    <div class="space-y-2">
+                        <label for="busca" class="block text-xs font-semibold text-gray-900">
                             <span class="flex items-center">
-                                <svg class="w-4 h-4 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5 mr-1.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2m5 0h2a2 2 0 002-2V7a2 2 0 00-2-2h-2m-5 4h2.5m0 0L11 9m1.5 2L11 13"></path>
                                 </svg>
                                 CNPJ ou Número da Coleta
@@ -91,12 +93,12 @@
                                    id="busca" 
                                    name="busca" 
                                    value="{{ old('busca') }}"
-                                   class="w-full px-4 py-4 text-sm border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-gray-50/50 hover:bg-white group-hover:shadow-lg @error('busca') border-red-500 @enderror placeholder-gray-400"
+                                   class="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-gray-50/50 hover:bg-white group-hover:shadow-lg @error('busca') border-red-500 @enderror placeholder-gray-400"
                                    placeholder="Digite aqui para consultar..."
                                    required>
-                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
-                                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <div class="w-7 h-7 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                     </svg>
                                 </div>
@@ -114,9 +116,9 @@
 
                     <!-- Submit Button -->
                     <button type="submit" 
-                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-95">
+                            class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-95">
                         <span class="flex items-center justify-center space-x-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                             <span>Consultar Agora</span>
@@ -125,54 +127,75 @@
                 </form>
                 
                 <!-- Quick Info -->
-                <div class="mt-6 pt-6 border-t border-gray-200/50">
-                    <p class="text-center text-xs text-gray-500 mb-3">Formatos aceitos:</p>
-                    <div class="flex justify-center space-x-4">
-                        <div class="flex items-center space-x-2 bg-gray-100/60 rounded-full px-3 py-1">
-                            <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <span class="text-xs text-gray-700">CNPJ: 12.345.678/0001-90</span>
+                <div class="mt-5 pt-5 border-t border-gray-200/50">
+                    <p class="text-center text-[10px] text-gray-500 mb-2">Formatos aceitos:</p>
+                    <div class="flex justify-center space-x-3">
+                        <div class="flex items-center space-x-1.5 bg-gray-100/60 rounded-full px-2.5 py-1">
+                            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                            <span class="text-[10px] text-gray-700">CNPJ: 12.345.678/0001-90</span>
                         </div>
-                        <div class="flex items-center space-x-2 bg-gray-100/60 rounded-full px-3 py-1">
-                            <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                            <span class="text-xs text-gray-700">Coleta: COL-2024-001</span>
+                        <div class="flex items-center space-x-1.5 bg-gray-100/60 rounded-full px-2.5 py-1">
+                            <div class="w-1.5 h-1.5 bg-purple-500 rounded-full"></div>
+                            <span class="text-[10px] text-gray-700">Coleta: COL-2024-001</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Quick Stats -->
-            <div class="mt-8 grid grid-cols-3 gap-4 animate-fade-in-delay">
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
-                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mt-6 grid grid-cols-3 gap-3 animate-fade-in-delay">
+                <div class="bg-white/60 backdrop-blur-lg rounded-xl p-3 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
                     </div>
-                    <p class="text-xs font-semibold text-gray-900">Rápido</p>
-                    <p class="text-xs text-gray-600">Consulta instantânea</p>
+                    <p class="text-xs font-bold text-gray-900">Rápido</p>
+                    <p class="text-[10px] text-gray-600">Consulta instantânea</p>
                 </div>
                 
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
-                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                <div class="bg-white/60 backdrop-blur-lg rounded-xl p-3 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                         </svg>
                     </div>
-                    <p class="text-xs font-semibold text-gray-900">Seguro</p>
-                    <p class="text-xs text-gray-600">Dados protegidos</p>
+                    <p class="text-xs font-bold text-gray-900">Seguro</p>
+                    <p class="text-[10px] text-gray-600">Dados protegidos</p>
                 </div>
                 
-                <div class="bg-white/60 backdrop-blur-lg rounded-2xl p-4 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105">
-                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-white/60 backdrop-blur-lg rounded-xl p-3 text-center border border-white/20 hover:bg-white/80 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-md">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
-                    <p class="text-xs font-semibold text-gray-900">24/7</p>
-                    <p class="text-xs text-gray-600">Sempre disponível</p>
+                    <p class="text-xs font-bold text-gray-900">24/7</p>
+                    <p class="text-[10px] text-gray-600">Sempre disponível</p>
                 </div>
             </div>
 
+            <!-- Footer Info -->
+            <div class="mt-6 text-center animate-fade-in-delay">
+                <p class="text-xs text-gray-500">
+                    Precisa de ajuda? Entre em contato conosco
+                </p>
+                <div class="flex justify-center items-center space-x-4 mt-2">
+                    <a href="tel:+5511999999999" class="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                        <span>(11) 99999-9999</span>
+                    </a>
+                    <span class="text-gray-300">•</span>
+                    <a href="mailto:contato@212lavanderia.com.br" class="flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-700 transition-colors">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>contato@212lavanderia.com.br</span>
+                    </a>
+                </div>
+            </div>
 
         </div>
     </div>

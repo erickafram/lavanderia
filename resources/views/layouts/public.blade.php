@@ -42,27 +42,34 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Header Público - Clean Design -->
-    <header class="bg-white shadow-sm border-b border-gray-100">
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-6">
-                <div class="flex items-center space-x-4">
+            <div class="flex justify-between items-center py-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0h6m-6 0l-1 12a2 2 0 002 2h6a2 2 0 002-2L16 7"></path>
+                        </svg>
+                    </div>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight text-gray-900">212<span class="text-blue-600">lavanderia</span></h1>
-                        <p class="text-gray-600 text-sm">Serviços de lavanderia profissional</p>
+                        <h1 class="text-lg font-bold tracking-tight text-gray-900">
+                            212<span class="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">lavanderia</span>
+                        </h1>
+                        <p class="text-gray-600 text-[10px]">Acompanhamento de coletas</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="hidden md:flex items-center space-x-2 bg-green-50 rounded-full px-3 py-1 border border-green-100">
+                <div class="flex items-center space-x-3">
+                    <div class="hidden md:flex items-center space-x-1.5 bg-green-50 rounded-full px-2.5 py-1 border border-green-100">
                         <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium text-green-700">Ativo</span>
+                        <span class="text-[10px] font-medium text-green-700">Online</span>
                     </div>
                     <a href="{{ route('login') }}" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md transition-all duration-300 font-medium shadow-sm hover:shadow-md text-xs">
-                        <span class="flex items-center space-x-1">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg transition-all duration-300 font-medium shadow-md hover:shadow-lg text-xs transform hover:scale-105 active:scale-95">
+                        <span class="flex items-center space-x-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
                             </svg>
-                            <span>Sistema</span>
+                            <span>Login</span>
                         </span>
                     </a>
                 </div>
